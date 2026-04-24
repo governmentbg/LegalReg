@@ -1,0 +1,587 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="jakarta.faces.html"
+                xmlns:f="jakarta.faces.core"
+                xmlns:ui="jakarta.faces.facelets"
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:ibg="jakarta.faces.composite/components"
+                template="/template/template.xhtml">
+
+    <ui:define name="metadata">
+        <f:metadata>
+            <f:importConstants type="com.ib.urireg.system.UriregConstants"/>
+            <f:viewAction action="#{userData.checkReloadPage}" onPostback="false"/>
+        </f:metadata>
+    </ui:define>
+    <ui:define name="title">Търсене на досиета</ui:define>
+
+    <ui:define name="head">
+        <style>
+            .visited-btn {
+                background-color: #1f4b99 !important;
+                border-color: #163b73 !important;
+                color: #ffffff !important;
+            }
+        </style>
+    </ui:define>
+
+    <ui:define name="viewname">
+
+        <li>
+            <p:commandLink title="#{ui_labels['general.back']}" action="#{navigation.goBack()}"
+                           rendered="#{navigation.navPath.size()>1}">
+                <i class="fas fa-caret-left"/>
+            </p:commandLink>
+        </li>
+        <li>Търсене на досиета</li>
+    </ui:define>
+
+    <ui:define name="content">
+        <h:form>
+            <p:defaultCommand target="searchBtn"/>
+            <div class="container">
+                <h:panelGroup id="panelFilter">
+                    <div class="card">
+                        <div class="grid">
+
+                            <div class="col-12 sm:col-12 md:col-3 lg:col-3 xl:col-3 ui-fluid">
+                                <h:outputText value="#{labels['dossier.egnLnch']}" styleClass="form-label"/>
+                                <p:inputText id="egn" value="#{dossierFilterList.dossSearch.egnlnc}"/>
+                            </div>
+
+                            <div class="col-12 sm:col-12 md:col-3 lg:col-3 xl:col-3  ui-fluid">
+                                <h:outputText value="#{labels['dossier.imena']}" styleClass="form-label"/>
+                                <p:inputText id="imena" value="#{dossierFilterList.dossSearch.names}"/>
+                            </div>
+
+                            <div class="col-12 sm:col-6 md:col-3 lg:col-3 xl:col-3  ui-fluid">
+                                <h:outputText value="#{labels['dossier.status']}" styleClass="form-label"/>
+                                <p:selectOneMenu id="statusLice" value="#{dossierFilterList.dossSearch.status}" height="310">
+                                    <f:selectItem value="#{null}" itemValue="#{null}"/>
+                                    <f:selectItems
+                                            value="#{systemData.getSysClassification(UriregConstants.CODE_CLASSIF_LICE_STATUS, null, dossierFilterList.currentLang)}"
+                                            var="statusDoss" itemLabel="#{statusDoss.tekst}"
+                                            itemValue="#{statusDoss.code}"/>
+                                </p:selectOneMenu>
+                            </div>
+
+                            <div class="col-12 sm:col-6 md:col-3 lg:col-3 xl:col-3 ui-fluid" style="margin-top:25px;">
+                                <p:selectOneRadio id="line" value="#{dossierFilterList.dossSearch.bezUdost}"
+                                                  layout="lineDirection" styleClass="form-label">
+                                    <f:selectItem itemLabel="#{labels['dossier.vsichki']}" itemValue="#{null}"/>
+                                    <f:selectItem itemLabel="#{labels['dossier.bezUp']}" itemValue="#{true}"/>
+                                    <f:selectItem itemLabel="#{labels['dossier.sUp']}" itemValue="#{false}"/>
+                                </p:selectOneRadio>
+                            </div>
+
+                            <div class="col-12">
+                                <p:commandLink class="extended-search-toggle"
+                                               onclick="toggleSection(this, '#event-extended')">
+                                    <h:outputText value="#{ui_labels['search.extend']}"/>
+                                    <em class="fas fa-caret-right"></em>
+                                </p:commandLink>
+                            </div>
+                        </div>
+
+                        <div class="grid extended-search" id="event-extended" style="display: none;">
+
+                            <div class="col-12 sm:col-6 md:col-3 lg:col-3  xl:col-3  ui-fluid">
+                                <h:outputText value="#{labels['dossier.zaqvStaj']}" styleClass="form-label"/>
+                                <div class="ui-inputgroup">
+                                    <p:inputText value="#{dossierFilterList.dossSearch.rnZaiavStaj}" id="nomZaiavStaj"/>
+                                    <p:selectBooleanButton id="zayStajEq"
+                                                           value="#{dossierFilterList.dossSearch.rnZaiavStajEQ}"
+                                                           onLabel="#{ui_labels['general.yes']}"
+                                                           offLabel="#{ui_labels['general.no']}"
+                                                           title="#{labels['dossier.zaqvSearchStaj']}"
+                                                           onIcon="fas fa-toggle-on"
+                                                           offIcon="fas fa-toggle-off"
+                                                           styleClass="inputgroup-button">
+                                        <p:ajax update="@this nomZayiavStaj" partialSubmit="true"
+                                                process="@this nomZaiavStaj"/>
+                                    </p:selectBooleanButton>
+                                </div>
+                            </div>
+
+                            <!--                    Номер на заявление за стаж-->
+                            <div class="col-12 sm:col-6 md:col-3 lg:col-3  xl:col-3  ui-fluid">
+                                <h:outputText value="#{labels['dossier.period']}" styleClass="form-label"/>
+                                <p:selectOneMenu id="periodZaqv" value="#{dossierFilterList.periodZaiavStaj}" title="#{labels['dossier.periodZaiavStaj']}">
+                                    <f:selectItem value="#{null}" itemValue="#{null}"/>
+                                    <f:selectItems
+                                            value="#{userContext.periodNoFuture}"/>
+                                    <p:ajax event="change" update="periodZaqv zaqvDataOt zaqvDataDo"
+                                            listener="#{dossierFilterList.changePeriod()}"/>
+                                </p:selectOneMenu>
+                            </div>
+
+                            <!--                    Дати от до-->
+                            <div class="col-12 sm:col-6 md:col-3 lg:col-2 xl:col-2  ui-fluid">
+                                <h:outputText value="#{ui_labels['general.dataOt']}" styleClass="form-label"/>
+                                <p:datePicker id="zaqvDataOt"
+                                              value="#{dossierFilterList.dossSearch.zaiavStajRegDateFrom}"
+                                              pattern="dd.MM.yyyy" mask="true" showOn="button" locale="bg"
+                                              showIcon="true" monthNavigator="true" yearNavigator="true">
+                                    <p:ajax event="change" update="periodZaqv"
+                                            listener="#{dossierFilterList.changePeriodStat('periodZaiavStaj')}"/>
+                                    <p:ajax event="dateSelect" update="periodZaqv"
+                                            listener="#{dossierFilterList.changePeriodStat('periodZaiavStaj')}"/>
+                                </p:datePicker>
+                            </div>
+
+                            <div class="col-12 sm:col-6 md:col-3 lg:col-2 xl:col-2  ui-fluid">
+                                <h:outputText value="#{ui_labels['general.dataDo']}" styleClass="form-label"/>
+                                <p:datePicker id="zaqvDataDo" value="#{dossierFilterList.dossSearch.zaiavStajRegDateTo}"
+                                              pattern="dd.MM.yyyy" mask="true" showOn="button" locale="bg"
+                                              showIcon="true" monthNavigator="true" yearNavigator="true">
+                                    <p:ajax event="change" update="periodZaqv"
+                                            listener="#{dossierFilterList.changePeriodStat('periodZaiavStaj')}"/>
+                                    <p:ajax event="dateSelect" update="periodZaqv"
+                                            listener="#{dossierFilterList.changePeriodStat('periodZaiavStaj')}"/>
+                                </p:datePicker>
+                            </div>
+
+                            <!--                    Номер на заповед за стаж-->
+                            <div class="col-12 sm:col-6 md:col-3 lg:col-3  xl:col-3  ui-fluid">
+                                <h:outputText value="#{labels['dossier.zapStaj']}" styleClass="form-label"/>
+                                <div class="ui-inputgroup">
+                                    <p:inputText value="#{dossierFilterList.dossSearch.rnZapStaj}" id="nomZapStaj"/>
+                                    <p:selectBooleanButton id="zapStajEq"
+                                                           value="#{dossierFilterList.dossSearch.rnZapStajEQ}"
+                                                           onLabel="#{ui_labels['general.yes']}"
+                                                           offLabel="#{ui_labels['general.no']}"
+                                                           title="#{labels['dossier.zapSearchStaj']}"
+                                                           onIcon="fas fa-toggle-on"
+                                                           offIcon="fas fa-toggle-off"
+                                                           styleClass="inputgroup-button">
+                                        <p:ajax update="@this nomZapStaj" partialSubmit="true"
+                                                process="@this nomZapStaj"/>
+                                    </p:selectBooleanButton>
+                                </div>
+                            </div>
+
+                            <div class="col-12 sm:col-6 md:col-3 lg:col-3  xl:col-3  ui-fluid">
+                                <h:outputText value="#{labels['dossier.period']}" styleClass="form-label"/>
+                                <p:selectOneMenu id="periodZapovedStaj" value="#{dossierFilterList.periodZapStaj}" title="#{labels['dossier.periodZapStaj']}">
+                                    <f:selectItem value="#{null}" itemValue="#{null}"/>
+                                    <f:selectItems
+                                            value="#{userContext.periodNoFuture}"/>
+                                    <p:ajax event="change" update="periodZapovedStaj zapStajDataOt zapStajDataDo"
+                                            listener="#{dossierFilterList.changePeriod()}"/>
+                                </p:selectOneMenu>
+                            </div>
+
+                            <!--                    Дати от до-->
+                            <div class="col-12 sm:col-6 md:col-3 lg:col-2 xl:col-2  ui-fluid">
+                                <h:outputText value="#{ui_labels['general.dataOt']}" styleClass="form-label"/>
+                                <p:datePicker id="zapStajDataOt"
+                                              value="#{dossierFilterList.dossSearch.zapStajRegDateFrom}"
+                                              pattern="dd.MM.yyyy" mask="true" showOn="button"
+                                              locale="bg" showIcon="true" monthNavigator="true" yearNavigator="true">
+                                    <p:ajax event="change" update="periodZapovedStaj"
+                                            listener="#{dossierFilterList.changePeriodStat('periodZapStaj')}"/>
+                                    <p:ajax event="dateSelect" update="periodZapovedStaj"
+                                            listener="#{dossierFilterList.changePeriodStat('periodZapStaj')}"/>
+                                </p:datePicker>
+                            </div>
+
+                            <div class="col-12 sm:col-6 md:col-3 lg:col-2 xl:col-2  ui-fluid">
+                                <h:outputText value="#{ui_labels['general.dataDo']}" styleClass="form-label"/>
+                                <p:datePicker id="zapStajDataDo"
+                                              value="#{dossierFilterList.dossSearch.zapStajRegDateTo}"
+                                              pattern="dd.MM.yyyy" mask="true" showOn="button"
+                                              locale="bg" showIcon="true" monthNavigator="true" yearNavigator="true">
+                                    <p:ajax event="change" update="periodZapovedStaj"
+                                            listener="#{dossierFilterList.changePeriodStat('periodZapStaj')}"/>
+                                    <p:ajax event="dateSelect" update="periodZapovedStaj"
+                                            listener="#{dossierFilterList.changePeriodStat('periodZapStaj')}"/>
+                                </p:datePicker>
+                            </div>
+
+                            <div class="col-12 sm:col-6 md:col-3 lg:col-3  xl:col-3  ui-fluid">
+                                <h:outputText value="#{labels['dossier.razpSud']}" styleClass="form-label"/>
+                                <ibg:selectOneModalA id="razpSud"
+                                                     update="@this"
+                                                     codeClassif="#{UriregConstants.CODE_CLASSIF_INSTITUTION}"
+                                                     selectedCode="#{dossierFilterList.dossSearch.osnInstitution}"
+                                                     emptyMessage="#{labels['docu.mestoEmptyMsg']}"
+                                                     saveStateTree="false" withBtnClear="true" compType="2"
+                                                     minQueryLength="3" styleAutoComp="" dopInfoAutoComp="true"/>
+                            </div>
+
+                            <!--                        Период на подаване на заявление за изпит-->
+                            <div class="col-12 sm:col-6 md:col-3 lg:col-3  xl:col-3  ui-fluid">
+                                <h:outputText value="#{labels['dossier.perZaqvIzp']}" styleClass="form-label"/>
+                                <p:selectOneMenu id="periodPodavaneIspit"
+                                                 value="#{dossierFilterList.periodPodavaneIspit}" title="#{labels['dossier.periodZaiavIzp']}">
+                                    <f:selectItem value="#{null}" itemValue="#{null}"/>
+                                    <f:selectItems
+                                            value="#{userContext.periodNoFuture}"/>
+                                    <p:ajax event="change" update="periodPodavaneIspit podIzpDataOt podIzpDataDo"
+                                            listener="#{dossierFilterList.changePeriod()}"/>
+                                </p:selectOneMenu>
+                            </div>
+
+                            <div class="col-12 sm:col-6 md:col-3 lg:col-2 xl:col-2  ui-fluid">
+                                <h:outputText value="#{ui_labels['general.dataOt']}" styleClass="form-label"/>
+                                <p:datePicker id="podIzpDataOt"
+                                              value="#{dossierFilterList.dossSearch.zaiavIzpPodDateFrom}"
+                                              pattern="dd.MM.yyyy" mask="true" showOn="button"
+                                              locale="bg" showIcon="true" monthNavigator="true" yearNavigator="true">
+                                    <p:ajax event="change" update="periodPodavaneIspit"
+                                            listener="#{dossierFilterList.changePeriodStat('periodPodavaneIspit')}"/>
+                                    <p:ajax event="dateSelect" update="periodPodavaneIspit"
+                                            listener="#{dossierFilterList.changePeriodStat('periodPodavaneIspit')}"/>
+                                </p:datePicker>
+                            </div>
+
+                            <div class="col-12 sm:col-6 md:col-3 lg:col-2 xl:col-2  ui-fluid">
+                                <h:outputText value="#{ui_labels['general.dataDo']}" styleClass="form-label"/>
+                                <p:datePicker id="podIzpDataDo"
+                                              value="#{dossierFilterList.dossSearch.zaiavIzpPodDateTo}"
+                                              pattern="dd.MM.yyyy" mask="true" showOn="button"
+                                              locale="bg" showIcon="true" monthNavigator="true" yearNavigator="true">
+                                    <p:ajax event="change" update="periodPodavaneIspit"
+                                            listener="#{dossierFilterList.changePeriodStat('periodPodavaneIspit')}"/>
+                                    <p:ajax event="dateSelect" update="periodPodavaneIspit"
+                                            listener="#{dossierFilterList.changePeriodStat('periodPodavaneIspit')}"/>
+                                </p:datePicker>
+                            </div>
+
+                            <!--                    Номер заявление за изпит-->
+                            <div class="col-12 sm:col-6 md:col-3 lg:col-3  xl:col-3  ui-fluid">
+                                <h:outputText value="#{labels['dossier.zaqvIzp']}" styleClass="form-label"/>
+                                <div class="ui-inputgroup">
+                                    <p:inputText value="#{dossierFilterList.dossSearch.rnZaiavIzp}" id="nomZaiavIspit"/>
+                                    <p:selectBooleanButton id="zaiavIzpEq"
+                                                           value="#{dossierFilterList.dossSearch.rnZaiavIzpEQ}"
+                                                           onLabel="#{ui_labels['general.yes']}"
+                                                           offLabel="#{ui_labels['general.no']}"
+                                                           title="#{labels['dossier.zaqvSearchIzp']}"
+                                                           onIcon="fas fa-toggle-on"
+                                                           offIcon="fas fa-toggle-off"
+                                                           styleClass="inputgroup-button">
+                                        <p:ajax update="@this nomZaiavIspit" partialSubmit="true"
+                                                process="@this nomZaiavIspit"/>
+                                    </p:selectBooleanButton>
+                                </div>
+                            </div>
+
+                            <div class="col-12 sm:col-6 md:col-3 lg:col-3  xl:col-3  ui-fluid">
+                                <h:outputText value="#{labels['dossier.period']}" styleClass="form-label"/>
+                                <p:selectOneMenu id="periodZaqvIspit" value="#{dossierFilterList.periodZaiavIzp}" title="#{labels['dossier.periodZaiavIzpMP']}">
+                                    <f:selectItem value="#{null}" itemValue="#{null}"/>
+                                    <f:selectItems
+                                            value="#{userContext.periodNoFuture}"/>
+                                    <p:ajax event="change" update="periodZaqvIspit zaqvIzpDataOt zaqvIzpDataDo"
+                                            listener="#{dossierFilterList.changePeriod()}"/>
+                                </p:selectOneMenu>
+                            </div>
+                            <!--                    Дати от до-->
+                            <div class="col-12 sm:col-6 md:col-3 lg:col-2 xl:col-2  ui-fluid">
+                                <h:outputText value="#{ui_labels['general.dataOt']}" styleClass="form-label"/>
+                                <p:datePicker id="zaqvIzpDataOt"
+                                              value="#{dossierFilterList.dossSearch.zaiavIzpRegDateFrom}"
+                                              pattern="dd.MM.yyyy" mask="true" showOn="button"
+                                              locale="bg" showIcon="true" monthNavigator="true" yearNavigator="true">
+                                    <p:ajax event="change" update="periodZaqvIspit"
+                                            listener="#{dossierFilterList.changePeriodStat('periodZaiavIzp')}"/>
+                                    <p:ajax event="dateSelect" update="periodZaqvIspit"
+                                            listener="#{dossierFilterList.changePeriodStat('periodZaiavIzp')}"/>
+                                </p:datePicker>
+                            </div>
+
+                            <div class="col-12 sm:col-6 md:col-3 lg:col-2 xl:col-2  ui-fluid">
+                                <h:outputText value="#{ui_labels['general.dataDo']}" styleClass="form-label"/>
+                                <p:datePicker id="zaqvIzpDataDo"
+                                              value="#{dossierFilterList.dossSearch.zaiavIzpRegDateTo}"
+                                              pattern="dd.MM.yyyy" mask="true" showOn="button"
+                                              locale="bg" showIcon="true" monthNavigator="true" yearNavigator="true">
+                                    <p:ajax event="change" update="periodZaqvIspit"
+                                            listener="#{dossierFilterList.changePeriodStat('periodZaiavIzp')}"/>
+                                    <p:ajax event="dateSelect" update="periodZaqvIspit"
+                                            listener="#{dossierFilterList.changePeriodStat('periodZaiavIzp')}"/>
+                                </p:datePicker>
+                            </div>
+
+                            <!--                        Номер на УД-->
+                            <div class="col-12 sm:col-6 md:col-3 lg:col-3  xl:col-3  ui-fluid">
+                                <h:outputText value="#{labels['dossier.nomUd']}" styleClass="form-label"/>
+                                <div class="ui-inputgroup">
+                                    <p:inputText value="#{dossierFilterList.dossSearch.rnUdost}" id="nomUD"/>
+                                    <p:selectBooleanButton id="nUdEq" value="#{dossierFilterList.dossSearch.rnUdostEQ}"
+                                                           onLabel="#{ui_labels['general.yes']}"
+                                                           offLabel="#{ui_labels['general.no']}"
+                                                           title="#{labels['dossier.udSearch']}"
+                                                           onIcon="fas fa-toggle-on"
+                                                           offIcon="fas fa-toggle-off"
+                                                           styleClass="inputgroup-button">
+                                        <p:ajax update="@this nomUD" partialSubmit="true" process="@this nomUD"/>
+                                    </p:selectBooleanButton>
+                                </div>
+                            </div>
+
+                            <div class="col-12 sm:col-6 md:col-3 lg:col-3  xl:col-3  ui-fluid">
+                                <h:outputText value="#{labels['dossier.period']}" styleClass="form-label"/>
+                                <p:selectOneMenu id="periodUd" value="#{dossierFilterList.periodUd}" title="#{labels['dossier.periodIzdUP']}">
+                                    <f:selectItem value="#{null}" itemValue="#{null}"/>
+                                    <f:selectItems
+                                            value="#{userContext.periodNoFuture}"/>
+                                    <p:ajax event="change" update="periodUd udDataOt udDataDo"
+                                            listener="#{dossierFilterList.changePeriod()}"/>
+                                </p:selectOneMenu>
+                            </div>
+                            <!--                    Дати от до-->
+                            <div class="col-12 sm:col-6 md:col-3 lg:col-2 xl:col-2  ui-fluid">
+                                <h:outputText value="#{ui_labels['general.dataOt']}" styleClass="form-label"/>
+                                <p:datePicker id="udDataOt" value="#{dossierFilterList.dossSearch.udostRegDateFrom}"
+                                              pattern="dd.MM.yyyy" mask="true" showOn="button"
+                                              locale="bg" showIcon="true" monthNavigator="true" yearNavigator="true">
+                                    <p:ajax event="change" update="periodUd"
+                                            listener="#{dossierFilterList.changePeriodStat('periodUd')}"/>
+                                    <p:ajax event="dateSelect" update="periodUd"
+                                            listener="#{dossierFilterList.changePeriodStat('periodUd')}"/>
+                                </p:datePicker>
+                            </div>
+
+                            <div class="col-12 sm:col-6 md:col-3 lg:col-2 xl:col-2  ui-fluid">
+                                <h:outputText value="#{ui_labels['general.dataDo']}" styleClass="form-label"/>
+                                <p:datePicker id="udDataDo" value="#{dossierFilterList.dossSearch.udostRegDateTo}"
+                                              pattern="dd.MM.yyyy" mask="true" showOn="button"
+                                              locale="bg" showIcon="true" monthNavigator="true" yearNavigator="true">
+                                    <p:ajax event="change" update="periodUd"
+                                            listener="#{dossierFilterList.changePeriodStat('periodUd')}"/>
+                                    <p:ajax event="dateSelect" update="periodUd"
+                                            listener="#{dossierFilterList.changePeriodStat('periodUd')}"/>
+                                </p:datePicker>
+                            </div>
+
+                            <div class="col-12 sm:col-6 md:col-3 lg:col-3  xl:col-3  ui-fluid">
+                                <h:outputText value="#{labels['dossier.universitet']}" styleClass="form-label"/>
+                                <ibg:selectOneModalA id="unibit"
+                                                     update="@this"
+                                                     codeClassif="#{UriregConstants.CODE_CLASSIF_UNIVERSITETI}"
+                                                     selectedCode="#{dossierFilterList.dossSearch.universitet}"
+                                                     emptyMessage="#{labels['docu.mestoEmptyMsg']}"
+                                                     saveStateTree="false" withBtnClear="true" compType="2"
+                                                     minQueryLength="3" styleAutoComp="" dopInfoAutoComp="true"/>
+                            </div>
+
+                            <div class="col-12 sm:col-6 md:col-3 lg:col-3  xl:col-3  ui-fluid">
+                                <h:outputText value="#{labels['dossier.nasMqsto']}" styleClass="form-label"/>
+                                <ibg:selectOneModalA id="addrEkatte"
+                                                     update="@this"
+                                                     codeClassif="#{UriregConstants.CODE_CLASSIF_EKATTE}"
+                                                     selectedCode="#{dossierFilterList.dossSearch.addrEkatte}"
+                                                     emptyMessage="#{labels['docu.mestoEmptyMsg']}"
+                                                     saveStateTree="false" withBtnClear="true" compType="2"
+                                                     minQueryLength="3" styleAutoComp="" dopInfoAutoComp="true"/>
+                            </div>
+
+                            <div class="col-12 sm:col-6 md:col-2 lg:col-2  xl:col-2  ui-fluid">
+                                <h:outputText value="#{labels['dossier.brojIzpiti']}" styleClass="form-label"/>
+                                <p:inputNumber id="broiIspiti" value="#{dossierFilterList.dossSearch.broiIzpit}"/>
+                            </div>
+
+                            <div class="col-12 sm:col-6 md:col-3 lg:col-3  xl:col-3  ui-fluid">
+                                <h:outputText value="#{labels['dossier.red']}" styleClass="form-label"/>
+
+                                <p:selectOneRadio id="redChoice" value="#{dossierFilterList.dossSearch.do2019}">
+                                    <f:selectItem itemLabel="#{ui_labels['general.da']}" itemValue="1"/>
+                                    <f:selectItem itemLabel="#{ui_labels['general.ne']}" itemValue="2"/>
+                                    <f:selectItem itemLabel="#{labels['dossier.vsichki']}" itemValue="#{null}"/>
+                                    <f:converter converterId="jakarta.faces.Integer"/>
+                                </p:selectOneRadio>
+                            </div>
+                        </div>
+
+
+                        <div class="filter-buttons">
+                            <p:commandButton id="searchBtn" icon="fas fa-search"
+                                             value="#{ui_labels['general.search']}"
+                                             title="#{ui_labels['general.titleSearch']}"
+                                             action="#{dossierFilterList.actionSearch()}"
+                                             update="resultTable"
+                                             styleClass="mr-3"/>
+
+
+                            <p:commandButton icon="fas fa-eraser" value="#{ui_labels['general.clear']}"
+                                             title="#{ui_labels['general.titleClear']}"
+                                             actionListener="#{dossierFilterList.actionClear()}" partialSubmit="true"
+                                             update="@this resultTable panelFilter"
+                                             styleClass="ui-button-warning"/>
+
+
+                        </div>
+
+                    </div>
+                </h:panelGroup>
+            </div>
+
+            <h:panelGroup id="resultTable" layout="block" styleClass="margin-top">
+                <h:panelGroup layout="block" styleClass="card">
+
+                    <div class="table-toolbar">
+                        <h:outputText
+                                value="#{ui_labels['general.reportResult']} #{dossierFilterList.dossierList.rowCount}"
+                                styleClass="form-label"/>
+                    </div>
+
+                    <p:dataTable id="table" value="#{dossierFilterList.dossierList}"
+                                 var="row" rowIndexVar="idx" emptyMessage="#{ui_labels['general.norows']}"
+                                 lazy="true" sortMode="single" reflow="true" allowUnsorting="true"
+                                 rows="15" rowsPerPageTemplate="5,15,20,25" paginatorPosition="bottom" paginator="true"
+                                 paginatorTemplate="{RowsPerPageDropdown} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {Exporters}"
+                                 scrollable="true" scrollWidth="inherit" responsiveLayout="scroll">
+
+                        <f:facet name="{Exporters}">
+                            <div style="float:left">
+                                <h:commandLink  rendered="#{dossierFilterList.dossierList.rowCount > 0}"
+                                        update="table" process="table" partialSubmit="true">
+                                    <h:graphicImage library="images" name="excel2.png"/>
+                                    <p:dataExporter type="xlsx" target="table" fileName="Досиета_#{dossierFilterList.getDocDateFormatted(dossierFilterList.getCurrentDate())}"
+                                                    postProcessor="#{dossierFilterList.postProcessXLSX}"/>
+                                </h:commandLink>
+                            </div>
+                        </f:facet>
+
+                        <p:columnGroup type="header" id="headerGroup">
+                            <p:row>
+                                <p:column rowspan="2" width="30"
+                                          headerText="#{ui_labels['general.No-symbol']}" styleClass="text-center"/>
+                                <p:column rowspan="2" width="40" exportable="false"/>
+                                <p:column rowspan="2" width="90" sortBy="#{row.a1}"
+                                          headerText="#{labels['dossier.egnLnch']}"/>
+                                <p:column colspan="3" width="300" headerText="#{labels['dossier.imena']}"
+                                          style="text-align: center"/>
+                                <p:column colspan="2" width="170" headerText="#{labels['dossier.stajZaiav']}"
+                                          style="text-align: center"/>
+                                <p:column colspan="2" width="190" headerText="#{labels['dossier.stajZap']}"
+                                          style="text-align: center"/>
+                                <p:column rowspan="2" width="180" sortBy="#{row.a10}"
+                                          headerText="#{labels['dossier.razpSud']}"/>
+                                <p:column colspan="3" width="375" headerText="#{labels['dossier.izpZaiav']}"
+                                          style="text-align: center"/>
+                                <p:column colspan="2" width="160" headerText="#{labels['dossier.ud']}"
+                                          style="text-align: center"/>
+                                <p:column rowspan="2" width="130" sortBy="#{row.a17}"
+                                          headerText="#{labels['dossier.status']}"/>
+                            </p:row>
+
+                            <p:row>
+                                <p:column headerText="#{labels['dossier.ime']}" sortBy="#{row.a18}" style="width:70px"/>
+                                <p:column headerText="#{labels['dossier.prezime']}" sortBy="#{row.a19}"
+                                          style="width:70px"/>
+                                <p:column headerText="#{labels['dossier.familiya']}" sortBy="#{row.a20}"
+                                          style="width:70px"/>
+
+<!--                                Заявление за стаж-->
+                                <p:column headerText="#{labels['dossier.nomer']}" sortBy="#{row.a5}"/>
+                                <p:column headerText="#{labels['dossier.data']}" sortBy="#{row.a6}" nullSortOrder="-1"/>
+
+<!--                                Заповед за стаж-->
+                                <p:column headerText="#{labels['dossier.nomer']}" sortBy="#{row.a8}"/>
+                                <p:column headerText="#{labels['dossier.data']}" sortBy="#{row.a9}"/>
+
+<!--                                Заявление за изпит-->
+                                <p:column headerText="#{labels['dossier.nomer']}" sortBy="#{row.a12}"/>
+                                <p:column headerText="#{labels['dossier.data']}" sortBy="#{row.a13}" style="text-align: center;"/>
+                                <p:column headerText="#{labels['dossier.podavZaiavIzp']}" sortBy="#{row.a21}"/>
+
+<!--                                Удостоверение-->
+                                <p:column headerText="#{labels['dossier.nomer']}" sortBy="#{row.a15}"/>
+                                <p:column headerText="#{labels['dossier.data']}" sortBy="#{row.a16}"/>
+                            </p:row>
+                        </p:columnGroup>
+
+
+                        <p:column>
+                            <h:outputText value="#{idx + 1}"/>
+                        </p:column>
+
+                        <p:column exportable="false">
+                            <p:commandButton icon="fas fa-edit"
+                                             action="#{dossierFilterList.actionGoto(row[0])}"
+                                             styleClass="#{dossierFilterList.isVisited(row[0]) ? 'visited-btn' : ''}"
+                                             ajax="false"
+                                             title="#{ui_labels['general.edit']}"/>
+
+                        </p:column>
+
+                        <p:column>
+                            &#160;<h:outputText value="#{not empty row[1] ? row[1] : (not empty row[2] ? row[2] : '')}"/>
+                        </p:column>
+
+                        <p:column>
+                            <h:outputText value="#{row[18]}"/>
+                        </p:column>
+
+                        <p:column>
+                            <h:outputText value="#{row[19]}"/>
+                        </p:column>
+
+                        <p:column>
+                            <h:outputText value="#{row[20]}"/>
+                        </p:column>
+
+                        <p:column>
+                            <h:outputText value="#{row[5]}"/>
+                        </p:column>
+
+                        <p:column>
+                            <h:outputText value="#{row[6]}">
+                                <f:convertDateTime pattern="dd.MM.yyyy" timeZone="#{dossierFilterList.timeZone}"/>
+                            </h:outputText>
+                        </p:column>
+
+                        <p:column>
+                            <h:outputText value="#{row[8]}"/>
+                        </p:column>
+
+                        <p:column>
+                            <h:outputText value="#{row[9]}">
+                                <f:convertDateTime pattern="dd.MM.yyyy" timeZone="#{dossierFilterList.timeZone}"/>
+                            </h:outputText>
+                        </p:column>
+
+                        <p:column>
+                            <h:outputText
+                                    value="#{systemData.decodeItem(UriregConstants.CODE_CLASSIF_INSTITUTION, row[10], dossierFilterList.currentLang, dossierFilterList.currentDate )}"/>
+                        </p:column>
+
+                        <p:column>
+                            <h:outputText value="#{row[12]}"/>
+                        </p:column>
+
+                        <p:column style="text-align: center">
+                            <h:outputText value="#{row[13]}">
+                                <f:convertDateTime pattern="dd.MM.yyyy" timeZone="#{dossierFilterList.timeZone}"/>
+                            </h:outputText>
+                        </p:column>
+
+                        <p:column>
+                            <h:outputText value="#{row[21]}">
+                                <f:convertDateTime pattern="dd.MM.yyyy" timeZone="#{dossierFilterList.timeZone}"/>
+                            </h:outputText>
+                        </p:column>
+
+                        <p:column>
+                            <h:outputText value="#{row[15]}"/>
+                        </p:column>
+
+                        <p:column>
+                            <h:outputText value="#{row[16]}">
+                                <f:convertDateTime pattern="dd.MM.yyyy" timeZone="#{dossierFilterList.timeZone}"/>
+                            </h:outputText>
+                        </p:column>
+
+                        <p:column>
+                            <h:outputText
+                                    value="#{systemData.decodeItem(UriregConstants.CODE_CLASSIF_LICE_STATUS, row[17], dossierFilterList.currentLang, dossierFilterList.currentDate)}"/>
+                        </p:column>
+
+                    </p:dataTable>
+                </h:panelGroup>
+            </h:panelGroup>
+        </h:form>
+    </ui:define>
+</ui:composition>

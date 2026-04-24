@@ -1,0 +1,231 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app version="6.0"
+         xmlns="https://jakarta.ee/xml/ns/jakartaee"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="https://jakarta.ee/xml/ns/jakartaee https://jakarta.ee/xml/ns/jakartaee/web-app_6_0.xsd">
+    <display-name>DocuWork</display-name>
+
+
+    <!-- С това, не е нужно да слагаме разширение на страниците (в браузъра)!!!-->
+    <context-param>
+        <param-name>jakarta.faces.AUTOMATIC_EXTENSIONLESS_MAPPING</param-name>
+        <param-value>true</param-value>
+    </context-param>
+    <!-- За да няма коментари по страниците (брои се за ecurity проблем) -->
+    <context-param>
+        <param-name>jakarta.faces.FACELETS_SKIP_COMMENTS</param-name>
+        <param-value>true</param-value>
+    </context-param>
+    <context-param>
+        <param-name>jakarta.faces.PROJECT_STAGE</param-name>
+        <param-value>${prop.projectStage}</param-value>
+    </context-param>
+    <context-param>
+        <param-name>javax.faces.FACELETS_REFRESH_PERIOD</param-name>
+        <param-value>${prop.faceletsRefreshPeriod}</param-value>
+    </context-param>
+    <context-param>
+        <param-name>jakarta.faces.STATE_SAVING_METHOD</param-name>
+        <param-value>server</param-value>
+    </context-param>
+    <context-param>
+        <param-name>primefaces.THEME</param-name>
+        <param-value>mirage-#{guestPreferences.theme}</param-value>
+    </context-param>
+    <context-param>
+        <param-name>primefaces.FONT_AWESOME</param-name>
+        <param-value>true</param-value>
+    </context-param>
+    <context-param>
+        <param-name>org.omnifaces.SOCKET_ENDPOINT_ENABLED</param-name>
+        <param-value>true</param-value>
+    </context-param>
+    <context-param>
+        <param-name>primefaces.PRIVATE_CAPTCHA_KEY</param-name>
+        <param-value>6LdSbREpAAAAAK7kyIdNvlXr2IRvZnVJiOQUrGdK</param-value>
+    </context-param>
+    <context-param>
+        <param-name>primefaces.PUBLIC_CAPTCHA_KEY</param-name>
+        <param-value>6LdSbREpAAAAAJ_me5yt1WWN3EuCMc5lZ1rM-NP1</param-value>
+    </context-param>
+    <!--<context-param>
+      <param-name>resteasy.preferJacksonOverJsonB</param-name>
+      <param-value>true</param-value>
+    </context-param>-->
+
+    <!-- Quartz start OLD Start -->
+   <!-- <servlet>
+        <servlet-name>QuartzInitializer</servlet-name>
+        <servlet-class>org.quartz.ee.servlet.QuartzInitializerServlet</servlet-class>
+        <init-param>
+            <param-name>config-file</param-name>
+            <param-value>urireg_quartz.properties</param-value>
+        </init-param>
+        <init-param>
+            <param-name>shutdown-on-unload</param-name>
+            <param-value>true</param-value>
+        </init-param>
+        <init-param>
+            <param-name>start-scheduler-on-load</param-name>
+            &lt;!&ndash; Сетва се в профила Development/Пroduction в pom.xml  &ndash;&gt;
+            <param-value>${quartz.start}</param-value>
+        </init-param>
+        <init-param>
+            <param-name>scheduler-context-servlet-context-key</param-name>
+            <param-value>servletContext</param-value>
+        </init-param>
+        <load-on-startup>1</load-on-startup>
+    </servlet>-->
+    <!-- Quartz start OLD End -->
+    <!-- Quartz start NEW Start -->
+    <context-param>
+        <param-name>quartz:config-file</param-name>
+        <param-value>urireg_quartz.properties</param-value>
+    </context-param>
+    <context-param>
+        <param-name>quartz:shutdown-on-unload</param-name>
+        <param-value>${quartz.start}</param-value>
+    </context-param>
+    <context-param>
+        <param-name>quartz:wait-on-shutdown</param-name>
+        <param-value>false</param-value>
+    </context-param>
+    <context-param>
+        <param-name>quartz:start-on-load</param-name>
+        <param-value>${quartz.start}</param-value>
+    </context-param>
+    <context-param>
+        <!--тази стойност е много важна. За момента търдо се ползва вjob за да се достъпи SystemData-ata от контекста.
+        Все още към 27,062023 не съм намерил как да се взема динамично . To be continue -->
+        <param-name>quartz:scheduler-context-servlet-context-key</param-name>
+        <param-value>servletContext</param-value>
+    </context-param>
+    <listener>
+        <listener-class>org.quartz.ee.servlet.QuartzInitializerListener
+        </listener-class>
+    </listener>
+
+    <listener>
+        <listener-class>com.ib.urireg.system.QuartzStartInitializationListener
+        </listener-class>
+    </listener>
+    <!-- Quartz start NEW End -->
+    <!-- Scanner servlet -->
+    <servlet>
+        <servlet-name>UploadScannerServlet</servlet-name>
+        <servlet-class>com.ib.indexui.fileupload.UploadScannerServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>UploadScannerServlet</servlet-name>
+        <url-pattern>/pages/uploadScannerServlet</url-pattern>
+    </servlet-mapping>
+
+    <!--Scanner servlet -->
+    <servlet>
+        <servlet-name>UploadScannerServletIB</servlet-name>
+        <servlet-class>com.ib.indexui.fileupload.UploadScannerServletIB</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>UploadScannerServletIB</servlet-name>
+        <url-pattern>/rest/uploadScannerServletIB</url-pattern>
+    </servlet-mapping>
+
+
+    <!-- Sign servlet -->
+    <servlet>
+        <servlet-name>UploadSignedFilesServlet</servlet-name>
+        <servlet-class>com.ib.indexui.fileupload.UploadSignedFilesServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>UploadSignedFilesServlet</servlet-name>
+        <url-pattern>/pages/uploadSignedFilesServlet</url-pattern>
+    </servlet-mapping>
+    <!-- Sign servlet no restrict.-->
+    <servlet>
+        <servlet-name>UploadSignedFilesServletTest</servlet-name>
+        <servlet-class>com.ib.indexui.fileupload.UploadSignedFilesServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>UploadSignedFilesServletTest</servlet-name>
+        <url-pattern>/rest/uploadSignedFilesServletTest</url-pattern>
+    </servlet-mapping>
+    <!-- download file servlet no restrict.-->
+    <servlet>
+        <servlet-name>downloadUnsignedFilesServletTest</servlet-name>
+        <servlet-class>com.ib.indexui.fileupload.ReadFilesServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>downloadUnsignedFilesServletTest</servlet-name>
+        <url-pattern>/rest/downloadUnsignedFilesServletTest</url-pattern>
+    </servlet-mapping>
+
+    <mime-mapping>
+        <extension>mjs</extension>
+        <mime-type>text/javascript</mime-type>
+    </mime-mapping>
+    <filter>
+        <filter-name>CharacterEncodingFilter</filter-name>
+        <filter-class>org.primefaces.webapp.filter.CharacterEncodingFilter</filter-class>
+        <init-param>
+            <param-name>encoding</param-name>
+            <param-value>UTF-8</param-value>
+        </init-param>
+        <init-param>
+            <param-name>forceEncoding</param-name>
+            <param-value>true</param-value>
+        </init-param>
+    </filter>
+    <filter-mapping>
+        <filter-name>CharacterEncodingFilter</filter-name>
+        <url-pattern>/*</url-pattern>
+    </filter-mapping>
+
+    <welcome-file-list>
+        <welcome-file>login</welcome-file>
+    </welcome-file-list>
+    <error-page>
+        <exception-type>jakarta.faces.application.ViewExpiredException</exception-type>
+        <location>/login?faces-redirect=true</location>
+    </error-page>
+
+
+    <servlet>
+        <servlet-name>FacesServlet</servlet-name>
+        <servlet-class>jakarta.faces.webapp.FacesServlet</servlet-class>
+        <load-on-startup>1</load-on-startup>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>FacesServlet</servlet-name>
+        <url-pattern>*.xhtml</url-pattern>
+    </servlet-mapping>
+    <!--  <filter>
+       <filter-name>NavigationFilter</filter-name>
+       <filter-class>com.ib.uriregeg.experimental.RequestNavFilter</filter-class>
+     </filter>
+     <filter-mapping>
+       <filter-name>NavigationFilter</filter-name>
+       <url-pattern>/pages/*</url-pattern>
+       <url-pattern>/login.xhtml</url-pattern>
+     </filter-mapping> -->
+    <session-config>
+        <session-timeout>30</session-timeout>
+    </session-config>
+    <listener>
+        <listener-class>com.ib.indexui.system.IndexHttpSessionListener</listener-class>
+    </listener>
+    <security-constraint>
+        <web-resource-collection>
+            <web-resource-name>Active users</web-resource-name>
+            <url-pattern>/pages/*</url-pattern>
+        </web-resource-collection>
+        <auth-constraint>
+            <role-name>**</role-name>
+        </auth-constraint>
+    </security-constraint>
+    <security-constraint>
+        <web-resource-collection>
+            <web-resource-name>Public REST endpoint</web-resource-name>
+            <url-pattern>/rest/*</url-pattern>
+        </web-resource-collection>
+    </security-constraint>
+</web-app>

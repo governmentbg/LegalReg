@@ -1,0 +1,185 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:ui="jakarta.faces.facelets"
+                xmlns:f="jakarta.faces.core"
+                xmlns:h="jakarta.faces.html"
+                xmlns:p="http://primefaces.org/ui"
+                template="/template/template.xhtml">
+
+    <ui:define name="title">#{navTexts['/pages/messagesFilterList.xhtml']}</ui:define>
+
+    <ui:define name="viewname">
+        <li>#{navTexts['/pages/messagesFilterList.xhtml']}</li>
+    </ui:define>
+
+
+    <ui:define name="metadata">
+        <f:metadata>
+            <f:importConstants type="com.ib.urireg.system.UriregConstants" />
+            <f:viewAction action="#{userData.checkPageAccess(212)}" onPostback="false" />
+        </f:metadata>
+    </ui:define>
+
+    <ui:define name="head">
+    </ui:define>
+
+    <ui:define name="content">
+        <h:form id="messFilterList"  enctype="multipart/form-data">
+
+            <p:remoteCommand name="onModalClosed" action="#{messagesFilterList.actionSearch}" update="resultTable" />
+
+            <ui:include src="messagesModalIncl.xhtml"/>
+
+            <div class="container #{guestPreferences.containerPosition}">
+                <h:panelGroup id="panelFilter">
+                    <div class="card">
+
+                        <div class="grid">
+
+                            <div  class="col-12 sm:col-12 md:col-6 lg:col-2 xl:col-2  ui-fluid">
+                                <h:outputText value="#{labels['messagesFilterList.vid']}" styleClass="form-label"/>
+                                <p:selectOneMenu id ="vid" value="#{messagesFilterList.messagesSearch.vid}">
+                                    <f:selectItem value="#{null}" itemValue="#{null}"/>
+                                    <f:selectItems  value="#{systemData.getSysClassification(UriregConstants.CODE_CLASSIF_MESSAGE_VID, null, messagesFilterList.currentLang)}"
+                                                    var="item" itemLabel="#{item.tekst}" itemValue="#{item.code}" />
+                                </p:selectOneMenu>
+                            </div>
+
+                            <div  class="col-12 sm:col-12 md:col-6 lg:col-2 xl:col-2  ui-fluid">
+                                <h:outputText value="#{ui_labels['general.period']}" styleClass="form-label"/>
+                                <p:selectOneMenu id ="period" value="#{messagesFilterList.period}">
+                                    <f:selectItem value="#{null}" itemValue="#{null}"/>
+                                    <f:selectItems  value="#{systemData.getSysClassification(UriregConstants.CODE_CLASSIF_PERIOD_NOFUTURE, null, messagesFilterList.currentLang)}"
+                                                    var="item" itemLabel="#{item.tekst}" itemValue="#{item.code}" />
+                                    <p:ajax event="change" update="period dataOt dataDo" listener="#{messagesFilterList.changePeriod}"/>
+                                </p:selectOneMenu>
+                            </div>
+
+                            <div  class="col-12 sm:col-6 md:col-3 lg:col-2 xl:col-2  ui-fluid">
+                                <h:outputText value="#{ui_labels['general.dataOt']}" styleClass="form-label"/>
+                                <p:datePicker id="dataOt" value="#{messagesFilterList.messagesSearch.dateFrom}" pattern="dd.MM.yyyy" mask="true" locale="bg" showIcon="true" maxdate="#{messagesFilterList.currentDate}">
+                                    <p:ajax event="change" update="period" listener="#{messagesFilterList.changeDate}"/>
+                                    <p:ajax event="dateSelect" update="period" listener="#{messagesFilterList.changeDate}"/>
+                                </p:datePicker>
+                            </div>
+
+                            <div class="col-12 sm:col-6 md:col-3 lg:col-2  xl:col-2  ui-fluid">
+                                <h:outputText value="#{ui_labels['general.dataDo']}" styleClass="form-label"/>
+                                <p:datePicker id="dataDo" value="#{messagesFilterList.messagesSearch.dateTo}" pattern="dd.MM.yyyy" mask="true" showOn="button" locale="bg" showIcon="true" >
+                                    <p:ajax event="change" update="period" listener="#{messagesFilterList.changeDate}"/>
+                                    <p:ajax event="dateSelect" update="period" listener="#{messagesFilterList.changeDate}"/>
+                                </p:datePicker>
+                            </div>
+
+
+                            <div  class="col-12 sm:col-12 md:col-6 lg:col-2 xl:col-2  ui-fluid">
+                                <h:outputText value="#{labels['messagesFilterList.status']}" styleClass="form-label"/>
+                                <p:selectOneMenu id ="status" value="#{messagesFilterList.messagesSearch.status}">
+                                    <f:selectItem value="#{null}" itemValue="#{null}"/>
+                                    <f:selectItems  value="#{systemData.getSysClassification(UriregConstants.CODE_CLASSIF_MESSAGE_STATUS, null, messagesFilterList.currentLang)}"
+                                                    var="item" itemLabel="#{item.tekst}" itemValue="#{item.code}" />
+                                </p:selectOneMenu>
+                            </div>
+
+                            <div  class="col-12 sm:col-12 md:col-6 lg:col-6 xl:col-6  ui-fluid">
+                                <h:outputText value="#{labels['messagesFilterList.title']}"  styleClass="form-label"/>
+                                <p:inputTextarea id="title" value="#{messagesFilterList.messagesSearch.title}" rows="2" />
+                            </div>
+
+                            <div  class="col-12 sm:col-12 md:col-6 lg:col-6 xl:col-6  ui-fluid">
+                                <h:outputText value="#{labels['messagesFilterList.text']}" styleClass="form-label"/>
+                                <p:inputTextarea id="text" value="#{messagesFilterList.messagesSearch.text}" rows="2" />
+                            </div>
+
+                        </div>
+                        <div class="filter-buttons">
+                            <p:commandButton icon="fas fa-search" value="#{ui_labels['general.search']}"
+                                             action="#{messagesFilterList.actionSearch}"
+                                             partialSubmit="true" process="@this panelFilter "
+                                             title="#{ui_labels['general.titleSearch']}" update="resultTable" styleClass="mr-3"/>
+
+                            <p:commandButton icon="fas fa-eraser"  value="#{ui_labels['general.clear']}"
+                                             action="#{messagesFilterList.actionClear}"
+                                             partialSubmit="true" process="@this panelFilter resultTable"
+                                             title="#{ui_labels['general.titleClear']}" update="panelFilter resultTable" styleClass="ui-button-warning" />
+                        </div>
+
+                    </div>
+                </h:panelGroup>
+            </div>
+
+            <h:panelGroup id="resultTable" layout="block" styleClass="mt-2">
+                <h:panelGroup layout="block" styleClass="card">
+
+                    <div class="table-toolbar">
+                        <div class="table-toolbar">
+                            <h:outputText value="#{ui_labels['general.reportResult']}: #{messagesFilterList.messagesList.rowCount}" styleClass="form-label"/>
+
+                            <span class="mx-2" >
+			                   	<span class="fas fa-ellipsis-v SoftGray"/>
+                            </span>
+
+                            <p:commandButton icon="fas fa-plus" value="#{labels['messagesFilterList.add']}" id="addMess"
+                                             styleClass="ui-button-success"
+                                             process="@this"
+                                             oncomplete="PF('addMessagesVar').show();">
+                                <f:setPropertyActionListener target="#{messagesDialogBean.messId}" value="#{null}" />
+                            </p:commandButton>
+                        </div>
+
+                    </div>
+
+                    <p:dataTable id="tblMessages" value="#{messagesFilterList.messagesList}" lazy="true"  sortMode="single" reflow="true"
+                                 emptyMessage="#{ui_labels['general.norows']}"
+                                 var="row" rowIndexVar="idx" rows="15" rowsPerPageTemplate="5,15,20,25"
+                                 paginatorPosition="bottom" paginator="true"
+                                 paginatorTemplate="{RowsPerPageDropdown} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} ">
+
+
+                        <p:column width="30" headerText="#{ui_labels['general.No-symbol']}">
+                            <h:outputText value="#{idx + 1}" />
+                        </p:column>
+
+                        <p:column width="35">
+                            <p:commandButton icon="fas fa-edit"
+                                             partialSubmit="true" process="@this"
+                                             title="#{ui_labels['general.edit']}"
+                                             oncomplete="PF('addMessagesVar').show();">
+                                <f:setPropertyActionListener target="#{messagesDialogBean.messId}" value="#{row[0]}" />
+                            </p:commandButton>
+                        </p:column>
+
+                        <p:column  headerText="#{labels['messagesFilterList.vid']}" sortBy="#{row.a1}" width="200">
+                            <h:outputText value="#{systemData.decodeItem(UriregConstants.CODE_CLASSIF_MESSAGE_VID, row[1], messagesFilterList.currentLang, null)}" />
+                        </p:column>
+
+                        <p:column  headerText="#{ui_labels['general.dataOt']}" sortBy="#{row.a2}" width="100">
+                            <h:outputText value="#{row[2]}" >
+                                <f:convertDateTime pattern="dd.MM.yyyy" timeZone="#{messagesFilterList.timeZone}"/>
+                            </h:outputText>
+                        </p:column>
+
+                        <p:column  headerText="#{ui_labels['general.dataDo']}" sortBy="#{row.a3}" width="100">
+                            <h:outputText value="#{row[3]}"  >
+                                <f:convertDateTime pattern="dd.MM.yyyy" timeZone="#{messagesFilterList.timeZone}"/>
+                            </h:outputText>
+                        </p:column>
+
+                        <p:column  headerText="#{labels['messagesFilterList.status']}" sortBy="#{row.a4}" width="150">
+                            <h:outputText value="#{systemData.decodeItem(UriregConstants.CODE_CLASSIF_MESSAGE_STATUS, row[4], messagesFilterList.currentLang, null)}"/>
+                        </p:column>
+
+                        <p:column  headerText="#{labels['messagesFilterList.title']}" sortBy="#{row.a6}">
+                            <h:outputText  value="#{row[6].length() > 100
+                            ? row[6].substring(0,100).concat('...')
+                            : row[6]}" />
+                        </p:column>
+
+
+                    </p:dataTable>
+                </h:panelGroup>
+            </h:panelGroup>
+
+
+        </h:form>
+    </ui:define>
+</ui:composition>

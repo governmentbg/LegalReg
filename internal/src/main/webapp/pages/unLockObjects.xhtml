@@ -1,0 +1,344 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="jakarta.faces.html"
+                xmlns:jsf="jakarta.faces"
+                xmlns:f="jakarta.faces.core"
+                xmlns:ui="jakarta.faces.facelets"
+                xmlns:ibg="jakarta.faces.composite/components"
+                xmlns:p="http://primefaces.org/ui"
+                template="/template/template.xhtml">
+
+    <ui:define name="title">#{navTexts['/pages/unLockObjects.xhtml']}</ui:define>
+    <ui:define name="viewname">
+
+        <li>#{navTexts['/pages/unLockObjects.xhtml']}</li>
+
+
+    </ui:define>
+    <ui:define name="metadata">
+        <f:metadata>
+            <f:viewAction action="#{userData.checkPageAccess(43)}" onPostback="false" /> -->
+            <f:importConstants type="com.ib.urireg.system.UriregConstants"/>
+        </f:metadata>
+    </ui:define>
+    <ui:define name="content">
+
+
+        <h:form id="unLockObjectsForm">
+            <p:tooltip/>
+
+            <div class="container #{guestPreferences.containerPosition}">
+                <div class="card">
+
+                    <!-- FILTER -->
+                    <div jsf:id="panelFilter">
+                        <div class="grid ui-fluid">
+                            <div class="col-12">
+                                <div class="grid">
+
+                                    <!-- Вид обект -->
+                                    <div class="col-12 sm:col-6">
+                                        <h:outputText value="#{labels['unlockObjects.vidObekt']}" styleClass="form-label"/>
+                                        <p:selectOneMenu value="#{unLockObjects.refType}" height="350">
+                                            <f:selectItems value="#{unLockObjects.obectList}"/>
+											<p:ajax event="change" partialSubmit="true" update="@this panelFilter panelData" process="@this"/>
+                                        </p:selectOneMenu>
+                                    </div>
+
+                                    <!-- Вид заповед-->
+                                    <div class="col-12 sm:col-6" >
+                                        <h:outputText value="#{labels['examOrder.vidZapoved']}" styleClass="form-label" rendered="#{unLockObjects.refType eq unLockObjects.codeDocument}"/>
+                                        <p:selectOneMenu id="zapDocVid" value="#{unLockObjects.zapDocVid}" rendered="#{unLockObjects.refType eq unLockObjects.codeDocument}">
+                                            <f:selectItem value="#{null}" itemValue="#{null}"/>
+                                            <f:selectItems value="#{unLockObjects.vidZapovedList}"/>
+                                        </p:selectOneMenu>
+                                    </div>
+
+                                    <!--Период на регистрация-->
+                                    <div class="col-12 sm:col-6">
+                                        <h:outputText value="#{labels['unLockObjects.period']}"
+                                                      styleClass="form-label"/>
+                                        <p:selectOneMenu id="idPerR" value="#{unLockObjects.period}">
+                                            <f:selectItem value="#{null}" itemValue="#{null}"/>
+                                            <f:selectItems
+                                                    value="#{userContext.periodNoFuture}"/>
+                                            <p:ajax event="change" update="idPerR dateOtReg dateDoReg"
+                                                    listener="#{unLockObjects.changePeriod}"/>
+                                        </p:selectOneMenu>
+                                    </div>
+
+                                    <div class="col-6 sm:col-3">
+                                        <h:outputText value="#{ui_labels['general.dataOt']}"
+                                                      styleClass="form-label"/>
+                                        <p:datePicker id="dateOtReg" mask="true" pattern="dd.MM.yyyy"
+                                                      showIcon="true" locale="bg" value="#{unLockObjects.dateFrom}">
+                                            <p:ajax event="change" update="idPerR"
+                                                    listener="#{unLockObjects.changeDate}"/>
+                                            <p:ajax event="dateSelect" update="idPerR"
+                                                    listener="#{unLockObjects.changeDate}"/>
+                                        </p:datePicker>
+                                    </div>
+
+                                    <div class="col-6 sm:col-3">
+                                        <h:outputText value="#{ui_labels['general.dataDo']}" styleClass="form-label"/>
+                                        <p:datePicker id="dateDoReg" mask="true" pattern="dd.MM.yyyy"
+                                                      showIcon="true" locale="bg" value="#{unLockObjects.dateTo}">
+                                            <p:ajax event="change" update="idPerR"
+                                                    listener="#{unLockObjects.changeDate}"/>
+                                            <p:ajax event="dateSelect" update="idPerR"
+                                                    listener="#{unLockObjects.changeDate}"/>
+                                        </p:datePicker>
+                                    </div>
+
+                                    <div class="col-12">
+                                        <h:outputText value="#{labels['unLockObjects.locked']}"
+                                                      styleClass="form-label"/>
+                                        <div class="selectModalA">
+                                            <ibg:selectManyModalA
+                                                    codeClassif="#{unLockObjects.codeClassifUser}"
+                                                    selectedCodes="#{unLockObjects.usersList}"
+                                                    selectedClassifs="#{unLockObjects.usersListClassifs}"
+                                                    compType="2" styleAutoComp="" withBtnClear="true"/>
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+
+                        <div class="grid">
+                            <div class="col-12 filter-buttons">
+                                <p:commandButton icon="fas fa-search"
+                                                 value="#{ui_labels['general.search']}" id="btnSearchDoc"
+                                                 update="panelData mailNo yesNo tblEvnP" partialSubmit="true"
+                                                 process="@this panelFilter"
+                                                 actionListener="#{unLockObjects.actionSearch}"
+                                                 title="#{ui_labels['general.titleSearch']}" styleClass="mr-3"/>
+                                <p:defaultCommand target="btnSearchDoc" scope="panelFilter"/>
+
+                                <p:commandButton icon="fas fa-eraser"
+                                                 value="#{ui_labels['general.clear']}" id="btnClear"
+                                                 update="panelData unLockObjectsForm:pResult1 panelFilter"
+                                                 partialSubmit="true" process="@this panelFilter"
+                                                 actionListener="#{unLockObjects.actionClear}"
+                                                 title="#{ui_labels['general.titleClear']}"
+                                                 styleClass="ui-button-warning"/>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <p:outputPanel id="panelData" styleClass="margin-top">
+                <div class="card" jsf:rendered="#{unLockObjects.lockObjectsList != null}">
+                    <div class="grid">
+                        <div class="col-12">
+
+                            <h:panelGroup id="pResult" layout="block">
+                                <h:panelGroup id="pResult1" layout="block">
+                                    <div class="table-toolbar">
+                                        <h:panelGroup id="panelTblToolbar">
+                                            <ui:remove>
+                                                <p:commandButton value="Modal" type="button"
+                                                                 onclick="PF('dlg2').show();"/>
+                                            </ui:remove>
+                                            <p:commandButton rendered="#{unLockObjects.lockObjectsListAll.size() > 0}"
+                                                             icon="fas fa-lock-open"
+                                                             value="#{labels['unLockObjects.unlock']}"
+                                                             id="btnUnlock" update="pResult mailNo yesNo"
+                                                             partialSubmit="true"
+                                                             process="@this panelFilter yesNo panelData"
+                                                             actionListener="#{unLockObjects.actionUnlock()}"
+                                                             title="#{labels['unLockObjects.unlock']}"/>
+
+                                            <span class="mx-2"
+                                                  jsf:rendered="#{unLockObjects.lockObjectsListAll.size() > 0}">
+												<span class="fas fa-ellipsis-v"/>
+											</span>
+                                            <h:outputText
+                                                    value="#{ui_labels['general.reportResult']}: #{unLockObjects.lockObjectsList.size()}"
+                                                    styleClass="form-label"/>
+
+                                        </h:panelGroup>
+
+                                    </div>
+
+                                    <p:dataTable id="tblEvnP" var="row"
+                                                 value="#{unLockObjects.lockObjectsList}" rowKey="#{row}"
+                                                 rendered="#{unLockObjects.refType!=UriregConstants.CODE_ZNACHENIE_MENU_ADM_STRUCT}"
+                                                 emptyMessage="#{labels['unLockObjects.noLocked']} "
+                                                 selection="#{unLockObjects.rowSelectedN}" rowIndexVar="idx"
+                                                 sortMode="single" reflow="true" style="margin-bottom:0"
+                                                 paginatorTemplate="{RowsPerPageDropdown} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {Exporters}"
+                                                 rows="15" rowsPerPageTemplate="5,15,20,25"
+                                                 paginatorPosition="bottom" selectionRowMode="none"
+                                                 paginator="true">
+
+                                        <p:ajax event="toggleSelect"
+                                                listener="#{unLockObjects.onRowSelectAll}" process="@this"
+                                                update="unLockObjectsForm:pResult"/>
+                                        <p:ajax event="rowSelect"
+                                                listener="#{unLockObjects.onRowSelect}" process="@this"
+                                                update="unLockObjectsForm:pResult"/>
+                                        <p:ajax event="rowSelectCheckbox"
+                                                listener="#{unLockObjects.rowSelectCheckbox}" process="@this"
+                                                update="unLockObjectsForm:pResult"/>
+                                        <p:ajax event="rowUnselectCheckbox"
+                                                listener="#{unLockObjects.rowUnselectCheckbox}"
+                                                process="@this" update="unLockObjectsForm:pResult"/>
+                                        <p:ajax event="rowUnselect"
+                                                listener="#{unLockObjects.onRowUnselect}" process="@this"
+                                                update="unLockObjectsForm:pResult"/>
+
+                                        <p:column selectionBox="true"
+                                                  style="width:16px;text-align:center" exportable="false"
+                                                  id="ww">
+                                            <f:facet name="header">
+                                                <p:tooltip value="#{labels['unLockObjects.selectAll']}" for="ww"/>
+                                            </f:facet>
+                                            <p:tooltip id="toolTipGrow" value="#{labels['regSettings.choice']}"
+                                                       shared="true"
+                                                       for="ww"/>
+                                        </p:column>
+                                        <p:column width="10" exportable="false"
+                                                  headerText="#{ui_labels['general.No-symbol']}">
+                                            <h:outputText value="#{idx + 1}"/>
+                                        </p:column>
+
+                                        <p:column width="150" sortBy="#{row.nameLice}" headerText="#{labels['dossier.imena']}"
+												  rendered="#{unLockObjects.refType==unLockObjects.codeLiceDossier}">
+                                            <h:outputText value="#{row.nameLice}"/>
+                                        </p:column>
+
+										<p:column width="150" sortBy="#{row.zapDocVid}" headerText="#{labels['examOrder.vidZapoved']}"
+												  rendered="#{unLockObjects.refType==unLockObjects.codeDocument}">
+											<h:outputText value="#{systemData.decodeItem(UriregConstants.CODE_CLASSIF_DOC_VID, row.zapDocVid, unLockObjects.currentLang, null)}"/>
+										</p:column>
+
+										<p:column width="110" sortBy="#{row.rnDoc}" headerText="#{labels['examOrder.nomOrder']}"
+												  rendered="#{unLockObjects.refType==unLockObjects.codeDocument}">
+											<h:outputText value="#{row.rnDoc}"/>
+										</p:column>
+
+										<p:column width="130" sortBy="#{row.docDate}" headerText="#{labels['examOrder.dateOrder']}"
+                                                  rendered="#{unLockObjects.refType==unLockObjects.codeDocument}">
+                                            <h:outputText value="#{row.docDate}">
+                                                <f:convertDateTime pattern="dd.MM.yyyy" timeZone="#{unLockObjects.timeZone}"/>
+                                            </h:outputText>
+                                        </p:column>
+
+                                        <p:column width="110" sortBy="#{row.lockDate}"
+                                                  headerText="#{labels['unLockObjects.dataZakl']}">
+                                            <h:outputText value="#{row.lockDate}">
+                                                <f:convertDateTime pattern="dd.MM.yyyy HH:mm" timeZone="#{unLockObjects.timeZone}"/>
+                                            </h:outputText>
+                                        </p:column>
+                                        <p:column width="110" sortBy="#{row.userId}"
+                                                  headerText="#{labels['unLockObjects.zaklOt']}">
+                                            <h:outputText
+                                                    value="#{systemData.decodeItem(16, row.userId, unLockObjects.currentLang, null)}"/>
+                                        </p:column>
+
+                                    </p:dataTable>
+
+
+                                    <p:dataTable id="tblEvnP1" var="row"
+                                                 value="#{unLockObjects.lockObjectsList}" rowKey="#{row}"
+                                                 rendered="#{unLockObjects.refType==UriregConstants.CODE_ZNACHENIE_MENU_ADM_STRUCT}"
+                                                 emptyMessage="#{labels['unLockObjects.noLocked']} "
+                                                 selection="#{unLockObjects.rowSelectedN}" rowIndexVar="idx"
+                                                 sortMode="single" reflow="true" style="margin-bottom:0"
+                                                 paginatorTemplate="{RowsPerPageDropdown} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {Exporters}"
+                                                 rows="15" rowsPerPageTemplate="5,15,20,25"
+                                                 paginatorPosition="bottom" selectionRowMode="none"
+                                                 paginator="true">
+
+                                        <p:ajax event="toggleSelect"
+                                                listener="#{unLockObjects.onRowSelectAll}" process="@this"
+                                                update="unLockObjectsForm:pResult"/>
+                                        <p:ajax event="rowSelect"
+                                                listener="#{unLockObjects.onRowSelect}" process="@this"
+                                                update="unLockObjectsForm:pResult"/>
+                                        <p:ajax event="rowSelectCheckbox"
+                                                listener="#{unLockObjects.rowSelectCheckbox}" process="@this"
+                                                update="unLockObjectsForm:pResult"/>
+                                        <p:ajax event="rowUnselectCheckbox"
+                                                listener="#{unLockObjects.rowUnselectCheckbox}"
+                                                process="@this" update="unLockObjectsForm:pResult"/>
+                                        <p:ajax event="rowUnselect"
+                                                listener="#{unLockObjects.onRowUnselect}" process="@this"
+                                                update="unLockObjectsForm:pResult"/>
+
+                                        <p:column selectionBox="true"
+                                                  style="width:16px;text-align:center" exportable="false"
+                                                  id="ww">
+                                            <f:facet name="header">
+                                                <p:tooltip value="#{labels['unLockObjects.selectAll']}" for="ww"/>
+                                            </f:facet>
+                                        </p:column>
+
+                                        <p:column width="10" exportable="false"
+                                                  headerText="#{ui_labels['general.No-symbol']}">
+                                            <h:outputText value="#{idx + 1}"/>
+                                        </p:column>
+
+
+                                        <p:column width="110" sortBy="#{row.lockDate}"
+                                                  headerText="#{labels['unLockObjects.dataZakl']}">
+                                            <h:outputText value="#{row.lockDate}">
+                                                <f:convertDateTime pattern="dd.MM.yyyy"
+                                                                   timeZone="#{unLockObjects.timeZone}"/>
+                                            </h:outputText>
+                                        </p:column>
+                                        <p:column width="110" sortBy="#{row.userId}"
+                                                  headerText="#{labels['unLockObjects.zaklOt']}">
+                                            <h:outputText
+                                                    value="#{systemData.decodeItem(16, row.userId, unLockObjects.currentLang, null)}"/>
+                                        </p:column>
+
+                                    </p:dataTable>
+
+                                </h:panelGroup>
+                            </h:panelGroup>
+                        </div>
+                    </div>
+                </div>
+            </p:outputPanel>
+            <p:dialog header="#{labels['unLockObjects.system']}" widgetVar="dlg2"
+                      modal="true" height="50" id="mailNo" closeOnEscape="true" style="margin-top:50px !important"
+                      appendTo="@form">
+                <h:outputText value="#{unLockObjects.msgBox}"/>
+            </p:dialog>
+
+
+            <p:dialog header="#{labels['unLockObjects.inputMail']}" widgetVar="dlg3" id="yesNo"
+                      modal="true" height="100" closeOnEscape="true" appendTo="@form"
+                      style="margin-top:50px !important">
+                <h:outputText value="#{unLockObjects.msgBox}"/>
+                <br/>
+                <h:outputText value="#{unLockObjects.msgBox1}"/>
+
+                <div class="ui-g-12">
+                    <div class="ui-g-12 ui-md-6">
+                        <p:commandButton value="Не" type="button"
+                                         styleClass="ui-confirmdialog-no" icon="fas fa-times"
+                                         onclick="PF('dlg3').hide();$('#form').trigger('reset');"/>
+                    </div>
+                    <div class="ui-g-12 ui-md-6" align="right">
+                        <p:commandButton icon="fas fa-check" value="Дa"
+                                         styleClass="ui-confirmdialog-yes" id="btnDa"
+                                         update="pResult mailNo yesNo" partialSubmit="true"
+                                         process="@this panelFilter yesNo panelData"
+                                         actionListener="#{unLockObjects.actionUnlock()}"
+                                         title="#{labels['unLockObjects.unlockAll']}"/>
+
+                    </div>
+
+
+                </div>
+            </p:dialog>
+
+
+        </h:form>
+    </ui:define>
+
+</ui:composition>

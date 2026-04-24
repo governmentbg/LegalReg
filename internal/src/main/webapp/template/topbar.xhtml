@@ -1,0 +1,153 @@
+<ui:composition
+        xmlns="http://www.w3.org/1999/xhtml"
+        xmlns:f="jakarta.faces.core"
+        xmlns:jsf="jakarta.faces"
+        xmlns:h="jakarta.faces.html"
+        xmlns:ui="jakarta.faces.facelets"
+        xmlns:p="http://primefaces.org/ui"
+        xmlns:o="http://omnifaces.org/ui">
+
+	<h:form>
+
+	<style type="text/css">
+
+	    .global-search-dropdown.ui-autocomplete-panel .ui-autocomplete-table td {
+	    	border: none;
+	    	padding: 8px 10px;
+	    }
+
+	    .global-search-dropdown .ui-widget-content {
+	    	border: none;
+	    }
+	</style>
+	    <div class="layout-topbar">
+	        <div class="layout-topbar-wrapper">
+	            <div class="layout-topbar-left">
+	                <div class="layout-topbar-logo-wrapper">
+	                    <a href="dashboard.xhtml" class="layout-topbar-logo">
+	                        <p:graphicImage name="images/gerb.png" library="mirage-layout" />
+	                        <span class="app-name">#{labels['general.systemName']}</span>
+	                    </a>
+	                </div>
+
+	                <a href="#" class="sidebar-menu-button">
+	                    <i class="fas fa-bars"></i>
+	                </a>
+
+	                <a href="#" class="topbar-menu-mobile-button">
+	                    <i class="fas fa-ellipsis-v"></i>
+	                </a>
+	            </div>
+	            <div class="layout-topbar-right">
+
+	                <ul class="layout-topbar-actions">
+
+	                	<li class="search-item topbar-item">
+	                        <a href="#" class="topbar-search-mobile-button">
+	                            <i class="topbar-icon fas fa-search"></i>
+	                        </a>
+	                    </li>
+
+						<li class="topbar-item">
+							<a href="#">
+								<p:badge value="#{labels['general.testSredaShort']}" severity="warning" rendered="#{systemData.getSettingsValue('TestEnvironment') eq '1'}"/>
+								<p:badge value="#{labels['general.prodSredaShort']}" style="background-color: #5e81ac;" rendered="#{systemData.getSettingsValue('TestEnvironment') eq '0'}"/>
+							</a>
+							<ul>
+								<li>
+									<p jsf:rendered="#{systemData.getSettingsValue('TestEnvironment') eq '1'}">#{labels['general.testSreda']}</p>
+									<p jsf:rendered="#{systemData.getSettingsValue('TestEnvironment') eq '0'}">#{labels['general.prodSreda']}</p>
+								</li>
+							</ul>
+						</li>
+
+						<li class="topbar-item profile-item">
+	                        <a href="#">
+	                            <span class="profile-image-wrapper">
+	                               <i class="fas fa-user-circle" style="font-size:32px"></i>
+	                            </span>
+	                            <span class="profile-info-wrapper">
+	                                <h3>#{userData.liceNames}</h3>
+	                            </span>
+	                        </a>
+	                        <ul class="profile-item-submenu">
+	                            <li class="profile-submenu-header">
+	                                <div class="performance">
+
+	                                </div>
+	                                <div class="profile">
+	                                     <i class="fas fa-user-circle" style="font-size:36px"></i>
+	                                    <h1>#{userData.liceNames}</h1>
+
+	                                </div>
+	                            </li>
+	                            <li id="layout-config-button" class="layout-submenu-item layout-config-button-custom">
+	                                <i class="fas fa-palette icon icon-1"></i>
+	                                <div class="menu-text">
+	                                    <p>#{labels['userOptions.styletitle']}</p>
+	                                    <span>#{labels['userOptions.styleSubTitle']}</span>
+	                                </div>
+	                                <i class="fas fa-angle-right"></i>
+	                            </li>
+
+
+	                            <li class="layout-submenu-item" onclick="PF('dlg-change-pass').show()" jsf:rendered="#{!userContext.ldapLogin}">
+	                                <i class="fas fa-unlock-alt icon icon-2"></i>
+	                                <div class="menu-text">
+	                                    <p>#{ui_labels['general.changePass']}</p>
+	                                </div>
+	                                <i class="fas fa-angle-right"></i>
+	                            </li>
+	                            <ui:remove>
+	                             <!--  тази опция е недовършена и не е работила никога
+	                            <li class="layout-submenu-item" onclick="PF('dialog-certificate').show()">
+	                                <i class="fas fa-shield-alt icon icon-4"></i>
+	                                <div class="menu-text">
+	                                    <p>#{labels['userOptions.upravlenieNaSertifikati']}</p>
+	                                </div>
+	                                <i class="fas fa-angle-right"></i>
+	                            </li>
+	                             -->
+	                            </ui:remove>
+
+	                            <li class="layout-submenu-item" onclick="refresh2fa(); PF('dlg-user-login-options').show();" jsf:rendered="#{userLoginOptions.twoFactorAuth>0}">
+	                                <i class="fas fa-shield-alt icon icon-4"></i>
+	                                <div class="menu-text">
+	                                    <p>#{ui_labels['general.loginOptions']}</p>
+	                                    <span>#{ui_labels['general.2fa']}</span>
+	                                </div>
+	                                <i class="fas fa-angle-right"></i>
+									<p:remoteCommand name="refresh2fa" actionListener="#{userLoginOptions.load2FAContent}"
+											update="formLogin:panel2FA" />
+	                            </li>
+
+	                            <li class="layout-submenu-item" onclick="$('#layout-config-userguide').toggleClass('layout-config-active');">
+	                                <i class="fas fa-file-word icon"></i>
+	                                <div class="menu-text">
+	                                    <p>#{ui_labels['instructions.userguide']}</p>
+		                                <span>#{labels['instructions.download']}</span>
+	                                </div>
+	                                <i class="fas fa-angle-right"></i>
+	                            </li>
+
+	                            <li class="layout-submenu-footer">
+
+	                                <button class="signout-button" jsf:action="#{login.actionLogout()}" jsf:ajax="false" jsf:immediate="true">#{ui_labels['general.exit']}</button>
+	                            </li>
+	                        </ul>
+	                    </li>
+	                    <li class="topbar-item">
+	                    	 <p:commandLink   process="@this"  action="#{login.actionLogout()}" ajax="false" title="#{ui_labels['general.exit']}">
+
+		                               <i class="fas fa-power-off" style="font-size:28px; color: #920606;"></i>
+
+	                    	</p:commandLink>
+	                    </li>
+	                </ul>
+	            </div>
+	        </div>
+	    </div>
+    </h:form>
+
+<p:growl widgetVar="growlWV" for="kgGrowl"/>
+</ui:composition>

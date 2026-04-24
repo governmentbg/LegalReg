@@ -1,0 +1,55 @@
+/* Add your customizations of theme here */
+body {
+
+    // връща иконката, която беше счупена след ъпгрейд до mirage 5
+    // ако се качва версията на PF, да се провери дали още е нужно
+    .ui-fileupload {
+        .ui-fileupload-buttonbar {
+            .ui-button {
+                &.ui-fileupload-choose {
+                    .ui-icon {
+                        @include icon-override("\e90d");
+                    }
+                }
+
+                &.ui-fileupload-upload {
+                    .ui-icon {
+                        @include icon-override("\e934");
+                    }
+                }
+
+                &.ui-fileupload-cancel {
+                    .ui-icon {
+                        @include icon-override("\e90b");
+                    }
+                }
+            }
+        }
+    }
+
+
+    // това да се изпробва по-внимателно с модалните, да не се счупи като са resizable
+    .ui-dialog.ui-resizable .ui-dialog-content {
+       // box-sizing: border-box;
+    }
+
+    .ui-tree {
+        .ui-treenode-children {
+            padding-left: 26px;
+        }
+    }
+
+    .ui-panelgrid .ui-panelgrid-cell {
+        padding: 1rem;
+    }
+
+    .ui-selectmanycheckbox, .ui-selectoneradio {
+        &.ui-grid.ui-grid-responsive {
+            .ui-g {
+                > div {
+                    padding: 0.125rem;
+                }
+            }
+        }
+    }
+}

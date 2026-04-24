@@ -1,0 +1,71 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:ui="jakarta.faces.facelets"
+                xmlns:f="jakarta.faces.core"
+                xmlns:jsf="jakarta.faces"
+                xmlns:h="jakarta.faces.html"
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:ibg="jakarta.faces.composite/components"
+                template="/template/template.xhtml">
+
+    <ui:define name="metadata">
+        <f:metadata>
+            <f:viewAction action="#{userData.checkReloadPage}" onPostback="false" />
+            <f:viewAction action="#{userData.checkPageAccess(215)}" onPostback="false"/>
+            <f:importConstants type="com.ib.urireg.system.UriregConstants"/>
+        </f:metadata>
+    </ui:define>
+
+    <ui:define name="title">#{navTexts['/pages/loadingDataFromFile.xhtml']}</ui:define>
+
+    <ui:define name="viewname">
+        <li>#{navTexts['/pages/loadingDataFromFile.xhtml']}</li>
+    </ui:define>
+
+    <ui:define name="content">
+
+        <h:form id="formLoadingData" enctype="multipart/form-data">
+
+            <div class="#{guestPreferences.containerPosition}" >
+
+                <div class="card">
+
+                    <div class="grid ui-fluid align-items-end">
+
+                        <div class="col-12 md:col-12 lg:col-2 xl:col-2">
+                            <h:outputText value="#{labels['loadingDataFromFile.nomFile']}" styleClass="form-label"/>
+                            <p:inputText value="#{loadingDataFromFile.nomFile}" id="nomFile">
+                                <p:ajax event="change" update="@this" />
+                            </p:inputText>
+                        </div>
+
+                        <div class="col-12 md:col-12 lg:col-2 xl:col-2">
+                            <p:fileUpload label="#{labels['loadingDataFromFile.btnTitle']}" id="uploadFile"
+                                          uploadButtonTitle="#{labels['loadingDataFromFile.btnTitle']}" allowTypes="/(\.|\/)(xls|xlsx)$/"
+                                          update="formLoadingData:error" multiple="false" auto="true"
+                                          listener="#{loadingDataFromFile.actionUploadFile}">
+                            </p:fileUpload>
+                        </div>
+
+                        <div class="col-4 lg:col-2 xl:col-2">
+                            <p:commandButton icon="fas fa-download" value="#{labels['loadingDataFromFile.btnDownloadShablon']}"
+                                id="downloadShablon" action="#{loadingDataFromFile.actionDownloadShablon()}" ajax="false"
+                                title="#{labels['loadingDataFromFile.btnDownloadFilename']}" style="width: 180px"/>
+                        </div>
+
+                        <div class="col-12 md:col-12 lg:col-12 xl:col-12">
+                            <h:outputText value="#{labels['loadingDataFromFile.error']}" styleClass="form-label"/>
+                            <p:inputTextarea value="#{loadingDataFromFile.error}" id="error" rows="3" autoResize="true"
+                                             style="max-height: 500px; overflow-y: auto;" />
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </h:form>
+
+    </ui:define>
+
+</ui:composition>

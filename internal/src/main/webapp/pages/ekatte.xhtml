@@ -1,0 +1,102 @@
+<ui:composition
+ 		xmlns="http://www.w3.org/1999/xhtml"
+		xmlns:h="jakarta.faces.html"
+		xmlns:f="jakarta.faces.core"
+		xmlns:ui="jakarta.faces.facelets"
+		xmlns:p="http://primefaces.org/ui"
+		template="/template/template.xhtml">
+
+		<ui:define name="metadata">
+			<f:metadata>
+				<f:importConstants type="com.ib.urireg.system.UriregConstants" />
+				<f:viewAction action="#{userData.checkPageAccess(39)}" onPostback="false" />
+			</f:metadata>
+		</ui:define>
+
+		<ui:define name="title">#{navTexts['/pages/ekatte.xhtml']}</ui:define>
+
+		<ui:define name="viewname">
+	        <li>#{navTexts['/pages/ekatte.xhtml']}</li>
+	    </ui:define>
+
+    	<ui:define name="head">
+			<style>
+				.ajax-status-wrapper {
+				    width: 100%;
+				    height: 100%;
+				    margin: 0;
+				   	display: none;
+				   	z-index: 1001;
+				   	position: fixed;
+				   	background-color: rgba(0, 0, 0, 0.15);
+				   	left: 0px;
+				    top: 0px;
+				}
+
+				.ajax-status-wrapper div {
+					box-sizing:inherit; border-box;
+				}
+
+				.ajax-status-wrapper .ajax {
+					position: absolute;
+				    left: 50%;
+				    top: 50%;
+				    transform: translate(-50%,-50%);
+				}
+
+				.loader {
+					width: 50px;
+				    height: 50px;
+				}
+				.loader i{
+					font-size: 52px
+				}
+
+			</style>
+			<script>
+			function ajaxStatus(show){
+				if (show) {
+					$(".ajax-status-wrapper").css("display", "block");
+				}else{
+					$(".ajax-status-wrapper").css("display", "none");
+				}
+			}
+			</script>
+		</ui:define>
+
+		<ui:define name="content">
+
+			<div class="ajax-status-wrapper">
+				<div class="ajax">
+					<div class="loader">
+			            <i class='fas fa-spinner fa-spin' ></i>
+			         </div>
+			    </div>
+			</div>
+
+			<h:form id="ekatteForm" enctype="multipart/form-data">
+				<div class="container #{guestPreferences.containerPosition}">
+
+					<div  class="grid  ui-fluid align-items-end">
+						<!-- Дата на валидност -->
+						<div class="col-12 lg:col-2">
+							<h:outputText value="#{labels['docu.validDate']}:" styleClass="form-label req" />
+							<p:datePicker id="validDate"  pattern="dd.MM.yyyy" showIcon="true" mask="true" value="#{ekatte.dateValid}" locale="bg">
+								<p:ajax event="change" update="ekatteForm:uploadGroup" listener="#{ekatte.actionInputDate}"/>
+								<p:ajax event="dateSelect" update="ekatteForm:uploadGroup" listener="#{ekatte.actionInputDate}"/>
+							</p:datePicker>
+						</div>
+						<div class="col-12 lg:col-6">
+							<h:panelGroup id="uploadGroup">
+							    <p:fileUpload id="fileUpload" listener="#{ekatte.actionUploadFile}" skinSimple="true" update="@this" auto="true" label="#{labels['ekkate.upload']}"
+								   	oncomplete ="ajaxStatus(false)" onstart="ajaxStatus(true)" rendered="#{ekatte.visibleFileUpload}" >
+								   	<p:validateFile  allowTypes="/(\.|\/)(zip)$/" />
+								 </p:fileUpload>
+							</h:panelGroup>
+						</div>
+
+					</div>
+			</div>
+		</h:form>
+	</ui:define>
+</ui:composition>

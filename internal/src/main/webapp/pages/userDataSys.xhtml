@@ -1,0 +1,362 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="jakarta.faces.html"
+                xmlns:f="jakarta.faces.core"
+                xmlns:ui="jakarta.faces.facelets"
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:ibg="jakarta.faces.composite/components"
+                 xmlns:jsf="jakarta.faces"
+                 xmlns:c="http://java.sun.com/jstl/core">
+<ui:define name="metadata">
+	<f:metadata>
+	    <f:viewAction action="#{userData.checkPageAccess(null)}" onPostback="false"/>
+	</f:metadata>
+</ui:define>
+
+<p:log rendered="false"></p:log>
+<p:tooltip escape="false"/>
+
+<h:form id="formUserEdit" enctype="multipart/form-data">
+
+    <!-- Page title -->
+    <div class="page-title-wrapper-search">
+	    <div class="page-title-wrapper">
+	        <div class="container title">
+				<span class="title-back">
+					<p:commandLink title="Назад" action="#{navigation.goBack()}" rendered="#{navigation.navPath.size()>1}">
+						<i class="fas fa-caret-left"/>
+					</p:commandLink>
+				</span>
+	            <h:outputText rendered="#{!entEdit.externalMode}" value="#{navTexts['/pages/userEdit.xhtml']}" styleClass="titleSpecEvent"/>
+	        </div>
+	    </div>
+	</div>
+
+    <div class="container">
+
+        <p:toolbar styleClass="options-toolbar">
+            <f:facet name="left">
+                <p:commandButton value="#{ui_labels['general.save']}" action="#{userEdit.actionSave()}" update="formUserEdit"
+                                 icon="fas fa-save" styleClass="btn-save mr-2" rendered="#{!userEdit.quitUser}" />
+                <p:commandButton value="#{ui_labels['users.new']}" action="#{userEdit.newUser(1)}" update="formUserEdit"
+                                 icon="fas fa-plus" styleClass="ui-button-success"/>
+            </f:facet>
+
+            <f:facet name="right">
+            	<h:panelGroup id="pRegInfoUser" rendered="#{userEdit.user.id != null}">
+				<ibg:compObjAudit idObj="#{userEdit.user.id}"
+							 	codeObj="#{UriregConstants.CODE_ZNACHENIE_JOURNAL_USER}"
+							 	identInfo="#{userEdit.user.names} (#{userEdit.user.username})"/>
+				</h:panelGroup>
+                <p:commandButton id="deleteBtn" action="#{userEdit.actionDelete()}" rendered="#{!userEdit.userConfirmed and userEdit.user.id != null}" value="#{ui_labels['general.delete']}"
+                                 icon="fas fa-times" styleClass="btn-delete" title="#{ui_labels['general.delete']} ">
+                    <p:confirm header="#{ui_labels['general.comfirmation']}" message="#{ui_labels['general.confirmationMessage']}" icon="pi pi-exclamation-triangle"/>
+                </p:commandButton>
+            </f:facet>
+        </p:toolbar>
+
+
+        <p:panel id="userData" styleClass="container-white card">
+
+        <p:selectOneButton value="#{userEdit.typePanelData}" id="typePanelData" immediate="true" unselectable="false" valueChangeListener="#{userEdit.actionChangeTypePanel}">
+				<f:selectItem itemLabel="Основни данни" itemValue="1"/>
+				<f:selectItem itemLabel="Достъпи" itemValue="4"/>
+                <c:if test="#{userEdit.twoFactorAuthSetting ne null}">
+                    <f:selectItem itemLabel="2FA" itemValue="5" />
+                </c:if>
+				<p:ajax event="change" update="formUserEdit:mainUserData formUserEdit:panelDelov
+				    formUserEdit:panelMailboxes formUserEdit:panelDostapi formUserEdit:panel2FA"
+                    partialSubmit="true" process=" @this" />
+			</p:selectOneButton>
+
+            <!-- Основни даннни-->
+            <h:panelGroup id="mainUserData" layout="block">
+				<h:panelGroup rendered="#{userEdit.typePanelData eq 1}">
+
+                <div class="my-2">
+                    <p:commandLink class="extended-search-toggle expanded" onclick="toggleSection(this, '#main-toggle')">
+                        <h:outputText value="Основни данни"/>
+                        <i class="fas fa-caret-right"></i>
+                    </p:commandLink>
+                </div>
+
+
+                <div id="main-toggle" class="grid ui-fluid">
+
+                    <!--First row-->
+                    <div class="col-4">
+                        <h:outputText value="#{ui_labels['users.username']}" title="#{userEdit.usernameRegexInfo}" styleClass="form-label req"/>
+                        <div class="ui-inputgroup">
+                            <p:inputText value="#{userEdit.user.username}" id="username">
+                                <p:ajax event="change" listener="#{userEdit.checkUserName()}"/>
+                            </p:inputText>
+
+                            <p:commandButton type="button" ajax="true" icon="fas fa-unlock-alt" rendered="#{userEdit.user.id != null and !userEdit.ldapLogin}"
+                                             title="#{userEdit.changePass ? ui_labels['users.passreject'] : ui_labels['users.passchange']}">
+                                <p:ajax event="click" listener="#{userEdit.setChangePass(!userEdit.changePass)}" update="formUserEdit:userData"/>
+                            </p:commandButton>
+                        </div>
+                    </div>
+
+                    <p:outputPanel rendered="#{userEdit.user.id != null}" class="col-4">
+                        <h:outputText value="#{ui_labels['users.names']}" styleClass="form-label req"/>
+                        <p:inputText id="names" value="#{userEdit.liceNames}" readonly="true"/>
+                    </p:outputPanel>
+
+                    <p:outputPanel id="admStr" rendered="#{userEdit.user.id == null}" class="col-4">
+                        <h:outputText value="#{ui_labels['users.names']}" styleClass="form-label req"/>
+                        <ibg:selectOneModalA id="chooseAdmStr"
+                                              codeClassif="#{Constants.CODE_CLASSIF_ADMIN_STR}"
+                                              dateClassif="#{userEdit.currentDate}"
+                                              selectedCode="#{userEdit.user.referentId}"
+                                              saveStateTree="true" withBtnClear="true"
+                                              dopInfoAutoComp="false"
+                                              dopInfoTitleAutoComp="Звено"
+                                              minQueryLength="3" styleAutoComp=""
+                                              specifics="#{userEdit.specificsEmployeesOnly}" isSelectNode="false"
+                                              compType="2" onComplete="loadAdmStr()" />
+                        <p:remoteCommand name="loadAdmStr" actionListener="#{userEdit.loadAdmStrData}" />
+                    </p:outputPanel>
+
+                    <div class="col-4">
+                        <h:outputText value="#{ui_labels['users.email']}" styleClass="form-label"/>
+                        <p:inputText value="#{userEdit.user.email}" id="email"/>
+                    </div>
+
+
+                    <!--Second row is HIDDEN-->
+                    <h:panelGroup class="col-12" rendered="#{userEdit.changePass}">
+	                    <div class="grid grid-normal-margin">
+
+	                        <div class="col-12 md:col-4">
+	                            <h:outputText value="#{ui_labels['general.password']}" title="#{userEdit.passwordRegexInfo}" styleClass="form-label req"/>
+	                            <p:password value="#{userEdit.passPlain}" id="passPlain" redisplay="true" autocomplete="off">
+	                            	 <p:ajax event="change" listener="#{userEdit.actionCheckPass}"/>
+	                            </p:password>
+	                        </div>
+
+	                        <div class="col-12 md:col-4">
+	                            <h:outputText value="#{ui_labels['general.passconfirm']}" styleClass="form-label req"/>
+	                            <p:password value="#{userEdit.passRepeat}" id="passRepeat" autocomplete="off" redisplay="true">
+	                            	 <p:ajax event="change" listener="#{userEdit.actionCheckPassRepeat}"/>
+	                            </p:password>
+	                        </div>
+
+	                    </div>
+                    </h:panelGroup>
+
+                    <c:if test="${userEdit.renderUserType}">
+                        <div class="col-4">
+                            <h:outputText value="#{ui_labels['users.type']}" styleClass="form-label req"/>
+                            <p:selectOneMenu id="tip" value="#{userEdit.user.userType}" style="#{userEdit.userConfirmed ? 'opacity:0.7':''}" disabled="#{userEdit.userConfirmed}">
+                                <f:selectItems value="#{userEdit.typeItemList}"/>
+                                <p:ajax event="change" update="formUserEdit:extendedPanel formUserEdit:extendedPanel1"/>
+                            </p:selectOneMenu>
+                        </div>
+                    </c:if>
+
+                    <c:if test="${userEdit.langItemList.size() > 1}">
+                        <div class="col-4">
+                            <h:outputText value="#{ui_labels['users.lang']}"/>
+                            <p:selectOneMenu id="lang" value="#{userEdit.user.lang}">
+                                <f:selectItem value="#{null}" itemValue="#{null}"/>
+                                <f:selectItems value="#{userEdit.langItemList}"/>
+                            </p:selectOneMenu>
+                        </div>
+                    </c:if>
+
+                    <div class="col-4">
+                        <h:outputText value="#{ui_labels['users.status']}" styleClass="form-label req"/>
+                        <p:selectOneMenu id="stat" value="#{userEdit.user.status}">
+                            <f:selectItems value="#{userEdit.statusItemList}"/>
+                            <p:ajax event="change" update="formUserEdit:statusExplain" listener="#{userEdit.actionChangeStatus}"/>
+                        </p:selectOneMenu>
+                    </div>
+
+                    <div class="#{userEdit.divStatusExplainClass}">
+                        <h:outputText value="#{ui_labels['users.statusExplain']}" styleClass="form-label"/>
+                        <p:inputText value="#{userEdit.user.statusExplain}" id="statusExplain"/>
+                    </div>
+
+                </div>
+<ui:remove><!--
+                <div class="col-12">
+	                <p:outputPanel id="extendedPanel" layout="block">
+		                 <c:if test="${userEdit.extended}">
+		                     <ui:include src="/include/extendedUserEditReg.xhtml"/>
+		                 </c:if>
+	            	 </p:outputPanel>
+            	 </div>
+--> </ui:remove>
+            <!-- Служебна информация-->
+            <h:panelGroup id="systemData" layout="block" styleClass="mb-2">
+
+                <div class="mb-2">
+                    <p:commandLink id="sysInfoToggler" class="extended-search-toggle" onclick="toggleSection(this, '#sysInfo')">
+                        <h:outputText value="#{ui_labels['users.sysInfo']}" styleClass="titleSpecEvent"/>
+                        <i class="fas fa-caret-right"></i>
+                    </p:commandLink>
+                </div>
+
+                <div id="sysInfo" class="grid ui-fluid">
+
+                    <div class="col-3">
+                        <h:outputText value="#{ui_labels['users.dateReg']}" styleClass="form-label"/>
+                        <p:inputText readonly="true" value="#{userEdit.user.dateReg}">
+                            <f:convertDateTime pattern="dd.MM.yyyy" timeZone="#{userEdit.timeZone}"/>
+                        </p:inputText>
+                    </div>
+
+                    <div class="col-3">
+                        <h:outputText value="#{ui_labels['users.statusDate']}" styleClass="form-label"/>
+                        <p:inputText readonly="true" value="#{userEdit.user.statusDate}">
+                            <f:convertDateTime pattern="dd.MM.yyyy" timeZone="#{userEdit.timeZone}"/>
+                        </p:inputText>
+                    </div>
+
+					<c:if test="${!userEdit.ldapLogin}">
+                    <div class="col-3">
+                        <h:outputText value="#{ui_labels['users.loginAttemps']}" styleClass="form-label"/>
+                        <p:inputText readonly="true" value="#{userEdit.user.loginAttempts}"/>
+                    </div>
+
+                    <div class="col-3">
+                        <h:outputText value="#{ui_labels['users.passLastChange']}" styleClass="form-label"/>
+                        <p:inputText readonly="true" value="#{userEdit.user.passLastChange}">
+                            <f:convertDateTime pattern="dd.MM.yyyy" timeZone="#{userEdit.timeZone}"/>
+                        </p:inputText>
+                    </div>
+					</c:if>
+
+                </div>
+            </h:panelGroup>
+
+  <ui:remove><!-- Прикачени файлове
+            <ibg:compFileUpload listObj="#{userEdit.filesList}"
+				codeObj="#{Constants.CODE_ZNACHENIE_JOURNAL_USER}"
+				idObj="#{userEdit.user.id}"
+				autoSave="true"
+				saveFirst="#{userEdit.user.id == null}"
+				id="userFiles" display="list" />
+--></ui:remove>
+		</h:panelGroup>
+	</h:panelGroup>
+
+  <ui:remove><!--
+	<p:outputPanel id="extendedPanel1" styleClass="grid grid-normal-margin" layout="block">
+		<c:if test="${userEdit.extended}">
+			<ui:include src="/include/extendedUserEdit.xhtml" />
+		</c:if>
+	</p:outputPanel>
+            --></ui:remove>
+
+			<h:panelGroup id="panelDostapi" layout="block">
+		<h:panelGroup rendered="#{userEdit.typePanelData eq 4}">
+
+            <!-- Групи-->
+            <div class="mt-2">
+                <div class="mb-2">
+                    <p:commandLink class="extended-search-toggle expanded" onclick="toggleSection(this, '#groups')">
+                        <h:outputText value="#{ui_labels['users.groups']}" styleClass="titleSpecEvent"/>
+                        <i class="fas fa-caret-right"></i>
+                    </p:commandLink>
+                </div>
+
+                <div id="groups" class="grid ui-fluid">
+                    <div class="col-12">
+                        <p:selectManyCheckbox id="userGr" value="#{userEdit.selectedGroupsIDs}" layout="responsive" columns="1">
+                            <f:selectItems value="#{userEdit.groupsItemList}"/>
+                        </p:selectManyCheckbox>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Права за достъп-->
+            <div>
+                <div class="mb-2">
+                    <p:commandLink class="extended-search-toggle expanded" onclick="toggleSection(this, '#аccess')">
+                        <h:outputText value="#{ui_labels['users.privateAccess']}" styleClass="titleSpecEvent"/>
+                        <i class="fas fa-caret-right"></i>
+                    </p:commandLink>
+                </div>
+
+                <div id="аccess" class="grid">
+					<p:outputPanel rendered="#{userEdit.showFreeAccessMessage()}" styleClass="col-12">
+	                    <span style="color: #ff7f00; font-size: 0.9rem; font-style: italic;">
+	                        В случай, че не бъдат избрани конкретни стойности от класификациите, маркирани с (<mark style="font-weight: bold; color:#ff7f00;">!</mark>), потребителят получава достъп до всички стойности на класификацията.
+	                    </span>
+	                </p:outputPanel>
+
+                    <div class="col-4">
+
+                        <p:dataTable id="tableDostap" value="#{userEdit.classifList}" var="classif" rowIndexVar="indvar" emptyMessage="#{ui_labels['general.norows']}"
+                                     rowKey="#{classif.value}" widgetVar="dostapWV" rows="20" paginator="true" style="margin: 0;">
+
+                            <p:column headerText="" width="59">
+                                <p:outputPanel layout="inline" style="#{userEdit.isClassifFreeAccess(classif.value) ? 'margin-right: 0.4rem' : 'margin-right: 0.7rem'}">
+                                	<h:outputText rendered="#{userEdit.isClassifFreeAccess(classif.value)}" value="!" style="color: #ff7f00;font-weight: bold"/>
+                               	</p:outputPanel>
+                                <p:commandButton action="#{userEdit.actionLoadTree()}" update="formUserEdit:treeDostap" icon="fas fa-edit">
+                                    <f:param name="selectedClassifCode" value="#{classif.value}"/>
+                                    <f:param name="selectedClassifIndex" value="#{indvar}"/>
+                                </p:commandButton>
+                            </p:column>
+
+                            <p:column headerText="#{ui_labels['general.name']}">
+                                <h:outputText value="#{classif.label}"/>
+                            </p:column>
+
+                        </p:dataTable>
+                    </div>
+
+                    <div class="col-8">
+                    	<div style="position: relative; height: 100%; min-height: 350px;">
+	                        <p:scrollPanel mode="native" style="position: absolute; height: 100%; width: 100%;">
+	                            <p:tree id="treeDostap" value="#{userEdit.rootNode}" var="node" selectionMode="checkbox" selection="#{userEdit.selectedNodes}"
+	                                    style="width:100%; border:none" nodeVar="rowNode">
+	                                <p:ajax event="select" listener="#{userEdit.actionNodeClick}"/>
+	                                <p:ajax event="unselect" listener="#{userEdit.actionNodeClick}"/>
+	                                <p:treeNode>
+	                                    <h:outputText value="#{node.tekst}" id="nodeTekst" escape="false"
+											style="#{!rowNode.selectable?'font-style: italic; color:grey':''}"/>
+	                                    <p:tooltip value="#{node.dopInfo}" for="nodeTekst" trackMouse="true" style=" max-width: 500px;"/>
+	                                </p:treeNode>
+	                            </p:tree>
+	                        </p:scrollPanel>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+           </h:panelGroup>
+          </h:panelGroup>
+
+            <h:panelGroup id="panel2FA" layout="block">
+                <div class="mt-4" jsf:rendered="#{userEdit.typePanelData eq 5}">
+                    <div class="grid">
+                        <div class="col-12 sm:col-6 md:col-4">
+                            <p:selectOneRadio value="#{userEdit.user.two_fa}" layout="responsive" columns="1" >
+                                <f:selectItem itemLabel="#{ui_labels['userEdit.2faNone']}" itemValue="#{UriregConstants.TWO_FA_NONE}" />
+                                <f:selectItem itemLabel="#{ui_labels['userEdit.2faCodeMail']}" itemValue="#{UriregConstants.TWO_FA_EMAIL}"
+                                        itemDisabled="#{!(userEdit.twoFactorAuthSetting eq 1 or userEdit.twoFactorAuthSetting eq 3)}"/>
+                                <f:selectItem itemLabel="#{ui_labels['userEdit.2faCodeGoogle']}" itemValue="#{UriregConstants.TWO_FA_AUTH}"
+                                        itemDisabled="#{!(userEdit.twoFactorAuthSetting eq 2 or userEdit.twoFactorAuthSetting eq 3)}"/>
+                                <p:ajax event="change" update="panel2FA" partialSubmit="true" process=" @this" listener="#{userEdit.actionChoose2FA()}" />
+                            </p:selectOneRadio>
+                        </div>
+                        <div class="col-fixed" style="width: 222px;" jsf:rendered="#{userEdit.authQrCode ne null}">
+                            <p:graphicImage value="#{userEdit.authQrCode}" stream="false"
+                                    style="border: 4px solid #dee2e6; border-radius: 8px;"/>
+                            <p:commandButton value="#{ui_labels['userEdit.sendByMali']}" icon="far fa-envelope" styleClass="mt-1"
+                                    style="width: 100%;" actionListener="#{userEdit.sendQrCodeEmail()}"/>
+                        </div>
+                    </div>
+
+                </div>
+
+            </h:panelGroup>
+
+        </p:panel>
+    </div>
+
+</h:form>
+</ui:composition>

@@ -1,0 +1,189 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+		xmlns:h="jakarta.faces.html"
+		xmlns:f="jakarta.faces.core"
+		xmlns:jsf="jakarta.faces"
+		xmlns:p="http://primefaces.org/ui"
+		xmlns:ui="jakarta.faces.facelets"
+		xmlns:ibg="jakarta.faces.composite/components"
+		xmlns:cc="jakarta.faces.composite">
+	
+<cc:interface componentType="compUdostDokument">
+	<cc:attribute name="headerTitle" type="java.lang.String"
+			shortDescription="Заглавие за модалния" />
+
+	<cc:attribute name="style" type="java.lang.String"
+		shortDescription="Стилове за компонента" />
+		
+	<cc:attribute name="styleClass" type="java.lang.String"
+		shortDescription="CSS класове за компонента" />
+	
+	<cc:attribute name="docId" type="java.lang.Integer"
+		shortDescription="ID на деловоден документ" />
+
+	<cc:attribute name="liceId" type="java.lang.Integer"
+			shortDescription="Код на лице. (Например за генериране на Удост. за правоспособност)" />
+
+	<cc:attribute name="vidDok" required="true"
+		shortDescription="Код от класификация '212 - Шаблони за попълване', с който се знае кои шаблони да се покажат." />
+
+	<cc:attribute name="parentObjectId" required="true"
+		shortDescription="Ид на обекта, към който да се запише новият файл. Няма type, защото тогава стойността се кешира и не се обновява." />
+
+	<cc:attribute name="deletePrevFile" type="java.lang.Boolean" default="false"
+		shortDescription="Дали да изтрива предишния файл при генериране на нов." />
+
+	<cc:attribute name="isEditable" type="java.lang.Boolean" default="false"
+		shortDescription="Дали да позволи да се редактират стойностите на букмарковете преди генериране. За да може да се редактира една стойност, трябва да е настроена в екрана за попълване на шаблони." />
+
+	<cc:attribute name="isDublikat" type="java.lang.Boolean" default="false"
+		shortDescription="Дали да генерира шаблона като дубликат." />
+
+	<cc:attribute name="actionAfterGenerate" method-signature="void action()" required="false"
+		shortDescription="Метод,който да се извика след генерирането на новия уърдовски файл." />
+
+	<cc:attribute name="update" type="java.lang.String" required="false"
+		shortDescription="Вика се при затваряне на прозореца." />
+
+</cc:interface>
+
+<cc:implementation>
+	<style type="text/css">
+
+		.udost-modal {
+			height: 99% !important;
+		}
+
+		.ui-dialog.udost-modal .ui-dialog-content {
+			height: calc(100% - 43px) !important;
+			overflow: hidden !important;
+			background: var(--surface-d);
+		}
+		
+		.udost-modal .udost-modal-wrapper {
+			height: 100%;
+		}
+		
+		.udost-modal .doc-preview-wrapper {
+			height: 100%;
+			overflow-y: auto;
+			font-weight: normal;
+			color: #212529;
+		}
+		
+		.udost-modal .doc-preview-wrapper > div {
+			background: #ffffff;
+			border: 1px solid #ced4da;
+			padding: 1rem 2rem;
+			border-radius: 4px;
+		}
+		
+		.udost-modal .fields-wrapper,
+		.udost-modal .toolbar-wrapper {
+			background: var(--surface-a);
+			margin-top: 0;
+		}
+	</style>
+	
+	<div id="#{cc.clientId}"
+		class="comp-udost-dok-wrapper #{cc.attrs.styleClass}" style="#{cc.attrs.style}">
+		
+		<p:dialog styleClass="udost-modal" widgetVar="#{cc.clientId}:udost" modal="true"
+				width="1400px" blockScroll="true"
+				header="Генериране на #{cc.attrs.headerTitle} #{cc.attrs.isDublikat ? ' - дубликат' : ''}">
+			<div jsf:id="udostWrapper" class="udost-modal-wrapper">
+
+				<p:messages id="messagesLocal" showDetail="true" closable="true">
+					<p:autoUpdate />
+				</p:messages>
+					
+				<div jsf:id="panelChooseShablon" jsf:rendered="#{cc.creator.needsToChooseShablon()}">
+					<div>Изберете шаблон:</div>
+					<p:selectOneListbox value="#{cc.chosenShablon}">
+						<f:selectItems value="#{cc.creator.shabloni}" 
+							var="s" itemLabel="#{s.filename}" itemValue="#{s.id}" />
+							
+						<p:ajax event="valueChange" update="udostWrapper" process="panelChooseShablon"
+							listener="#{cc.onChooseShablon()}"/>
+					</p:selectOneListbox>
+				</div>
+
+				<div class="grid" jsf:rendered="#{!cc.creator.needsToChooseShablon()}" style="height: 100%">
+					<div class="col-5" jsf:id="leftColWrapper" style="height: 100%">
+						<div class="grid toolbar-wrapper mb-2">
+							<div class="col-12">
+								<p:toolbar id="toolbar">
+									<p:toolbarGroup align="left">
+										<p:commandButton icon="fas fa-arrow-left" label="Назад" styleClass="mr-2"
+											rendered="#{cc.creator.shabloni.size() gt 1}" actionListener="#{cc.goBack}"
+											update="udostWrapper"/>
+
+										<p:commandButton icon="fas fa-save" ignoreAutoUpdate="true"
+											rendered="#{!cc.isEditing() and cc.savedFile eq null}"
+											styleClass="ui-button-success"
+											value="Генериране на файл"
+											partialSubmit="true" process="@this"
+											update="udostWrapper"
+											actionListener="#{cc.generateDoc(true)}"/>
+										<p:confirmDialog message="Има генериран файл. Искате ли да го генерирате отново? Предишните ще бъдат изтрити."
+												severity="alert" widgetVar="#{cc.clientId}:confirm1">
+											<p:commandButton value="#{ui_labels['general.da']}" actionListener="#{cc.generateDoc(false)}" update="udostWrapper"
+													oncomplete="PF('#{cc.clientId}:confirm1').hide()" ignoreAutoUpdate="true" />
+											<p:commandButton value="#{ui_labels['general.ne']}" onclick="PF('#{cc.clientId}:confirm1').hide();" type="button"/>
+										</p:confirmDialog>
+										<p:commandButton icon="fas fa-download" ignoreAutoUpdate="true"
+											rendered="#{!cc.isEditing() and cc.savedFile ne null}"
+											value="Сваляне"
+											ajax="false"
+											partialSubmit="true" process="@this"
+											actionListener="#{cc.downloadDoc()}"/>
+
+										<span jsf:rendered="#{cc.isEditing()}">Редакция</span>
+									</p:toolbarGroup>
+								</p:toolbar>
+							</div>
+						</div>
+
+						<ui:repeat value="#{cc.creator.bookmarks}" var="b">
+							<div class="col-12" jsf:rendered="#{b.fillStrategy eq 'ADVANCED'}">
+								<div jsf:rendered="#{b.fillComponent eq 'ADM_STRUCT'}">
+									<div class="form-label">#{b.description}</div>
+									<ibg:selectOneModalA
+										codeClassif="#{UriregConstants.CODE_CLASSIF_ADMIN_STR}"
+										selectedCode="#{cc.creator.advancedBookmarkValues[b.label]}" filtered="false"
+										withBtnClear="true" saveStateTree="true" showRadioBtn="true"
+										styleAutoComp="width:100%;" compType="2" />
+								</div>
+
+								<!-- <div jsf:rendered="{b.fillComponent eq 'TEXT, REFERENT...'}"> -->
+							</div>
+						</ui:repeat>
+						<div class="col-12" jsf:rendered="#{cc.showApplyEditButton()}" style="text-align: right;">
+							<p:commandButton
+								value="Потвърди"
+								title="Потвърждаване на промените в документа"
+								icon="fas fa-check"
+								styleClass="ui-button-success"
+								actionListener="#{cc.finishEditing()}"
+								update="docPreviewWrapper"
+								partialSubmit="true"
+								process="@this" />
+						</div>
+
+					</div>
+
+					<div class="col-7" style="height: 100%">
+						<div jsf:id="docPreviewWrapper" class="doc-preview-wrapper">
+							<h:outputText value="#{cc.html}" escape="false"/>
+						</div>
+					</div>
+				</div>
+					
+			</div>
+
+			<p:ajax event="close" update="#{cc.attrs.update}" />
+		</p:dialog>
+	
+	</div>
+	
+</cc:implementation>
+</ui:composition>

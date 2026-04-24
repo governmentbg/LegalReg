@@ -1,0 +1,490 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:ui="jakarta.faces.facelets"
+                xmlns:f="jakarta.faces.core"
+                xmlns:jsf="jakarta.faces"
+                xmlns:h="jakarta.faces.html"
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:ibg="jakarta.faces.composite/components"
+                template="/template/template.xhtml">
+
+    <ui:define name="title">#{navTexts['/pages/traineeshipOrder.xhtml']}</ui:define>
+
+    <ui:define name="viewname">
+        <li><p:commandLink title="#{ui_labels['general.back']}" action="#{navigation.goBack()}" rendered="#{navigation.navPath.size()>1}">
+            <i class="fas fa-caret-left" />
+        </p:commandLink>
+        </li>
+        <li>#{navTexts['/pages/traineeshipOrder.xhtml']}</li>
+    </ui:define>
+
+
+    <ui:define name="metadata">
+        <f:metadata>
+            <f:importConstants type="com.ib.urireg.system.UriregConstants" />
+            <f:viewAction action="#{userData.checkReloadPage}" onPostback="false" />
+            <f:viewAction action="#{userData.checkPageAccess(205)}"
+                          onPostback="false" />
+        </f:metadata>
+    </ui:define>
+
+    <ui:define name="head">
+
+    </ui:define>
+
+    <ui:define name="content">
+
+        <h:form id="traineeshipOrderForm" enctype="multipart/form-data">
+
+
+            <div class="#{guestPreferences.containerPosition}" jsf:rendered="#{traineeshipOrder.doc ne null}">
+                <p:panel header="" toggleable="false" toggleSpeed="500" widgetVar="panelStaj">
+
+                    <f:facet name="header">
+
+                        <!-- БУТОН ЗАПИС -->
+                        <p:commandButton icon="fas fa-save" value="#{ui_labels['general.save']}" id="btnSave"
+                                         update="traineeshipOrderForm" partialSubmit="true" process="traineeshipOrderForm @this" action="#{traineeshipOrder.actionSave}">
+                            <p:confirm header="#{ui_labels['general.comfirmation']}"
+                                       escape="false" disabled="#{traineeshipOrder.doc.id eq null or (traineeshipOrder.doc.rnDoc == null or traineeshipOrder.doc.rnDoc.trim().length() == 0) }"
+                                       message="#{labels['traineeshipOrder.confSave']}"
+                                       icon="fas fa-exclamation-triangle"/>
+                        </p:commandButton>
+
+                        <span class="mx-2" jsf:rendered="#{traineeshipOrder.doc.id ne null}" >
+			                   	<span class="fas fa-ellipsis-v SoftGray"/>
+                        </span>
+
+                        <!-- БУТОН ГЕНЕРИРАНЕ -->
+                        <p:commandButton icon="fas fa-file-alt" value="#{labels['traineeshipOrder.generiraneZapoved']}" id="genFile"
+                                         styleClass="ui-button-success mr-2"
+                                         rendered="#{traineeshipOrder.doc.id ne null}"
+                                         update="traineeshipOrderForm:compUdostDoc"
+                                         partialSubmit="true" process="traineeshipOrderForm @this"
+                                         action="#{traineeshipOrder.actionGenerateOrder}">
+                        </p:commandButton>
+
+
+                        <!-- БУТОН ИЗТРИВАНЕ  -->
+                        <p:commandButton icon="fas fa-trash" id="btnDelete"
+                                         value="#{ui_labels['general.delete']}" update="traineeshipOrderForm"
+                                         partialSubmit="true" process="traineeshipOrderForm  @this"
+                                         action="#{traineeshipOrder.actionDelete()}"
+                                         style="float: right; "
+                                         rendered="#{empty traineeshipOrder.doc.rnDoc and empty traineeshipOrder.doc.docDate and traineeshipOrder.doc.id ne null}"
+                                         styleClass="ui-button-danger ml-2 mr-2" >
+                            <p:confirm header="#{ui_labels['general.comfirmation']}"
+                                       escape="false"
+                                       message="#{traineeshipOrder.slcLicaList.size() > 0 ? labels['traineeshipOrder.confDel'] : ui_labels['general.confirmationMessage']}"
+                                       icon="fas fa-exclamation-triangle"/>
+                        </p:commandButton>
+
+                        <ibg:compObjAudit id="his" idObj="#{traineeshipOrder.doc.id}"
+                                          codeObj="#{UriregConstants.CODE_ZNACHENIE_JOURNAL_DOC}"
+                                          identInfo="#{traineeshipOrder.doc.identInfo}"/>
+
+
+                    </f:facet>
+
+                    <!-- Компонента за генериране на шаблон към УД -->
+                    <ibg:compUdostDokument id="compUdostDoc"
+                            headerTitle="#{systemData.decodeItem(UriregConstants.CODE_CLASSIF_SHABLONI, traineeshipOrder.getUdostDokVid(), traineeshipOrder.currentLang, null)}"
+                            binding="#{traineeshipOrder.bindCompUdostDoc}" isEditable="true"
+                            docId="#{traineeshipOrder.doc.id}" deletePrevFile="true"
+                            vidDok="#{traineeshipOrder.getUdostDokVid()}"
+                            parentObjectId="#{traineeshipOrder.doc.id}" update="@form "
+                            actionAfterGenerate="#{traineeshipOrder.afterGeneratePrepis}" />
+
+                    <!-- ПАНЕЛ ОСНОВНИ ДАННИ -->
+                    <div class="title-group mt-3">
+                        <p:commandLink class="extended-search-toggle expanded" onclick="toggleSection(this, '#traineeshipOrderForm:basicDataPnl')">
+                            <h:outputText value="#{labels['procDefEdit.basicData']}" />
+                            <i class="fas fa-caret-right"></i>
+                        </p:commandLink>
+                    </div>
+
+                    <div jsf:id="basicDataPnl">
+                        <div class="grid ui-fluid">
+
+                            <div  class="col-12 sm:col-12 md:col-6 lg:col-2 xl:col-1  ui-fluid">
+                                <h:outputText value="#{labels['traineeshipOrder.zapovedNo']}" styleClass="form-label"/>
+                                <div class="ui-inputgroup">
+
+                                    <p:inputText id="rNomer" value="#{traineeshipOrder.doc.rnDoc}"  />
+
+                                    <p:commandButton icon="pi pi-copy" styleClass="ui-button" update="@this rNomer"
+                                                     rendered="#{empty traineeshipOrder.doc.rnDoc and not empty traineeshipOrder.prefix and !traineeshipOrder.haveRnDoc}"
+                                                     title="#{labels['traineeshipOrder.prefix']}"
+                                                     action="#{traineeshipOrder.actionCopyPrefix()}" />
+                                </div>
+                            </div>
+
+                            <div  class="col-12 sm:col-6 md:col-3 lg:col-2 xl:col-2  ui-fluid">
+                                <h:outputText value="#{ui_labels['general.date']}" styleClass="form-label"  />
+                                <p:datePicker id="zapovedDataOt" value="#{traineeshipOrder.doc.docDate}" mask="true" pattern="dd.MM.yyyy" locale="bg"
+                                              showIcon="true" maxdate="#{traineeshipOrder.currentDate}" validatorMessage="#{labels['traineeshipOrder.dateAfter']}"  />
+                            </div>
+
+                            <div  class="col-12 sm:col-6 md:col-4 lg:col-2 xl:col-4  ui-fluid">
+                                <h:outputText value="#{labels['traineeshipOrder.vid']}" styleClass="form-label req"  />
+                                <p:selectOneRadio id ="vidDoc" value="#{traineeshipOrder.vidStaj}" disabled="#{traineeshipOrder.doc.id ne null}">
+                                    <f:selectItems  value="#{systemData.getSysClassification(UriregConstants.CODE_CLASSIF_STAJ_VID, null, traineeshipOrder.currentLang)}"
+                                                    var="item" itemLabel="#{item.tekst}" itemValue="#{item.code}" />
+                                    <p:ajax event="change" process="@form" update="@form"
+                                            listener="#{traineeshipOrder.actionChangeVid}"/>
+                                </p:selectOneRadio>
+                            </div>
+                        </div>
+
+
+                        <div class="grid ui-fluid">
+                            <div  class="col-12 sm:col-6 md:col-3 lg:col-4 xl:col-3 ui-fluid">
+                                <h:outputText value="#{labels['traineeshipOrder.izgotvil']}" styleClass="form-label"/>
+                                <ibg:selectOneModalA id="izgotvil" header="#{labels['traineeshipOrder.izgotvil']}"
+                                                     codeClassif="#{UriregConstants.CODE_CLASSIF_ADMIN_STR}"
+                                                     selectedCode="#{traineeshipOrder.doc.codeIzgotvil}"
+                                                     dateClassif="#{traineeshipOrder.currentDate}"
+                                                     saveStateTree="true" filtered="false"
+                                                     styleAutoComp="width:99%;"
+                                                     compType="2" minQueryLength="3"
+                                                     withBtnClear="true"  isSelectNode="false"
+                                                     dopInfoAutoComp="false" itemtipAtPosition="center bottom"/>
+                            </div>
+
+                            <div  class="col-12 sm:col-6 md:col-3 lg:col-6 xl:col-6  ui-fluid">
+                                <h:outputText value="#{labels['traineeshipOrder.saglasuvali']}" styleClass="form-label"/>
+                                <ibg:selectManyModalA id="saglasuvali" compType="2" maxResults="50"
+                                                      codeClassif="#{UriregConstants.CODE_CLASSIF_ADMIN_STR}"
+                                                      selectedCodes="#{traineeshipOrder.doc.codeSaglList}"
+                                                      selectedClassifs="#{traineeshipOrder.codeSaglClassif}"
+                                                      dateClassif="#{traineeshipOrder.currentDate}"
+                                                      showRadioBtn="false"
+                                                      styleAutoComp="width:100%;"
+                                                      withBtnClear="true"
+                                                      itemtipAtPosition="center bottom"
+                                                      header="#{labels['traineeshipOrder.saglasuvali']}"
+                                                      isSelectNode="false"
+                                                      modalPosition="top"
+                                                      percentAutoComp="true"/>
+
+                            </div>
+
+                            <div  class="col-12 sm:col-6 md:col-3 lg:col-3 xl:col-3  ui-fluid">
+                                <h:outputText value="#{labels['traineeshipOrder.podpisal']}" styleClass="form-label"/>
+                                <ibg:selectOneModalA codeClassif="#{UriregConstants.CODE_CLASSIF_ADMIN_STR}"
+                                                     id="podpisal" dateClassif="#{traineeshipOrder.currentDate}" filtered="false" sortByName="false"
+                                                     saveStateTree="true" isSelectNode="false"
+                                                     selectedCode="#{traineeshipOrder.doc.codePodpisal}"
+                                                     withBtnClear="true"
+                                                     compType="2" styleAutoComp="width:99%;" />
+                            </div>
+
+                            <div  class="col-12  ui-fluid">
+                                <h:outputText value="#{labels['traineeshipOrder.dopInfo']}" styleClass="form-label"/>
+                                <p:inputTextarea rows="3" id="dopInfo" value="#{traineeshipOrder.doc.docInfo}"  />
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <!-- ПАНЕЛ ФАЙЛ -->
+                    <div class="title-group mt-3">
+                        <p:commandLink class="extended-search-toggle expanded" onclick="toggleSection(this, '#traineeshipOrderForm:filesPnl')">
+                            <h:outputText value="#{labels['traineeshipOrder.files']}" />
+                            <i class="fas fa-caret-right"></i>
+                        </p:commandLink>
+
+                        <p:fileUpload id="fileUpload" listener="#{traineeshipOrder.uploadFileListener}"
+                                      dragDropSupport="true"
+                                      styleClass="ui-button-success"
+                                      mode="advanced" multiple="true" auto="true"
+                                      label="#{labels['traineeshipOrder.addFile']}" update="traineeshipOrderForm:filesList">
+                        </p:fileUpload>
+                    </div>
+
+                    <div jsf:id="filesPnl" class="grid ui-fluid">
+                        <h:panelGroup id="filesList"  styleClass="mt-1">
+
+                            <div  jsf:id="fileData">
+
+                                    <div class="col-12" >
+                                        <p:dataTable id="listDataFileZayavStaj" var="file" rowIndexVar="idx"
+                                                     rendered="#{traineeshipOrder.filesList.size() > 0}"
+                                                     value="#{traineeshipOrder.filesList}" size="small"
+                                                     paginatorTemplate="{RowsPerPageDropdown} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {Exporters}"
+                                                     rows="10" rowsPerPageTemplate="10,15,20,25"
+                                                     paginatorPosition="bottom"
+                                                     paginator="true" paginatorAlwaysVisible="false"
+                                                     showGridlines="false">
+
+                                            <p:column width="35" headerText="#{ui_labels['general.No-symbol']}">
+                                                <h:outputText value="#{idx + 1}" />
+                                            </p:column>
+
+                                            <p:column width="35" >
+                                                <p:commandButton icon="fas fa-download"  ajax="false" title="#{ui_labels['general.download']}"
+                                                                 ignoreAutoUpdate="true"
+                                                                 partialSubmit="true" process="@this"
+                                                                 action="#{traineeshipOrder.downloadFile(file)}"/>
+                                            </p:column>
+
+                                            <p:column headerText="#{labels['traineeshipOrder.fileName']}">
+                                                <h:outputText value="#{file.filename}" />
+                                            </p:column>
+
+                                            <p:column width="35" >
+                                                <p:commandButton icon="fas fa-times"  title="#{ui_labels['general.delete']}"
+                                                                 update="traineeshipOrderForm:filesList" process="@this" partialSubmit="true"  styleClass="ui-button-danger"
+                                                                 action="#{traineeshipOrder.deleteFile(file)}" >
+                                                <p:confirm header="#{ui_labels['general.comfirmation']}"
+                                                           escape="false"
+                                                           message="#{ui_labels['general.confirmationMessage']}"
+                                                           icon="fas fa-exclamation-triangle"/>
+                                                </p:commandButton>
+                                            </p:column>
+                                        </p:dataTable>
+                                    </div>
+                            </div>
+                        </h:panelGroup>
+                    </div>
+
+
+                    <!-- ПАНЕЛ ЛИЦА -->
+                    <div class="title-group mt-3">
+                        <p:commandLink class="extended-search-toggle expanded" onclick="toggleSection(this, '#traineeshipOrderForm:licaPnl')">
+                            <h:outputText value="#{labels['traineeshipOrder.lica']}" />
+                            <i class="fas fa-caret-right"></i>
+                        </p:commandLink>
+
+                        <p:commandButton icon="fas fa-user-plus" value="#{labels['traineeshipOrder.dobaviLice']}" id="addLice"
+                                         styleClass="ui-button-success" rendered="#{empty traineeshipOrder.doc.rnDoc and empty traineeshipOrder.doc.docDate and traineeshipOrder.doc.id ne null}"
+                                         update="@this licaTable panelTblToolbarVar"
+                                         onclick="PF('licaMdlVar').show();"
+                                         partialSubmit="true" process="@this panelTblToolbarVar" action="#{traineeshipOrder.actionAddLica}">
+                        </p:commandButton>
+
+                    </div>
+
+
+                    <div jsf:id="licaPnl">
+                        <h:panelGroup id="panelTblToolbar"
+                                      layout="block"
+                                      styleClass="flex justify-content-between align-items-center w-full">
+
+                            <h:outputText value="#{ui_labels['general.reportResult']}: #{traineeshipOrder.slcLicaList.size()}"
+                                          styleClass="form-label" />
+
+                        </h:panelGroup>
+
+                        <ibg:compUdostDokument id="compUdostDocPrepis"
+                                headerTitle="#{systemData.decodeItem(UriregConstants.CODE_CLASSIF_SHABLONI, traineeshipOrder.getPrepisVid(traineeshipOrder.licePrepis[8]), traineeshipOrder.currentLang, null)}"
+                                binding="#{traineeshipOrder.bindCompUdostDocPrepis}" isEditable="true"
+                                docId="#{traineeshipOrder.doc.id}" deletePrevFile="true"
+                                vidDok="#{traineeshipOrder.getPrepisVid(traineeshipOrder.licePrepis[8])}"
+                                parentObjectId="#{traineeshipOrder.licePrepis[5]}"
+                                liceId="#{traineeshipOrder.licePrepis[0]}" update="traineeshipOrderForm:tblVrList"
+                                actionAfterGenerate="#{traineeshipOrder.afterGeneratePrepis}"/>
+
+                        <p:dataTable id="tblVrList" var="row" size="small"
+                                     rowIndexVar="idx" scrollable="true"
+                                     value="#{traineeshipOrder.slcLicaList}"
+                                     sortMode="single" reflow="true"
+                                     emptyMessage="#{labels['traineeshipOrder.noResults']}"
+                                     paginatorTemplate="{RowsPerPageDropdown} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {Exporters}"
+                                     rows="10" rowsPerPageTemplate="10,15,20,25"
+                                     paginatorPosition="bottom"
+                                     paginator="true" paginatorAlwaysVisible="false"
+                                     showGridlines="false">
+
+                            <f:facet name="{Exporters}">
+                                <div style="float: left" jsf:rendered="#{traineeshipOrder.slcLicaList.size() > 0}" >
+
+                                    <p:commandLink id="excel" update="tblVrList" process="tblVrList" partialSubmit="true">
+                                        <h:graphicImage library="images" name="excel2.png" />
+                                        <p:dataExporter type="xls" target="tblVrList" fileName="licaListXls" postProcessor="#{traineeshipOrder.postProcessXLSPersonsTrainList}" />
+                                    </p:commandLink>
+
+                                    <p:commandLink id="pdf" update="tblVrList" process="tblVrList" partialSubmit="true">
+                                        <h:graphicImage library="images" name="pdf.png" />
+                                        <p:dataExporter type="pdf" target="tblVrList" fileName="licaListPdf" encoding="windows-1251"
+                                                        preProcessor="#{traineeshipOrder.preProcessPDFPersonsTrainList}" options="#{traineeshipOrder.pdfOptions()}"/>
+                                    </p:commandLink>
+
+                                    <p:commandLink id="csv" update="tblVrList" process="tblVrList" partialSubmit="true">
+                                        <h:graphicImage library="images" name="csv.png" />
+                                        <p:dataExporter type="csv" target="tblVrList" fileName="licaListCsv" encoding="CP1251" />
+                                    </p:commandLink>
+
+                                </div>
+                            </f:facet>
+
+
+                            <p:column width="35" headerText="#{ui_labels['general.No-symbol']}">
+                                <h:outputText value="#{idx + 1}" />
+                            </p:column>
+
+                            <p:column width="35" exportable="false">
+                                <p:button icon="fas fa-eye" title="#{labels['traineeshipOrder.dosie']}" target="_blank"
+                                          outcome="dossierPersonView.xhtml" ajax="false" styleClass="ui-button">
+                                    <f:param id="idLice" name="idLice" value="#{row[0]}"/>
+                                </p:button>
+                            </p:column>
+
+                            <p:column width="35"  rendered="#{not empty traineeshipOrder.doc.rnDoc}" exportable="false">
+                                <p:commandButton icon="fas fa-file-alt" title="#{labels['traineeshipOrder.prepis']}"
+                                                 rendered="#{traineeshipOrder.haveUD}"
+                                                 styleClass="ui-button-success" update="traineeshipOrderForm:compUdostDocPrepis"
+                                                 actionListener="#{traineeshipOrder.actionGeneratePrepis(row)}"
+                                                 partialSubmit="true" process="@this"  />
+                            </p:column>
+
+                            <p:column width="35"  exportable="false">
+                                <p:commandButton icon="fa fa-paperclip" title="#{labels['traineeshipOrder.downPrepis']}"  ajax="false"
+                                                 ignoreAutoUpdate="true"
+                                                 styleClass="ui-button"
+                                                 partialSubmit="true" process="@this"
+                                                 rendered="#{row[16] ne null and traineeshipOrder.haveUD}"
+                                                 action="#{traineeshipOrder.actionDownloadPrepis(row[16])}" />
+                            </p:column>
+
+                            <p:column headerText="#{labels['traineeshipOrder.razpredelen']}" sortBy="#{row[7]}">
+                                <h:outputText value="#{systemData.decodeItem(UriregConstants.CODE_CLASSIF_INSTITUTION, row[7], traineeshipOrder.currentLang, null)}"/>
+                            </p:column>
+
+                            <p:column headerText="#{labels['traineeshipOrder.egn']}" sortBy="#{row[1]}"
+                                      filterBy="#{row[1]}" filterMatchMode="contains" filterPlaceholder="#{labels['traineeshipOrder.filterEgn']}">
+                                <h:outputText value="#{row[1]}"  />
+                            </p:column>
+
+                            <p:column headerText="#{labels['traineeshipOrder.imena']}" sortBy="#{row[3]}"
+                                      filterBy="#{row[3]}" filterMatchMode="contains" filterPlaceholder="#{labels['traineeshipOrder.filterNames']}">
+                                <h:outputText value="#{row[3]}"  />
+                            </p:column>
+
+                            <p:column headerText="#{labels['traineeshipOrder.profStaj']}" sortBy="#{row[9]}">
+                                <h:outputText value="#{row[9]}"  />
+                            </p:column>
+
+                            <p:column headerText="#{labels['traineeshipOrder.nastavnik']}" sortBy="#{row[8]}">
+                                <h:outputText value="#{row[8]}"  />
+                            </p:column>
+
+                            <p:column headerText="#{labels['traineeshipOrder.zapoved2019']}" width="50" style="text-align:center;">
+                                <i class="fas fa-check"
+                                   title="#{ui_labels['general.da']}"
+                                   style="color:#28a745; font-size:1.4em;"
+                                   jsf:rendered="#{row[14] eq UriregConstants.CODE_ZNACHENIE_DA}"></i>
+                            </p:column>
+
+
+                            <p:column width="35"  rendered="#{traineeshipOrder.doc.id ne null and empty traineeshipOrder.doc.rnDoc and empty traineeshipOrder.doc.docDate}" exportable="false">
+                                <p:commandButton icon="fas fa-trash" styleClass="ui-button-danger"
+                                                 title="#{labels['traineeshipOrder.remove']}"
+                                                 action="#{traineeshipOrder.actionDeleteLice(row)}"
+                                                 partialSubmit="true" process="@this"
+                                                 update="@form"
+                                                 oncomplete="window.scrollTo({top: 0, behavior: 'smooth'});">
+                                    <p:confirm header="#{ui_labels['general.comfirmation']}"
+                                               escape="false"
+                                               message="#{labels['traineeshipOrder.delLice']}"
+                                               icon="fas fa-exclamation-triangle"/>
+                                </p:commandButton>
+                            </p:column>
+
+                        </p:dataTable>
+
+                    </div>
+
+
+                    <h:panelGroup id="addLicaDlg">
+
+                        <p:dialog appendTo="@form" closeOnEscape="true"
+                                  header="#{labels['traineeshipOrder.licaList']}"
+                                  fitViewport="true"
+                                  responsive="true"
+                                  resizable="true"
+                                  position="top"
+                                  widgetVar="licaMdlVar" dynamic="true" id="licaMdl"
+                                  modal="true" width="90%">
+
+                            <div class="table-toolbar" >
+                                <h:panelGroup id="panelTblToolbarVar">
+                                    <h:outputText value="#{ui_labels['general.reportResult']}: #{traineeshipOrder.odobreniLicaList.size()}" styleClass="form-label"/>
+
+                                    <span class="mx-2" >
+			                   	        <span class="fas fa-ellipsis-v SoftGray"/>
+                                    </span>
+
+                                    <h:outputText value="#{labels['traineeshipOrder.brIzbrani']}: #{traineeshipOrder.checkboxLicaList.size()}"
+                                                  styleClass="form-label" />
+                                </h:panelGroup>
+                            </div>
+
+                            <p:dataTable id="licaTable" var="row" value="#{traineeshipOrder.odobreniLicaList}"
+                                         rowIndexVar="idx"
+                                         emptyMessage="#{labels['traineeshipOrder.noResults']}"
+                                         paginatorTemplate="{RowsPerPageDropdown} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink}"
+                                         rows="10" rowsPerPageTemplate="10,15,20,25"
+                                         paginatorPosition="bottom" paginatorAlwaysVisible="false"
+                                         paginator="true" showGridlines="true"
+                                         selection="#{traineeshipOrder.checkboxLicaList}"
+                                         selectionMode="multiple" rowKey="#{row}">
+
+                                <p:ajax event="rowSelectCheckbox" listener="#{traineeshipOrder.onRowCheckboxSelect}" process="licaTable" update="traineeshipOrderForm:panelTblToolbarVar"   />
+                                <p:ajax event="rowUnselectCheckbox" listener="#{traineeshipOrder.onRowCheckboxUnselect}" />
+                                <p:ajax event="toggleSelect" listener="#{traineeshipOrder.selectAllRows}"  />
+
+                                <p:column width="30" headerText="#{ui_labels['general.No-symbol']}">
+                                    <h:outputText value="#{idx + 1}" />
+                                </p:column>
+
+                                <p:column width="30" selectionBox="true" selectRow="multiple"
+                                          style="text-align: center;" title="#{labels['traineeshipOrder.choose']}" exportable="false" />
+
+                                <p:column headerText="#{labels['traineeshipOrder.razpredelen']}" sortBy="#{row[7]}">
+                                    <h:outputText value="#{systemData.decodeItem(UriregConstants.CODE_CLASSIF_INSTITUTION, row[7], traineeshipOrder.currentLang, null)}"/>
+                                </p:column>
+
+                                <p:column headerText="#{labels['traineeshipOrder.egn']}"  sortBy="#{row[1]}"
+                                          filterBy="#{row[1]}" filterMatchMode="contains" filterPlaceholder="#{labels['traineeshipOrder.filterEgn']}">
+                                    <h:outputText value="#{row[1]}"  />
+                                </p:column>
+
+                                <p:column headerText="#{labels['traineeshipOrder.imena']}" sortBy="#{row[3]}"
+                                          filterBy="#{row[3]}" filterMatchMode="contains" filterPlaceholder="#{labels['traineeshipOrder.filterNames']}">
+                                    <h:outputText value="#{row[3]}"  />
+                                </p:column>
+
+                                <p:column headerText="#{labels['traineeshipOrder.profStaj']}" sortBy="#{row[9]}">
+                                    <h:outputText value="#{row[9]}"  />
+                                </p:column>
+
+                                <p:column headerText="#{labels['traineeshipOrder.nastavnik']}" sortBy="#{row[8]}">
+                                    <h:outputText value="#{row[8]}"  />
+                                </p:column>
+
+                                <p:column headerText="#{labels['traineeshipOrder.zapoved2019']}" width="50" style="text-align:center;">
+                                    <i class="fas fa-check"
+                                       style="color:#28a745; font-size:1.4em;"
+                                       jsf:rendered="#{row[14] eq UriregConstants.CODE_ZNACHENIE_DA}"></i>
+                                </p:column>
+
+                            </p:dataTable>
+
+
+                            <f:facet name="footer">
+                                <p:commandButton value="#{ui_labels['general.potvardi']}"
+                                                 icon="pi pi-check" process="@this"
+                                                 action="#{traineeshipOrder.actionConfirmDlg}"
+                                                 update="licaPnl" oncomplete="PF('licaMdlVar').hide();"/>
+                            </f:facet>
+
+                        </p:dialog>
+                    </h:panelGroup>
+
+                </p:panel>
+            </div>
+
+        </h:form>
+    </ui:define>
+
+</ui:composition>

@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<job-scheduling-data xmlns="http://www.quartz-scheduler.org/xml/JobSchedulingData"
+                     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                     xsi:schemaLocation="http://www.quartz-scheduler.org/xml/JobSchedulingData http://www.quartz-scheduler.org/xml/job_scheduling_data_2_0.xsd"
+                     version="1.8">
+
+
+    <pre-processing-commands>
+        <delete-jobs-in-group>*</delete-jobs-in-group>  <!-- clear all jobs in scheduler -->
+        <delete-triggers-in-group>*</delete-triggers-in-group> <!-- clear all triggers in scheduler -->
+    </pre-processing-commands>
+
+    <processing-directives>
+        <!-- if there are any jobs/trigger in scheduler of same name (as in this file), overwrite them -->
+        <overwrite-existing-data>true</overwrite-existing-data>
+        <!-- if there are any jobs/trigger in scheduler of same name (as in this file), and over-write is false, ignore them rather then generating an error -->
+        <ignore-duplicates>false</ignore-duplicates>
+    </processing-directives>
+
+    <schedule>
+
+
+        <job>
+            <name>Sent2OpenDataJob</name>
+            <group>SystemTriggersIB</group>
+            <description>Изпращане на данни към OpenData</description>
+            <job-class>com.ib.urireg.quartz.Sent2OpenDataJob</job-class>
+            <durability>true</durability>
+            <recover>true</recover>
+        </job>
+        <trigger>
+            <cron>
+                <name>TriggerSent2OpenData</name>
+                <group>SystemTriggersIB</group>
+                <description>Тригер за изпращане на данни лъм OpenData</description>
+                <job-name>Sent2OpenDataJob</job-name>
+                <job-group>SystemTriggersIB</job-group>
+                <!-- once a day at 00:05 -->
+                <cron-expression>0 5 0 * * ?</cron-expression>
+            </cron>
+        </trigger>
+
+        <!--<job>
+        <name>IndexFileContentJob</name>
+        <group>SystemTriggersIB</group>
+        <description>Тригер за извличане съдържание на файлове</description>
+        <job-class>com.ib.uriregeg.quartz.IndexFileContentJob</job-class>
+        <durability>true</durability>
+        <recover>true</recover>
+        </job>
+        <trigger>
+        <cron>
+        <name>TriggerIndexFileContent</name>
+        <group>SystemTriggersIB</group>
+        <description>Тригер за извличане съдържание на файлове</description>
+        <job-name>IndexFileContentJob</job-name>
+        <job-group>SystemTriggersIB</job-group>
+        &lt;!&ndash; every 10 seconds &ndash;&gt;
+        <cron-expression>0/10 * * ? * * *</cron-expression>
+        </cron>
+        </trigger>-->
+
+    </schedule>
+
+</job-scheduling-data>

@@ -1,0 +1,187 @@
+/* Add your customizations of layout here */
+
+// Customization for the mobile topbar
+@media (max-width: $mobileBreakpoint) {
+    .layout-wrapper {
+        .layout-topbar {
+            .layout-topbar-wrapper {
+                .layout-topbar-right {
+                    height: 75px;
+
+                    .layout-topbar-actions {
+                        height: 100%;
+                        @include flex-justify-center();
+
+                        .profile-item {
+                            display: flex;
+                        }
+                    }
+                }
+            }
+        }
+
+        &.layout-topbar-mobile-active {
+            .layout-rightpanel {
+                top: 150px;
+                height: calc(100% - 150px);
+            }
+            .layout-sidebar {
+                top: 150px;
+
+                .layout-menu-container {
+                    height: calc(100% - 150px);
+                }
+            }
+        }
+    }
+}
+
+
+
+/* Topbar in viewTemplate */
+.layout-wrapper.view-template {
+    .layout-main {
+        margin-left: 0;
+    }
+
+    .layout-topbar {
+        width: 100%;
+        -webkit-box-shadow: 0 3px 5px 0 rgba(0, 0, 0, 0.1);
+        -moz-box-shadow: 0 3px 5px 0 rgba(0, 0, 0, 0.1);
+        box-shadow: 0 3px 5px 0 rgba(0, 0, 0, 0.1);
+
+        .layout-topbar-wrapper {
+            padding: 0 2em;
+            height: 75px;
+            flex-direction: row;
+            -webkit-box-orient: horizontal;
+            -webkit-box-shadow: 0 3px 5px 0 rgba(33, 35, 39, 0.15);
+            -moz-box-shadow: 0 3px 5px 0 rgba(33, 35, 39, 0.15);
+            box-shadow: 0 3px 5px 0 rgba(33, 35, 39, 0.15);
+
+            .layout-topbar-right {
+                display: block;
+                height: 75px;
+
+                .layout-topbar-actions {
+                    border-bottom: none;
+                }
+            }
+
+            .layout-topbar-left {
+                box-shadow: none;
+                padding: 0;
+
+                .layout-topbar-logo {
+                    display: -webkit-box;
+                    display: -ms-flexbox;
+                    display: flex;
+                    -webkit-box-align: center;
+                    -ms-flex-align: center;
+                    align-items: center;
+                }
+            }
+
+            .sidebar-menu-button,
+            .topbar-menu-mobile-button {
+                display: none;
+            }
+        }
+
+        .layout-topbar-logo-wrapper {
+            .layout-topbar-logo {
+                img {
+                    height: 45px;
+                    width: 45px;
+                }
+                .app-name {
+                    font-size: 22.5px;
+                    color: $textColor;
+                    margin: 0 10px;
+                }
+            }
+        }
+    }
+}
+
+@media (min-width: 992px) {
+    .layout-wrapper.view-template .layout-main {
+        padding-top: 75px;
+    }
+}
+
+.layout-config {
+    width: $configMenuWidth;
+    transform: translate3d($configMenuWidth, 0px, 0px);
+
+    .layout-config-content {
+        .layout-themes {
+            > div {
+                padding: 0.5em;
+            }
+
+            a.large {
+                width: 7em;
+                height: auto;
+                border: 1px solid rgba(0, 0, 0, 0.12);
+
+                img {
+                    width: 100%;
+                }
+
+                i {
+                    color: $primaryColor;
+                    font-size: 1.5rem;
+                    margin-left: -0.75rem;
+                    margin-top: -0.75rem;
+                }
+            }
+        }
+    }
+}
+
+@media screen and (max-width: 1024px) {
+    .layout-config {
+        transform: translate3d($configMenuWidth, 0px, 0px);
+
+        &.layout-config-active {
+            transform: translate3d(0px, 0px, 0px);
+        }
+
+        .layout-config-close {
+            right: 29px;
+        }
+    }
+}
+
+.login-body {
+    .login-content {
+        .night-switch {
+            .ui-button {
+                .fas,
+                .far {
+                    width: 32px;
+                    height: 32px;
+                    font-size: 32px;
+                    position: absolute;
+                    left: 50%;
+                    top: 50%;
+                    margin-top: -16px;
+                    margin-left: -16px;
+                }
+            }
+        }
+    }
+}
+
+.layout-breadcrumb {
+    .breadcrumb {
+        .route-bar-breadcrumb {
+            li {
+                i {
+                    font-size: 2em;
+                }
+            }
+        }
+    }
+}

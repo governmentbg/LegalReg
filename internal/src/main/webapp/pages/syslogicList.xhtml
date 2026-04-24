@@ -1,0 +1,29 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+    xmlns:ui="jakarta.faces.facelets"
+    xmlns:f="jakarta.faces.core"
+    xmlns:p="http://primefaces.org/ui"
+	template="/template/template.xhtml">
+
+	<ui:define name="metadata">
+	    <f:metadata>
+	        <f:viewAction action="#{userData.checkPageAccess(3)}" onPostback="false"/>
+	        <f:importConstants type="com.ib.indexui.system.Constants"/>
+	    </f:metadata>
+    </ui:define>
+
+    <ui:define name="title">#{navTexts['/pages/syslogicListOpis.xhtml']}</ui:define>
+
+    <ui:define name="viewname">
+        <li>
+        	<p:commandLink title="#{ui_labels['general.back']}" action="#{navigation.goBack()}" rendered="#{navigation.navPath.size()>1}">
+				<i class="fas fa-caret-left" />
+			</p:commandLink>
+		</li>
+		<li>#{navTexts['/pages/syslogicListOpis.xhtml']}</li>
+    </ui:define>
+
+    <ui:define name="content">
+        <ui:include src="/pages/syslogicListSys.xhtml"/>
+    </ui:define>
+
+</ui:composition>

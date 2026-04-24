@@ -1,0 +1,17 @@
+/* Add your variable customizations of theme here */
+/* Тук са подменените променливи, които се отразяват и на light и dark темите
+   За да се сложи променлива конкретно за тъмния или светлия режим, 
+   има отделни файлове _theme_variables_light/dark.scss
+*/
+
+$toggleButtonActiveBg: $primaryColor;
+$toggleButtonActiveBorderColor: $primaryDarkColor;
+$toggleButtonActiveHoverBg: $primaryDarkColor;
+$toggleButtonActiveHoverBorderColor: $primaryDarkerColor;
+
+// DataTable cell padding
+$datatableHeaderCellPadding: 6px 10px;
+$datatableBodyCellPadding: 4px 10px;
+
+// Tree label padding
+$treeNodeLabelPadding:.25rem;

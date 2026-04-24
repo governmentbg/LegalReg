@@ -1,0 +1,1533 @@
+<ui:composition
+        xmlns="http://www.w3.org/1999/xhtml"
+        xmlns:h="jakarta.faces.html"
+        xmlns:f="jakarta.faces.core"
+        xmlns:ui="jakarta.faces.facelets"
+		xmlns:p="http://primefaces.org/ui"
+		xmlns:jsf="jakarta.faces"
+		xmlns:ibg="jakarta.faces.composite/components">
+
+
+     <h:form id="dossierForm" enctype="multipart/form-data">
+
+		 <p:panel toggleable="true" toggleSpeed="500" widgetVar="panelPerson" rendered="#{dossierPerson.liceId==null and isView == null}">
+
+			 <f:facet name="header">
+				 <h:outputText  value="#{labels['dossier.new']}"/>
+				 <i class="pi pi-ellipsis-v ml-2 mr-2"></i>
+				 <p:commandButton value="#{ui_labels['general.new']}" icon="pi pi-file" styleClass="ui-button-success "
+								  action="#{dossierPerson.actionNewDossierPerson}" update="dossierForm"/>
+				 <i class="pi pi-ellipsis-v ml-2 mr-2"></i>
+				 <p:commandButton value="#{ui_labels['general.save']}" action="#{dossierPerson.actionSaveNew}" update="dossierForm" icon="pi pi-save"/>
+			 </f:facet>
+
+			 <div class="title-group mt-3">
+				 <p:commandLink class="extended-search-toggle expanded" onclick="toggleSection(this, '#dossierForm:personData')">
+					 <ui:remove>
+						 <!-- <i class="pi pi-user " style="transform:none;margin-left:0px"/> -->
+					 </ui:remove>
+					 <h:outputText value="Данни за лицето" />
+					 <i class="fas fa-caret-right"></i>
+				 </p:commandLink>
+			 </div>
+			 <div  jsf:id="personData">
+				 <div class="grid ui-fluid">
+					 <div class="col-fixed " style="width:250px">
+						 <h:outputText value="#{labels['dossier.egn']}"  styleClass="form-label req" />
+						 <p:inputText value="#{dossierPerson.lice.egn}" id="egnLiceNew">
+							 <p:ajax  event="change" listener="#{dossierPerson.actionGetBirthdayFromEGN}" update="dossierForm" process="@this" partialSubmit="true"/>
+						 </p:inputText>
+					 </div>
+					 <div class="col-fixed " style="width:250px">
+						 <h:outputText value="#{labels['dossier.lnch']}"  styleClass="form-label req" />
+						 <p:inputText value="#{dossierPerson.lice.lnc}" id="lnchLiceNew">
+							 <p:ajax  event="change" listener="#{dossierPerson.actionCheckLnch}" update="@this" process="@this" partialSubmit="true"/>
+						 </p:inputText>
+					 </div>
+					 <div class="col-fixed " style="width:250px">
+						 <h:outputText value="#{labels['dossier.dateOfBirth']}"  styleClass="form-label req" />
+						 <p:datePicker value="#{dossierPerson.lice.birthDate}" id="birthDateLiceNew" pattern="dd.MM.yyyy" mask="true" showIcon="true" locale="bg" />
+					 </div>
+
+				 </div>
+				 <div class="grid ui-fluid">
+					 <div class="col-2 " >
+						 <h:outputText value="#{labels['dossier.ime']}"  styleClass="form-label req" />
+						 <p:inputText value="#{dossierPerson.lice.firstname}" id="firstnameLiceNew"/>
+					 </div>
+					 <div class="col-2 " >
+						 <h:outputText value="#{labels['dossier.prezime']}"  styleClass="form-label req" />
+						 <p:inputText value="#{dossierPerson.lice.surname}" id="surnameLiceNew"/>
+					 </div>
+					 <div class="col-2 " >
+						 <h:outputText value="#{labels['dossier.familiya']}"  styleClass="form-label req" />
+						 <p:inputText value="#{dossierPerson.lice.lastname}" id="lastnameLiceNew"/>
+					 </div>
+					 <div class="col-4 " >
+						 <h:outputText value="#{labels['dossier.placeOfBirth']}"  styleClass="form-label req" />
+						 <p:inputText value="#{dossierPerson.lice.birthPlace}" id="birthPlaceLiceNew"/>
+					 </div>
+
+					 <div class="col-4 " >
+						 <h:outputText value="#{labels['dossier.universitet']}"  styleClass="form-label req" />
+						 <ibg:selectOneModalA id="unibitLNew"
+											  update="@this"
+											  codeClassif="#{UriregConstants.CODE_CLASSIF_UNIVERSITETI}"
+											  selectedCode="#{dossierPerson.lice.universitet}"
+											  emptyMessage="#{labels['docu.mestoEmptyMsg']}"
+											  saveStateTree="false" withBtnClear="true" compType="2"
+											  minQueryLength="3" styleAutoComp="" dopInfoAutoComp="true" />
+
+					 </div>
+					 <div class="col-4 " >
+						 <h:outputText value="#{labels['dossier.email']}"  styleClass="form-label" />
+						 <p:inputText  value="#{dossierPerson.lice.email}"/>
+					 </div>
+					 <div class="col-4 "></div>
+
+					 <div class="col-12 " >
+						 <!-- address -->
+						 <p:divider align="left">
+							 <div class="inline-flex align-items-center">
+								 <i class="pi pi-book mr-2"/>
+								 <div class="req"><b>#{labels['dossier.postAdres']}</b></div>
+							 </div>
+						 </p:divider>
+						 <div class="grid ui-fluid">
+							 <div class="col-2 ">
+								 <h:outputText value="#{ui_labels['general.ekatte']}"  styleClass="form-label" />
+								 <ibg:selectOneModalA id="mestoLNew"
+													  update="dossierForm:cOblObsh"
+													  codeClassif="#{UriregConstants.CODE_CLASSIF_EKATTE}"
+													  specifics="#{dossierPerson.specificsEKATTE}"
+													  selectedCode="#{dossierPerson.ekatte}"
+													  emptyMessage="#{labels['docu.mestoEmptyMsg']}"
+													  saveStateTree="false" withBtnClear="true" compType="3"
+													  minQueryLength="3" styleAutoComp="" dopInfoAutoComp="true"
+													  dopInfoTitleAutoComp="#{ui_labels['general.ekatteObshObl']}" />
+							 </div>
+							 <div class="col-3 " jsf:id="cOblObsh">
+								 <h:outputText value="#{ui_labels['general.ekatteObshObl']}"
+											   styleClass="form-label" />
+								 <p:inputText readonly="true"
+											  value="#{systemData.decodeItemDopInfo(UriregConstants.CODE_CLASSIF_EKATTE, dossierPerson.ekatte,dossierPerson.currentLang ,dossierPerson.dateNow)}" />
+							 </div>
+							 <div class="col-7 ">
+								 <h:outputText value="#{ui_labels['general.adres']}" styleClass="form-label"/>
+								 <p:inputText  value="#{dossierPerson.lice.addrText}" id="adresLiceNew"/>
+							 </div>
+						 </div>
+					 </div>
+				 </div>
+
+			</div>
+
+			 <div class="title-group mt-3">
+				 <p:commandLink class="extended-search-toggle expanded" onclick="toggleSection(this, '#dossierForm:zajavData')">
+					 <ui:remove>
+					 <!-- <i class="pi pi-file " style="transform:none;margin-left:0px"/> -->
+					 </ui:remove>
+					 <h:outputText value="Заявление за стаж" />
+					 <i class="fas fa-caret-right"></i>
+				 </p:commandLink>
+			 </div>
+			 <div  jsf:id="zajavData">
+
+				 <div class="grid ui-fluid" >
+					 <div class="col-fixed " style="width:250px">
+						 <h:outputText value="#{labels['dossier.nomerStaj']}"  styleClass="form-label req" />
+						 <p:inputText  value="#{dossierPerson.zaiavStaj.rnDoc}" id="rnDocStajNew"/>
+					 </div>
+					 <div class="col-fixed"  style="width:250px">
+						 <h:outputText value="#{labels['dossier.dataStaj']}"  styleClass="form-label req" />
+						 <p:datePicker  value="#{dossierPerson.zaiavStaj.docDate}" id="docDateStajNew" pattern="dd.MM.yyyy" mask="true" showIcon="true" locale="bg" />
+					 </div>
+					 <div class="col-10 " ></div>
+
+					 <div class="col-4 " >
+						 <h:outputText value="#{labels['dossier.razprSudstaj']}"  styleClass="form-label req" />
+						 <ibg:selectOneModalA id="sudNew"
+											  update="@this"
+											  codeClassif="#{UriregConstants.CODE_CLASSIF_INSTITUTION}"
+											  selectedCode="#{dossierPerson.staj.osnInstitution}"
+											  emptyMessage="#{labels['docu.mestoEmptyMsg']}"
+											  saveStateTree="false" withBtnClear="true" compType="2"
+											  minQueryLength="3" styleAutoComp="" dopInfoAutoComp="true" />
+					 </div>
+					 <div class="col-8 " >
+						 <h:outputText value="#{labels['dossier.profStaj']}"  styleClass="form-label" />
+						 <p:inputText value="#{dossierPerson.staj.proLocation}" />
+					 </div>
+					 <div class="col-4 " >
+						 <h:outputText value="#{labels['dossier.nastavnik']}"  styleClass="form-label" />
+						 <p:inputText value="#{dossierPerson.staj.mentor}"/>
+					 </div>
+					 <div class="col-4 " >
+						 <h:outputText value="#{labels['dossier.nastavnikEmail']}"  styleClass="form-label" />
+						 <p:inputText value="#{dossierPerson.staj.mentorEmail}" id="mentorEmailNew"/>
+					 </div>
+
+					 <div class="col-12 " >
+						 <p:divider align="left">
+							 <div class="inline-flex align-items-center">
+								 <i class="pi pi-book mr-2"/>
+								 <b>#{labels['dossier.predostaveniDoc']}</b>
+							 </div>
+						 </p:divider>
+						 <div class="grid">
+							 <div class="sm:col-12 md:col-6" >
+							 	<p:selectManyCheckbox id="grid2" value="#{dossierPerson.zaiavStaj.prilVidList}" layout="responsive" columns="3">
+									 <f:selectItems value="#{systemData.getSysClassification(UriregConstants.CODE_CLASSIF_DADENI_DOC  ,dossierPerson.dateNow,dossierPerson.currentLang)}" var="val" itemLabel="#{val.tekst}" itemValue="#{val.code}"/>
+								 </p:selectManyCheckbox>
+							 </div>
+						 </div>
+                         </div>
+                     </div>
+
+					 <div class="col-fixed ui-fluid"  style="width:250px">
+						 <h:outputText value="#{labels['index.status']} " styleClass="form-label req"/>
+						 <p:selectOneMenu id="statusLiceNew" value="#{dossierPerson.lice.status}">
+							 <f:selectItems value="#{dossierPerson.statusList}" var="item" itemLabel="#{item.tekst}" itemValue="#{item.code}"/>
+						 </p:selectOneMenu>
+					 </div>
+                 </div>
+
+                 <div class="title-group mt-3">
+                     <p:commandLink class="extended-search-toggle expanded" onclick="toggleSection(this, '#dossierForm:fileData')">
+							 <ui:remove>
+								 <!-- <i class="pi pi-user " style="transform:none;margin-left:0px"/> -->
+						 </ui:remove>
+						 <h:outputText value="#{labels['dossier.files1']}" />
+						 <i class="fas fa-caret-right"></i>
+					 </p:commandLink>
+					 <p:fileUpload id="fileUploadZayavStaj" listener="#{dossierPerson.uploadFileListener}"
+								   dragDropSupport="true"
+								   styleClass="ui-button-success ml-3"
+								   mode="advanced" multiple="true" auto="true"
+								   label="#{labels['traineeshipOrder.addFile']}" update="dossierForm:fileData">
+					 </p:fileUpload>
+			 </div>
+		 	<div  jsf:id="fileData">
+				<div class="grid">
+					<div class="col-12" >
+						<p:dataTable var="myRow" value="#{dossierPerson.filesList}" size="small" styleClass="myTable" id="listDataFileZayavStaj" rowIndexVar="indx">
+							<p:column style="width:40px" headerText="N:">
+								<h:outputText value="#{indx+1}" />
+							</p:column>
+							<p:column   style="width:40px">
+								<p:commandButton   icon="pi pi-download"  ignoreAutoUpdate="true"  ajax="false"  action="#{dossierPerson.download(myRow)}">
+								</p:commandButton>
+							</p:column>
+							<p:column headerText="Наименование на файл">
+								<h:outputText value="#{myRow.filename}" />
+							</p:column>
+							<p:column   style="width:40px">
+								<p:commandButton   icon="fas fa-times"  update="listDataFileZayavStaj"  styleClass="ui-button-danger"
+												   partialSubmit="true" process="@this"  action="#{dossierPerson.actionRemoveFile(myRow)}">
+								</p:commandButton>
+							</p:column>
+						</p:dataTable>
+
+					</div>
+				</div>
+			</div>
+			 <p:commandButton value="#{ui_labels['general.save']}" action="#{dossierPerson.actionSaveNew}" update="dossierForm" icon="pi pi-save"/>
+		 </p:panel>
+
+		 <div class="grid" jsf:rendered="#{dossierPerson.liceId!=null and dossierPerson.lice!=null}" >
+			 <div class="col-12" > <!--   md:col-12 xl:col-8 -->
+				 <p:panel toggleable="true" collapsed="false" toggleSpeed="500" widgetVar="panelPersonEdit" id="liceDataPanel">
+
+					 <f:facet name="header">
+						 #{labels['dossier.for']} (<i> #{dossierPerson.lice.names}: #{dossierPerson.lice.egn!=null?dossierPerson.lice.egn:dossierPerson.lice.lnc} </i>)
+						 <i class="pi pi-ellipsis-v ml-2 mr-2"></i>
+						 <p:commandButton value="#{ui_labels['general.edit']}" icon="pi pi-pen-to-square" styleClass="ui-button-success "
+										  action="#{dossierPerson.actionEditLice}" update="dossierForm:editLiceModalPanel"
+										  oncomplete="PF('editLiceMP').show();" partialSubmit="true" process="@this" rendered="#{isView == null}"/>
+
+						 <i class="pi pi-ellipsis-v ml-2 mr-2" jsf:rendered="#{dossierPerson.lice.dbStatus != UriregConstants.CODE_ZNACHENIE_LICE_STATUS_PRAVO and isView == null}"></i>
+
+						 <p:commandButton value="#{labels['dossier.deleteDosie']} "  icon="pi pi-times" styleClass="ui-button-danger "
+										  action="#{dossierPerson.actionRemoveDossier}"  partialSubmit="true" process="@this" update="dossierForm"  rendered="#{dossierPerson.lice.dbStatus != UriregConstants.CODE_ZNACHENIE_LICE_STATUS_PRAVO and isView == null}">
+							 <p:confirm header="#{ui_labels['general.comfirmation']}" message="#{beanMessages['general.confirmDeleteMsg']}" icon="fas fa-exclamation-triangle" />
+						 </p:commandButton>
+
+						 <i class="pi pi-ellipsis-v ml-2 mr-2" jsf:rendered="#{isView == null and request.userPrincipal.hasAccess(UriregConstants.CODE_CLASSIF_MENU,217)}"></i>
+
+						 <p:commandButton value="#{labels['dossier.changeStatus']}" icon="pi pi-pen-to-square" styleClass="ui-button-warning"
+										  action="#{dossierPerson.actionOpenPMStat}" update="dossierForm:statusLiceModalPanel"
+										  oncomplete="PF('statusLiceMP').show();" partialSubmit="true" process="@this" rendered="#{isView == null and request.userPrincipal.hasAccess(UriregConstants.CODE_CLASSIF_MENU,217)}"/>
+
+						 <i class="pi pi-ellipsis-v ml-2 mr-2"></i>
+
+						 #{labels['dossier.statusUd']}  (<i>#{systemData.decodeItem(UriregConstants.CODE_CLASSIF_LICE_STATUS, dossierPerson.lice.dbStatus,dossierPerson.currentLang ,dossierPerson.dateNow)}
+						 <h:outputText value=": #{dossierPerson.udDoc}" rendered="#{dossierPerson.udDoc!=null and dossierPerson.udDoc!=''}"/>
+						 <h:outputText value=": #{dossierPerson.lice.broiIzpit==null?0:dossierPerson.lice.broiIzpit}" rendered="#{dossierPerson.lice.dbStatus != UriregConstants.CODE_ZNACHENIE_LICE_STATUS_PRAVO}"/></i>)
+						 <i class="pi pi-ellipsis-v ml-2 mr-2"></i>
+
+						 <p:commandButton icon="fas fa-file-alt" value="#{labels['dossier.generateUd']}"
+								 actionListener="#{dossierPerson.actionGenerateOrder(false)}" update="compUdostDoc"
+								 partialSubmit="true" process="dossierForm @this" styleClass="mr-2 ui-button-success"
+								 rendered="#{dossierPerson.udDocFileCreateOrig and isView == null}" />
+
+
+						 <p:commandButton icon="fas fa-file-alt" value="#{labels['dossier.generateDuplicateUd']}"
+								 actionListener="#{dossierPerson.actionGenerateOrder(true)}" update="compUdostDoc"
+								 partialSubmit="true" process="dossierForm @this" styleClass="mr-2 ui-button-success"
+								 rendered="#{dossierPerson.udDocFileCreateDubl and isView == null}" />
+
+						 <!--
+                                                 <p:commandButton value="UD test "  icon="pi pi-times" styleClass="ui-button-danger mr-5"
+                                                                  action="#{dossierPerson.actionGenerateUDTest}"  partialSubmit="true" process="@this" update="@this"  rendered="#{isView == null}">
+
+                                                 </p:commandButton>
+                        -->
+						 <p:commandButton icon="fas fa-file-alt" value="#{labels['dossier.duplicateUd']}"
+										  action="#{dossierPerson.actionNewZaqvDublikat}" oncomplete="PF('zayavDublikatMP').show();" update="dossierForm:zayavDublikatModalPanel"
+										  partialSubmit="true" process="@this" styleClass="mr-2"
+										  rendered="#{dossierPerson.lice.udostId!=null and !dossierPerson.udDocFileCreateOrig and isView == null}" />
+
+
+						 <ibg:compObjAudit id="a2" idObj="#{dossierPerson.lice.id}"
+										   codeObj="#{UriregConstants.CODE_ZNACHENIE_JOURNAL_LICE}"
+										   identInfo="#{labels['dossier.for']} ( #{dossierPerson.lice.names}: #{dossierPerson.lice.egn!=null?dossierPerson.lice.egn:dossierPerson.lice.lnc} )" 	/>
+					 </f:facet>
+
+					 <ibg:compUdostDokument id="compUdostDoc" rendered="#{isView == null}"
+							 headerTitle="#{systemData.decodeItem(UriregConstants.CODE_CLASSIF_SHABLONI, UriregConstants.CODE_ZNACHENIE_SHABLON_UDOST_PRAVOSP, dossierPerson.currentLang, null)}"
+							 binding="#{dossierPerson.bindCompUdostDoc}" isEditable="true"
+							 liceId="#{dossierPerson.liceId}" docId="#{dossierPerson.lice.udostId}"
+							 isDublikat="#{dossierPerson.udDublikat}" parentObjectId="#{dossierPerson.lice.udostId}"
+							 vidDok="#{UriregConstants.CODE_ZNACHENIE_SHABLON_UDOST_PRAVOSP}" actionAfterGenerate="#{dossierPerson.afterGenerateUP}"/>
+
+					 <div class="grid " >
+					 	<div class="col-8">
+
+						 <div class="grid ui-fluid" >
+							 <div class="col-fixed " style="width:250px">
+								 <h:outputText value="#{labels['dossier.egnLnch']}"  styleClass="form-label"/>
+								 <div class="ui-inputgroup">
+									 <p:scrollPanel mode="native" style="width:100%;  padding: 5px; background-color:transparent">
+										 <h:outputText value="#{dossierPerson.lice.egn!=null?dossierPerson.lice.egn:dossierPerson.lice.lnc}" escape="false"/>
+									 </p:scrollPanel>
+									 <p:commandButton icon="pi pi-external-link" title="#{labels['dossier.regixSpr']}"
+											  action="#{dossierPerson.actionSprRegix}" oncomplete="PF('regixSprMP').show();" update="dossierForm:regixSprModalPanel"
+											  partialSubmit="true" process="@this"  />
+								 </div>
+
+							 </div>
+					 		 <div class="col-fixed " style="width:250px">
+								 <h:outputText value="#{labels['dossier.dateOfBirth']}"  styleClass="form-label" />
+								 <p:scrollPanel mode="native" style="width:100%; height:31px; padding: 5px; background-color:transparent">
+									 <h:outputText value="#{dossierPerson.lice.birthDate}" escape="false">
+										 <f:convertDateTime pattern="dd.MM.yyyy" timeZone="#{dossierPerson.timeZone}"/>
+									 </h:outputText>
+								 </p:scrollPanel>
+							 </div>
+
+							 <div class="col" style="padding-top: 30px">
+
+								 <i class="pi pi-check" style="color:green"  jsf:rendered="#{dossierPerson.lice.do2019==UriregConstants.CODE_ZNACHENIE_DA}"></i>
+								 <h:outputText value="#{labels['dossier.licePoStariqtRed']}"  styleClass="form-label ml-2"  rendered="#{dossierPerson.lice.do2019==UriregConstants.CODE_ZNACHENIE_DA}" style="color:red"/>
+
+							 </div>
+
+
+						 </div>
+
+						 <div class="grid ui-fluid" >
+							 <div class="col-5 ">
+								 <h:outputText value="#{labels['dossier.imena']}"  styleClass="form-label"/>
+								 <p:scrollPanel mode="native" style="width:100%; height:31px; padding: 5px; background-color:transparent">
+									 <h:outputText value="#{dossierPerson.lice.names}" escape="false"/>
+								 </p:scrollPanel>
+							 </div>
+							 <div class="col-7">
+								 <h:outputText value="#{labels['dossier.placeOfBirth']}"  styleClass="form-label" />
+								 <p:scrollPanel mode="native" style="width:100%; height:31px; padding: 5px; background-color:transparent">
+									 <h:outputText value="#{dossierPerson.lice.birthPlace}" />
+								 </p:scrollPanel>
+							 </div>
+
+							 <div class="col-12 " >
+									 <!-- address -->
+									 <p:divider align="left">
+										 <div class="inline-flex align-items-center">
+											 <i class="pi pi-book mr-2"/>
+											 <b>#{labels['dossier.postAdres']}</b>
+										 </div>
+									 </p:divider>
+									 <div class="grid ui-fluid">
+										 <div class="col-2 ">
+											 <h:outputText value="#{ui_labels['general.ekatte']}"  styleClass="form-label" />
+											 <p:scrollPanel mode="native" style="width:100%; height:31px; padding: 5px; background-color:transparent">
+												 <h:outputText value="#{systemData.decodeItem(UriregConstants.CODE_CLASSIF_EKATTE, dossierPerson.lice.addrEkatte,dossierPerson.currentLang ,dossierPerson.dateNow)}" />
+											 </p:scrollPanel>
+
+										 </div>
+										 <div class="col-3 ">
+											 <h:outputText value="#{ui_labels['general.ekatteObshObl']}"
+														   styleClass="form-label" />
+											 <p:scrollPanel mode="native" style="width:100%; height:31px; padding: 5px; background-color:transparent">
+												 <h:outputText value="#{systemData.decodeItemDopInfo(UriregConstants.CODE_CLASSIF_EKATTE, dossierPerson.lice.addrEkatte,dossierPerson.currentLang ,dossierPerson.dateNow)}" />
+											 </p:scrollPanel>
+											</div>
+										 <div class="col-7 ">
+											 <h:outputText value="#{ui_labels['general.adres']}" styleClass="form-label"/>
+											 <p:scrollPanel mode="native" style="width:100%; height:31px; padding: 5px; background-color:transparent">
+												 <h:outputText value="#{dossierPerson.lice.addrText} " />
+											 </p:scrollPanel>
+										 </div>
+									 </div>
+							 </div>
+						</div>
+						 <div class="grid ui-fluid" >
+							 <div class="col-5 " >
+								 <h:outputText value="#{labels['dossier.universitet']}"  styleClass="form-label" />
+								 <p:scrollPanel mode="native" style="width:100%; height:31px; padding: 5px; background-color:transparent">
+									 <h:outputText value="#{systemData.decodeItem(UriregConstants.CODE_CLASSIF_UNIVERSITETI, dossierPerson.lice.universitet,dossierPerson.currentLang ,dossierPerson.dateNow)}" />
+								 </p:scrollPanel>
+
+
+							 </div>
+							 <div class="col-7 " >
+								 <h:outputText value="#{labels['dossier.email']}"  styleClass="form-label" />
+								 <p:scrollPanel mode="native" style="width:100%; height:31px; padding: 5px; background-color:transparent">
+									 <h:outputText value="#{dossierPerson.lice.email}" />
+								 </p:scrollPanel>
+							 </div>
+					 		 <div class="col-12" >
+								 <h:outputText value="#{labels['dossier.dopInfo']}"  styleClass="form-label" />
+								 <p:scrollPanel mode="native" style="width:100%;height:60px; padding: 5px; background-color:transparent">
+									 <h:outputText value="#{dossierPerson.lice.liceInfo}" />
+								 </p:scrollPanel>
+							 </div>
+						 </div>
+						</div>
+						 <p:divider layout="vertical" />
+					 <div class="col-3">
+
+						 <div class="grid ui-fluid" >
+							 <div class="col-12">
+								 <h:outputText value="#{labels['dossier.nomerDataUD']}"  styleClass="form-label"/>
+								 <div class="ui-inputgroup">
+									 <p:scrollPanel mode="native" style="width:100%; height:31px; padding: 5px; background-color:transparent">
+										 <h:outputText value="#{dossierPerson.udDoc}"/>
+
+									 </p:scrollPanel>
+									 <ibg:compFiles idObj="#{dossierPerson.lice.udostId}" singleFile="false" showFilePurpse="true" codeObj="51" rendered="#{dossierPerson.lice.udostId!=null}"/>
+
+								</div>
+							 </div>
+							 <div class="col-12" jsf:id="statusDataPanel">
+								 <h:outputText value="#{labels['dossier.status']}"  styleClass="form-label"/>
+								 <p:scrollPanel mode="native" style="width:100%; padding: 5px; background-color:transparent">
+									 <h:outputText value="#{systemData.decodeItem(UriregConstants.CODE_CLASSIF_LICE_STATUS, dossierPerson.lice.dbStatus,dossierPerson.currentLang ,dossierPerson.dateNow) }
+										#{dossierPerson.lice.statusPri!=null?' / ':''}
+										#{systemData.decodeItem(UriregConstants.CODE_CLASSIF_LICE_PRI, dossierPerson.lice.statusPri,dossierPerson.currentLang ,dossierPerson.dateNow) } "/>
+								 </p:scrollPanel>
+								 <h:outputText value="#{labels['dossier.statusInfo']}"  styleClass="form-label" rendered="#{dossierPerson.lice.statusInfo!=null and !empty dossierPerson.lice.statusInfo}"/>
+								 <p:scrollPanel mode="native" style="width:100%; padding: 5px; background-color:transparent" rendered="#{dossierPerson.lice.statusInfo!=null and !empty dossierPerson.lice.statusInfo}">
+									 <h:outputText value="#{dossierPerson.lice.statusInfo}"/>
+								 </p:scrollPanel>
+							 </div>
+
+							 <div class="col-12">
+								 <h:outputText value="#{labels['dossier.brojIzpiti']}"  styleClass="form-label"/>
+								 <p:scrollPanel mode="native" style="width:60px;  padding: 5px; background-color:transparent">
+									 <h:outputText value="#{dossierPerson.lice.broiIzpit==null?0:dossierPerson.lice.broiIzpit}" style="#{dossierPerson.lice.broiIzpit!=null and dossierPerson.lice.broiIzpit>=3?'color:red':''}"/>
+								 </p:scrollPanel>
+							 </div>
+
+						</div>
+						 <br/>
+						 <p:commandButton icon="pi pi-search" value="#{labels['dossier.spisakDublikati']}"
+										  action="#{dossierPerson.actionShowSprDub}" oncomplete="PF('dublikatiMP').show();" update="dossierForm:dublikatiModalPanel"
+										  partialSubmit="true" process="@this"
+										  rendered="#{dossierPerson.showBntVeiwDublikat}"/>
+					 </div>
+					 </div>
+				 </p:panel>
+
+			 </div>
+
+			 <div class="col-12  md:col-12 xl:col-6" >
+				 <p:panel toggleable="true" toggleSpeed="500" widgetVar="panelStaj" id="panelStajId">
+
+					 <f:facet name="header">
+						 #{labels['dossier.staj']} <i class="pi pi-ellipsis-v ml-2 mr-2"></i>
+						 <p:commandButton value="#{labels['dossier.zayavStajDop']}" icon="pi pi-file"  process="@this"
+										  oncomplete="PF('zayavStajMP').show();"  action="#{dossierPerson.actionNewDopStaj}" partialSubmit="true" update="@this dossierForm:zayavStajModalPanel"
+						 		rendered="#{isView == null and dossierPerson.showBntStaj}"/> <!-- Заявлние за допълнителн стаж -->
+						 <i class="pi pi-ellipsis-v ml-2 mr-2" jsf:rendered="#{isView == null and dossierPerson.showBntStaj}"></i>
+
+						 <p:commandButton value="#{labels['general.bnguved']}" icon="pi pi-globe"
+										  action="#{dossierPerson.actionNewMessageStaj}" update="dossierForm:messagesModalPanel"
+										  oncomplete="PF('messagesMP').show();" partialSubmit="true" process="@this" rendered="#{isView == null}"/>
+					 </f:facet>
+
+					  <p:dataList value="#{dossierPerson.stajoveList}" var="rowStaj" varStatus="ind" type="definition" style="border:0px; padding: 0px;">
+                      <div class="title-group mt-2" style="background-color: #efefef;border: 1px solid #dee2e6; padding: 5px; padding-left: 10px;  border-top-left-radius: 4px;  border-top-right-radius: 4px;">
+                          <p:commandLink class="extended-search-toggle expanded" onclick="toggleSection(this, '#zajavDataStaj#{rowStaj[0]}')">
+                              <ui:remove>
+                                  <!-- <i class="pi pi-file " style="transform:none;margin-left:0px"/> -->
+							 </ui:remove>
+							 <h:outputText value="#{systemData.decodeItem(UriregConstants.CODE_CLASSIF_STAJ_VID, rowStaj[1],dossierPerson.currentLang ,dossierPerson.dateNow) } " />
+							 <i class="fas fa-caret-right"></i>
+						</p:commandLink>
+
+						<p:commandButton value="#{ui_labels['general.edit']}" icon="pi pi-pen-to-square" styleClass="ui-button-success ml-2"
+										 rendered="#{ind.index==0 and isView == null and dossierPerson.showBntEditStaj}"
+										 oncomplete="PF('zayavStajMP').show();" action="#{dossierPerson.actionEditZaqvlenieStaj}"  partialSubmit="true"   update="dossierForm:zayavStajModalPanel"/>
+
+						 <p:commandButton title="#{labels['dossier.removeStaj']} " icon="pi pi-times" styleClass="ui-button-danger ml-2"
+										  rendered="#{ind.index==0 and rowStaj[1]==UriregConstants.CODE_ZNACHENIE_STAJ_VID_ADDITIONAL and isView == null and dossierPerson.showBntEditStaj}"
+										  action="#{dossierPerson.actionRemoveZaqvlenieStaj}"  partialSubmit="true" update="dossierForm:panelStajId dossierForm:statusDataPanel">
+							 <p:confirm header="#{ui_labels['general.comfirmation']}" message="#{beanMessages['general.confirmDeleteMsg']}" icon="fas fa-exclamation-triangle" />
+						 </p:commandButton>
+					 </div>
+					 <div  id="zajavDataStaj#{rowStaj[0]}" style="padding-left: 5px; padding-top: 5px;">
+						 <div class="grid ui-fluid" >
+							 <div class="col-fixed " style="width:300px">
+								 <h:outputText value="#{labels['dossier.stajZaiav']}"  styleClass="form-label" />
+								 <div class="ui-inputgroup">
+									 <p:scrollPanel mode="native" style="width: 100%;  padding: 5px; background-color:transparent">
+										 <h:outputText value="#{rowStaj[2]} / " />
+										 <h:outputText value="#{rowStaj[3]}" escape="false">
+											 <f:convertDateTime pattern="dd.MM.yyyy" timeZone="#{dossierPerson.timeZone}"/>
+										 </h:outputText>
+									 </p:scrollPanel>
+
+									 <ibg:compFiles idObj="#{rowStaj[15]}" singleFile="false" codeObj="#{UriregConstants.CODE_ZNACHENIE_JOURNAL_DOC}" rendered="#{rowStaj[15]!=null}"/>
+
+								 </div>
+
+							 </div>
+
+							 <div class="col-fixed " style="width:300px">
+								 <h:outputText value="#{labels['dossier.stajZap']} "  styleClass="form-label" />
+								 <div class="ui-inputgroup">
+									 <p:scrollPanel mode="native" style="width: 100%; padding: 5px; background-color:transparent">
+										 <h:outputText value="#{rowStaj[4]} / "  rendered="#{rowStaj[4]!=null and rowStaj[4]!=''}"/>
+										 <h:outputText value="#{rowStaj[5]}" escape="false">
+											 <f:convertDateTime pattern="dd.MM.yyyy" timeZone="#{dossierPerson.timeZone}"/>
+										 </h:outputText>
+									 </p:scrollPanel>
+
+									 <ibg:compFiles singleFile="false"
+											 idObj="#{rowStaj[16]}" codeObj="#{UriregConstants.CODE_ZNACHENIE_JOURNAL_DOC}"
+											 idObj1="#{rowStaj[0]}" codeObj1="#{UriregConstants.CODE_ZNACHENIE_JOURNAL_STAJ}"
+											 rendered="#{rowStaj[16]!=null}"  id="zsi"/>
+
+								 </div>
+
+
+
+							 </div>
+
+							 <div class="col-fixed " style="width:50px">
+								 <h:outputText value="_"  styleClass="form-label" style="color: #ffffff"/>
+								 <p:commandButton icon="pi pi-file"  title="#{labels['dossier.oldZapStaj']}"
+												  rendered="#{ind.index==0 and isView == null and dossierPerson.showBntAttachZapStaj}"
+												  oncomplete="PF('zapovedStajMP').show();"  partialSubmit="true"   update="dossierForm:zapovedStajModalPanel"/>
+							 </div>
+							 <div class="col-12 " > </div>
+							 <div class="col-4 " >
+								 <h:outputText value="#{rowStaj[1]==UriregConstants.CODE_ZNACHENIE_STAJ_VID_INITIAL?labels['dossier.razprSudstaj']:labels['dossier.razpStajSud']}"  styleClass="form-label" />
+								 <p:scrollPanel mode="native" style="height:31px; padding: 5px; background-color:transparent">
+									 <h:outputText value="#{systemData.decodeItem(UriregConstants.CODE_CLASSIF_INSTITUTION, rowStaj[6],dossierPerson.currentLang ,dossierPerson.dateNow) }"/>
+								 </p:scrollPanel>
+							 </div>
+							 <div class="col-4 " >
+								 <h:outputText value="#{labels['dossier.startStaj']}"  styleClass="form-label" />
+								 <p:scrollPanel mode="native" style="height:31px; padding: 5px; background-color:transparent">
+									 <h:outputText value="#{rowStaj[7]}" escape="false">
+										 <f:convertDateTime pattern="dd.MM.yyyy" timeZone="#{dossierPerson.timeZone}"/>
+									 </h:outputText>
+								 </p:scrollPanel>
+							 </div>
+							 <div class="col-4 " >
+								 <h:outputText value="#{labels['dossier.stopStaj']}"  styleClass="form-label" />
+								 <p:scrollPanel mode="native" style="height:31px; padding: 5px; background-color:transparent">
+									 <h:outputText value="#{rowStaj[8]}" escape="false">
+										 <f:convertDateTime pattern="dd.MM.yyyy" timeZone="#{dossierPerson.timeZone}"/>
+									 </h:outputText>
+								 </p:scrollPanel>
+							 </div>
+
+							 <div class="col-4 " jsf:rendered="#{rowStaj[1]==UriregConstants.CODE_ZNACHENIE_STAJ_VID_INITIAL}">
+								 <h:outputText value="#{labels['dossier.profStaj']}"  styleClass="form-label" />
+								 <p:scrollPanel mode="native" style="height:31px; padding: 5px; background-color:transparent">
+									 <h:outputText value="#{rowStaj[11]}"/>
+								 </p:scrollPanel>
+							 </div>
+							 <div class="col-4 " jsf:rendered="#{rowStaj[1]==UriregConstants.CODE_ZNACHENIE_STAJ_VID_INITIAL}">
+								 <h:outputText value="#{labels['dossier.startStaj']}"  styleClass="form-label" />
+								 <p:scrollPanel mode="native" style="height:31px; padding: 5px; background-color:transparent">
+									 <h:outputText value="#{rowStaj[17]}" escape="false">
+										 <f:convertDateTime pattern="dd.MM.yyyy" timeZone="#{dossierPerson.timeZone}"/>
+									 </h:outputText>
+								 </p:scrollPanel>
+							 </div>
+							 <div class="col-4 " jsf:rendered="#{rowStaj[1]==UriregConstants.CODE_ZNACHENIE_STAJ_VID_INITIAL}">
+								 <h:outputText value="#{labels['dossier.stopStaj']}"  styleClass="form-label" />
+								 <p:scrollPanel mode="native" style="height:31px; padding: 5px; background-color:transparent">
+									 <h:outputText value="#{rowStaj[18]}" escape="false">
+										 <f:convertDateTime pattern="dd.MM.yyyy" timeZone="#{dossierPerson.timeZone}"/>
+									 </h:outputText>
+								 </p:scrollPanel>
+							 </div>
+							 <div class="col-6 " jsf:rendered="#{rowStaj[1]==UriregConstants.CODE_ZNACHENIE_STAJ_VID_INITIAL}">
+								 <h:outputText value="#{labels['dossier.nastavnik']}"  styleClass="form-label" />
+								 <p:scrollPanel mode="native" style="height:31px; padding: 5px; background-color:transparent">
+									 <h:outputText value="#{rowStaj[9]}"/>
+								 </p:scrollPanel>
+							 </div>
+							 <div class="col-6 " jsf:rendered="#{rowStaj[1]==UriregConstants.CODE_ZNACHENIE_STAJ_VID_INITIAL}">
+								 <h:outputText value="#{labels['dossier.nastavnikEmail']}"  styleClass="form-label" />
+								 <p:scrollPanel mode="native" style="height:31px; padding: 5px; background-color:transparent">
+									 <h:outputText value="#{rowStaj[10]}"/>
+								 </p:scrollPanel>
+							 </div>
+							 <div class="col-12" >
+								 <h:outputText value="#{labels['dossier.dopInfo']} за стажа"  styleClass="form-label" />
+								 <p:scrollPanel mode="native" style="width:100%;height:40px; padding: 5px; background-color:transparent">
+									 <h:outputText value="#{rowStaj[14]}" />
+								 </p:scrollPanel>
+							 </div>
+							 <div class="col-12 " >
+								 <p:divider align="left">
+									 <div class="inline-flex align-items-center">
+										 <i class="pi pi-book mr-2"/>
+										 <b>#{labels['dossier.predostaveniDoc']}</b>
+									 </div>
+								 </p:divider>
+								 <div class="grid">
+									 <div class="sm:col-12 md:col-6" >
+										 <ui:repeat value="#{dossierPerson.loadDocPrilList(rowStaj[15])}" var="pril">
+											<h:outputText value="#{systemData.decodeItem(UriregConstants.CODE_CLASSIF_DADENI_DOC, pril,dossierPerson.currentLang ,dossierPerson.dateNow) }; "/>
+										 </ui:repeat>
+									 </div>
+								 </div>
+							 </div>
+
+						 </div>
+
+					 </div>
+					  </p:dataList>
+				 </p:panel>
+			 </div>
+
+			 <div  class="col-12  md:col-12 xl:col-6" >
+				 <p:panel toggleable="true" toggleSpeed="500" widgetVar="panelIzpit" id="panelIzpitId">
+
+					 <f:facet name="header">
+						 Изпити <i class="pi pi-ellipsis-v ml-2 mr-2"></i>
+						 <span jsf:id="bntZajavIzpit">
+						 <p:commandButton value="#{labels['dossier.izpZaiav']}" icon="pi pi-file" styleClass="mr-2"
+										  action="#{dossierPerson.actionNewZaqvIzpit}" update="dossierForm:zayavIzpitModalPanel"
+										  oncomplete="PF('zayavIzpitRezolMP').show();" partialSubmit="true" process="@this" rendered="#{isView == null and dossierPerson.showBntIzpit}"/>
+
+						 <i class="pi pi-ellipsis-v ml-2 mr-2" jsf:rendered="#{isView == null and dossierPerson.showBntIzpit}"></i>
+						 </span>
+						 <p:commandButton value="#{labels['general.bnguved']}" icon="pi pi-globe"
+										  action="#{dossierPerson.actionNewMessageIzpit}" update="dossierForm:messagesModalPanel"
+										  oncomplete="PF('messagesMP').show();" partialSubmit="true" process="@this" rendered="#{isView == null}"/>
+					 </f:facet>
+
+					 <p:dataList value="#{dossierPerson.izpitiList}" var="rowIzp" varStatus="indIzp" type="definition" style="border:0px; padding: 0px;">
+					 <div class="title-group mt-2"  style="background-color: #efefef;border: 1px solid #dee2e6; padding: 5px; padding-left: 10px;  border-top-left-radius: 4px;  border-top-right-radius: 4px;">
+						 <p:commandLink class="extended-search-toggle expanded" onclick="toggleSection(this, '#panelIzpit#{indIzp.index}')">
+							 <ui:remove>
+								 <!-- <i class="pi pi-file " style="transform:none;margin-left:0px"/> -->
+							 </ui:remove>
+							 <h:outputText value="#{indIzp.index==0?labels['dossier.dataizpitLast']:labels['dossier.dataIzpitOld']} " />
+							 <i class="fas fa-caret-right"></i>
+						 </p:commandLink>
+						 <p:commandButton value="#{labels['dossier.zayavEdit']}" icon="pi pi-pen-to-square" styleClass="ui-button-success ml-2" update="dossierForm:zayavIzpitModalPanel"
+										  action="#{dossierPerson.actionEditZaqvIzpit}" oncomplete="PF('zayavIzpitRezolMP').show();"  partialSubmit="true"
+						                  rendered="#{indIzp.index==0 and rowIzp[15]!=null and isView == null and dossierPerson.showBntEditIzpit}">
+							 <f:param id="idZaqvIzpit" name="idZaqvIzpit" value="#{rowIzp[15]}"/>
+						 </p:commandButton>
+
+						 <p:commandButton title="#{labels['dossier.removeIzpit']} " icon="pi pi-times" styleClass="ui-button-danger ml-2"
+										  rendered="#{indIzp.index==0 and rowIzp[15]!=null and isView == null  and dossierPerson.showBntEditIzpit}"
+										  action="#{dossierPerson.actionRemoveZaqvlenieIzpit}"  partialSubmit="true" update="dossierForm:panelIzpitId">
+							 <p:confirm header="#{ui_labels['general.comfirmation']}" message="#{beanMessages['general.confirmDeleteMsg']}" icon="fas fa-exclamation-triangle" />
+						 </p:commandButton>
+
+					 </div>
+					 <div  id="panelIzpit#{indIzp.index}" style="padding-left: 5px; padding-top: 5px;">
+						 <div class="grid ui-fluid" >
+							 <div class="col-fixed " style="width:300px">
+								 <h:outputText value="#{labels['dossier.regNomDatZayav']}"  styleClass="form-label" />
+								 <div class="ui-inputgroup">
+									 <p:scrollPanel mode="native" style="width:100%; padding: 5px; background-color:transparent">
+										 <h:outputText value="#{rowIzp[1]} / "/>
+										 <h:outputText value="#{rowIzp[2]}" escape="false">
+											 <f:convertDateTime pattern="dd.MM.yyyy" timeZone="#{dossierPerson.timeZone}"/>
+										 </h:outputText>
+									 </p:scrollPanel>
+
+									 <ibg:compFiles idObj="#{rowIzp[15]}" singleFile="false" codeObj="#{UriregConstants.CODE_ZNACHENIE_JOURNAL_DOC}" rendered="#{rowIzp[15]!=null}"/>
+
+								 </div>
+							 </div>
+							 <div class="col-fixed " style="width:300px">
+								 <h:outputText value="#{labels['dossier.dataPodavaneZayav']}"  styleClass="form-label" />
+								 <p:scrollPanel mode="native" style=" padding: 5px; background-color:transparent">
+									 <h:outputText value="#{rowIzp[3]}" escape="false">
+										 <f:convertDateTime pattern="dd.MM.yyyy" timeZone="#{dossierPerson.timeZone}"/>
+									 </h:outputText>
+
+								 </p:scrollPanel>
+							 </div>
+							 <div class="col-12" >
+								 <h:outputText value="#{labels['dossier.dopInfo']} #{labels['dossier.fromZayav']}"  styleClass="form-label" />
+								 <p:scrollPanel mode="native" style="width:100%;height:60px; padding: 5px; background-color:transparent">
+									 <h:outputText value="#{rowIzp[4]} "/>
+								 </p:scrollPanel>
+							 </div>
+
+							 <div class="sm:col-12 " >
+								 <p:divider align="left">
+									 <div class="inline-flex align-items-center">
+										 <i class="pi pi-file mr-2"/>
+										 <b>#{labels['dossier.zapovedIzpit']}</b>
+									 </div>
+								 </p:divider>
+								 <div class="ui-inputgroup">
+									 <p:scrollPanel mode="native" style="width: 300px; padding: 5px; background-color:transparent">
+										 <h:outputText value="#{rowIzp[5]} / " rendered="#{rowIzp[5]!=null and rowIzp[5]!=''}"/>
+										 <h:outputText value="#{rowIzp[6]}" escape="false">
+											 <f:convertDateTime pattern="dd.MM.yyyy" timeZone="#{dossierPerson.timeZone}"/>
+										 </h:outputText>
+									 </p:scrollPanel>
+
+									 <ibg:compFiles idObj="#{rowIzp[16]}" singleFile="false" codeObj="#{UriregConstants.CODE_ZNACHENIE_JOURNAL_DOC}" rendered="#{rowIzp[16]!=null}"/>
+
+								 </div>
+							 </div>
+
+							 <div class="col-6 " jsf:rendered="#{dossierPerson.lice.do2019!=UriregConstants.CODE_ZNACHENIE_DA}">
+								 <p:divider align="left">
+									 <div class="inline-flex align-items-center">
+										 <i class="pi pi-file mr-2"/>
+										 <b>#{labels['dossier.protokolTest']}</b>
+									 </div>
+								 </p:divider>
+								 <div class="grid">
+									 <div class="sm:col-6 " >
+										 <h:outputText value="#{labels['zapovedList.dataProtokol']} "  styleClass="form-label" />
+										 <p:scrollPanel mode="native" style="height:31px; padding: 5px; background-color:transparent">
+											 <h:outputText value="#{rowIzp[7]}" escape="false">
+												 <f:convertDateTime pattern="dd.MM.yyyy" timeZone="#{dossierPerson.timeZone}"/>
+											 </h:outputText>
+										 </p:scrollPanel>
+									 </div>
+									 <div class="sm:col-6 " >
+										 <h:outputText value="#{labels['dossier.rezultatTest']} "  styleClass="form-label" />
+										 <p:scrollPanel mode="native" style="height:31px; padding: 5px; background-color:transparent">
+											 <h:outputText value="#{systemData.decodeItem(UriregConstants.CODE_CLASSIF_IZPIT_RESULT, rowIzp[8],dossierPerson.currentLang ,dossierPerson.dateNow) } "/>
+										 </p:scrollPanel>
+									 </div>
+
+									 <div class="sm:col-6 " >
+										 <h:outputText value="#{labels['dossier.nomerRabota']} "  styleClass="form-label" />
+										 <p:scrollPanel mode="native" style="height:31px; padding: 5px; background-color:transparent">
+											 <h:outputText value="#{rowIzp[9]}"/>
+										 </p:scrollPanel>
+									 </div>
+									 <div class="sm:col-6 " >
+										 <h:outputText value="#{labels['dossier.brOtg']}"  styleClass="form-label" />
+										 <p:scrollPanel mode="native" style="height:31px; padding: 5px; background-color:transparent">
+											 <h:outputText value="#{rowIzp[10]}"/>
+										 </p:scrollPanel>
+									 </div>
+
+									 <div class="sm:col-12 " >
+										 <h:outputText value="#{labels['dossier.zavelejkaTest']} "  styleClass="form-label" />
+										 <p:scrollPanel mode="native" style="width:100%;height:60px;  padding: 5px; background-color:transparent">
+											 <h:outputText value="#{rowIzp[11]}"/>
+										 </p:scrollPanel>
+									 </div>
+								 </div>
+							 </div>
+
+							 <div class="#{dossierPerson.lice.do2019==UriregConstants.CODE_ZNACHENIE_DA?'col-12':'col-6'}" >
+								 <p:divider align="left">
+									 <div class="inline-flex align-items-center">
+										 <i class="pi pi-file mr-2"/>
+										 <b> #{dossierPerson.lice.do2019==UriregConstants.CODE_ZNACHENIE_DA?labels['examOrder.protocol']:labels['dossier.protokolKazus']}   </b>
+									 </div>
+								 </p:divider>
+								 <div class="grid">
+
+									 <div class="sm:col-6 " >
+										 <h:outputText value="#{labels['zapovedList.dataProtokol']}"  styleClass="form-label" />
+										 <p:scrollPanel mode="native" style=" height:31px; padding: 5px; background-color:transparent">
+											 <h:outputText value="#{rowIzp[12]}" escape="false">
+												 <f:convertDateTime pattern="dd.MM.yyyy" timeZone="#{dossierPerson.timeZone}"/>
+											 </h:outputText>
+										 </p:scrollPanel>
+									 </div>
+									 <div class="sm:col-6 " >
+										 <h:outputText value="#{labels['dossier.rezultatTest']} "  styleClass="form-label" />
+										 <p:scrollPanel mode="native" style=" padding: 5px; height:31px; background-color:transparent">
+											 <h:outputText value="#{systemData.decodeItem(UriregConstants.CODE_CLASSIF_IZPIT_RESULT, rowIzp[13],dossierPerson.currentLang ,dossierPerson.dateNow) } "/>
+										 </p:scrollPanel>
+									 </div>
+
+									 <div class="sm:col-6 ">
+										 <h:outputText value="#{labels['dossier.nomerRabota']} "  styleClass="form-label" />
+										 <p:scrollPanel mode="native" style=" padding: 5px; height:31px; background-color:transparent">
+											 <h:outputText value="#{rowIzp[18]}"/>
+										 </p:scrollPanel>
+									 </div>
+
+									 <div class="sm:col-12 " >
+										 <h:outputText value="#{labels['dossier.zavelejkaTest']} "  styleClass="form-label" />
+										 <p:scrollPanel mode="native" style="width:100%;height:60px;  padding: 5px; background-color:transparent">
+											 <h:outputText value="#{rowIzp[14]}"/>
+										 </p:scrollPanel>
+									 </div>
+
+								 </div>
+							 </div>
+
+
+							</div>
+							</div>
+
+					 </p:dataList>
+</p:panel>
+</div>
+</div>
+
+<!-- redakciq na lice -->
+		 <p:dialog  id="editLiceModalPanel" dynamic="true"  width="1024px"  widgetVar="editLiceMP"  modal="true" position="top" closeOnEscape="true"  rendered="#{dossierPerson.liceId!=null and isView == null}">
+
+			 <f:facet name="header">
+				 <h:outputText  value="#{labels['dossier.editLiceModalPanel']}"/>
+			 </f:facet>
+
+			 <p:messages  showDetail="true" closable="true" id="editLiceModalPanelMessage" />
+
+			 <div class="grid ui-fluid">
+
+				 <div class="col-3  " >
+					 <h:outputText value="#{labels['dossier.egn']}"  styleClass="form-label req" />
+					 <p:inputText value="#{dossierPerson.lice.egn}" id="egnLice" >
+						 <p:ajax  event="change" listener="#{dossierPerson.actionGetBirthdayFromEGN}" update="birthDateLice" process="@this" partialSubmit="true"/>
+					 </p:inputText>
+				 </div>
+				 <div class="col-3  " >
+					 <h:outputText value="#{labels['dossier.lnch']}"  styleClass="form-label" />
+					 <p:inputText value="#{dossierPerson.lice.lnc}" id="lnchLice"/>
+				 </div>
+				 <div class="col-3  " >
+					 <h:outputText value="#{labels['dossier.dateOfBirth']}"  styleClass="form-label req" />
+					 <p:datePicker id="birthDateLice" value="#{dossierPerson.lice.birthDate}" pattern="dd.MM.yyyy" mask="true" showIcon="true" locale="bg" />
+				 </div>
+				 <div class="col-3  " >
+					 <ui:remove>
+					 <!--
+						 <h:outputText value="#{labels['dossier.licePoStariqtRed']}"  styleClass="form-label"/>
+						 <p:selectBooleanCheckbox value="#{dossierPerson.starRed}"/>
+					 -->
+					 </ui:remove>
+				 </div>
+			 </div>
+			 <div class="grid ui-fluid">
+			 <div class="col-3 " >
+				 <h:outputText value="#{labels['dossier.ime']}"  styleClass="form-label req" />
+				 <p:inputText id="firstnameLice" value="#{dossierPerson.lice.firstname}"/>
+			 </div>
+			 <div class="col-3 " >
+				 <h:outputText value="#{labels['dossier.prezime']}"  styleClass="form-label req" />
+				 <p:inputText id="surnameLice" value="#{dossierPerson.lice.surname}"/>
+			 </div>
+			 <div class="col-3 " >
+				 <h:outputText value="#{labels['dossier.familiya']}"  styleClass="form-label req" />
+				 <p:inputText id="lastnameLice" value="#{dossierPerson.lice.lastname}"/>
+			 </div>
+			 <div class="col-3 " >
+				 <h:outputText value="#{labels['dossier.placeOfBirth']}"  styleClass="form-label req" />
+				 <p:inputText id="birthPlaceLice" value="#{dossierPerson.lice.birthPlace}"/>
+			 </div>
+
+				 <div class="col-6 " >
+					 <h:outputText value="#{labels['dossier.universitet']}"  styleClass="form-label req" />
+					 <ibg:selectOneModalA id="unibitL"
+										  update="@this"
+										  codeClassif="#{UriregConstants.CODE_CLASSIF_UNIVERSITETI}"
+										  selectedCode="#{dossierPerson.lice.universitet}"
+										  emptyMessage="#{labels['docu.mestoEmptyMsg']}"
+										  saveStateTree="false" withBtnClear="true" compType="2"
+										  minQueryLength="3" styleAutoComp="" dopInfoAutoComp="true" />
+
+				 </div>
+				 <div class="col-6 " >
+					 <h:outputText value="#{labels['dossier.email']}"  styleClass="form-label" />
+					 <p:inputText  value="#{dossierPerson.lice.email}"/>
+				 </div>
+
+			 <div class="col-12 " >
+				 <!-- address -->
+				 <p:divider align="left">
+					 <div class="inline-flex align-items-center">
+						 <i class="pi pi-book ml-2"/>
+						 <div class="req  ml-2"><b>#{labels['dossier.postAdres']}</b></div>
+
+						 <p:commandButton icon="pi pi-id-card" title="#{labels['dossier.loadAddressRegix']}"
+										  action="#{dossierPerson.actionLoadAddresDataRegix}"  partialSubmit="true" process="@this" update="birthPlaceLice addressPanelData" >
+							 <p:confirm header="#{ui_labels['general.comfirmation']}" message="#{beanMessages['general.confirmLoadAddressR']}" icon="fas fa-exclamation-triangle" />
+						 </p:commandButton>
+					 </div>
+				 </p:divider>
+				 <div class="grid ui-fluid" jsf:id="addressPanelData">
+					 <div class="col-3 ">
+						 <h:outputText value="#{ui_labels['general.ekatte']}"  styleClass="form-label" />
+						 <ibg:selectOneModalA id="mestoL"
+											  update="dossierForm:cOblObshL"
+											  codeClassif="#{UriregConstants.CODE_CLASSIF_EKATTE}"
+											  specifics="#{dossierPerson.specificsEKATTE}"
+											  selectedCode="#{dossierPerson.ekatte}"
+											  emptyMessage="#{labels['docu.mestoEmptyMsg']}"
+											  saveStateTree="false" withBtnClear="true" compType="3"
+											  minQueryLength="3" styleAutoComp="" dopInfoAutoComp="true"
+											  dopInfoTitleAutoComp="#{ui_labels['general.ekatteObshObl']}" />
+					 </div>
+					 <div class="col-3 " jsf:id="cOblObshL">
+						 <h:outputText value="#{ui_labels['general.ekatteObshObl']}"
+									   styleClass="form-label" />
+						 <p:inputText readonly="true"
+									  value="#{systemData.decodeItemDopInfo(UriregConstants.CODE_CLASSIF_EKATTE, dossierPerson.ekatte,dossierPerson.currentLang ,dossierPerson.dateNow)}" />
+					 </div>
+					 <div class="col-6 ">
+						 <h:outputText value="#{ui_labels['general.adres']}" styleClass="form-label"/>
+						 <p:inputText id="adresLice" value="#{dossierPerson.lice.addrText}"/>
+					 </div>
+				 </div>
+			 </div>
+			 </div>
+			 <div class="grid ui-fluid" >
+
+				 <div class="col-12 " >
+					 <h:outputText value="#{labels['dossier.dopInfo']}"  styleClass="form-label" />
+					 <p:inputTextarea  value="#{dossierPerson.lice.liceInfo}" rows="2"/>
+				 </div>
+
+				 <div class="col-12 "  >
+
+					 <!-- status -->
+					 <p:divider align="left">
+						 <div class="inline-flex align-items-center">
+							 <i class="pi pi-cog mr-2"/>
+							 <b>#{labels['dossier.status']}</b>
+						 </div>
+					 </p:divider>
+					 <div class="grid ui-fluid">
+						 <div class="col-3  ">
+						 <h:outputText value="#{labels['index.status']} " styleClass="form-label"/>
+						 <p:selectOneMenu id="statusLice" value="#{dossierPerson.lice.status}">
+							 <f:selectItems
+									 value="#{dossierPerson.statusList}"
+									 var="item" itemLabel="#{item.tekst}" itemValue="#{item.code}"/>
+						 </p:selectOneMenu>
+						 </div>
+						 <div class="col-3  " >
+							 <h:outputText value="#{labels['dossier.statusPri']}"  styleClass="form-label" />
+							 <p:selectOneMenu id="statusPriLice" value="#{dossierPerson.lice.statusPri}">
+								 <f:selectItem value="#{null}" itemValue="#{null}"/>
+								 <f:selectItems
+										 value="#{systemData.getSysClassification(UriregConstants.CODE_CLASSIF_LICE_PRI, null, dossierPerson.currentLang)}"
+										 var="itemP" itemLabel="#{itemP.tekst}" itemValue="#{itemP.code}"/>
+							 </p:selectOneMenu>
+						 </div>
+						 <div class="col-12 " >
+							 <h:outputText value="#{labels['dossier.statusInfo']}"  styleClass="form-label" />
+							 <p:inputTextarea  value="#{dossierPerson.lice.statusInfo}" rows="2"/>
+						 </div>
+					 </div>
+				 </div>
+			 </div>
+			 <f:facet name="footer">
+				 <p:commandButton value="#{ui_labels['general.save']}"  icon="fas fa-save"  update="liceDataPanel editLiceModalPanelMessage"
+								  partialSubmit="true" process="@this editLiceModalPanel"  action="#{dossierPerson.actionSaveLice}"
+				 		ignoreAutoUpdate="true">
+				 </p:commandButton>
+			 </f:facet>
+		 </p:dialog>
+
+		 <!-- zaqvlenie za стаж -->
+		 <p:dialog  id="zayavStajModalPanel" dynamic="true"  width="1024px"  widgetVar="zayavStajMP"  modal="true" position="top" closeOnEscape="true"  rendered="#{dossierPerson.liceId!=null and isView == null}">
+
+			 <f:facet name="header">
+				 <h:outputText id="zayavStajModalPanelHeader" value="#{dossierPerson.zaiavStaj.id==null?labels['dossier.zayavStajDop']:labels['dossier.zayavEdit']}"/>
+			 </f:facet>
+
+			 <p:messages  showDetail="true" closable="true" id="zayavStajModalPanelMessage"/>
+
+			 <div class="grid ui-fluid">
+				 <div class="col-6 ">
+					 <h:outputText value="#{labels['docu.regNom']}" styleClass="form-label req" />
+					 <p:inputText value="#{dossierPerson.zaiavStaj.rnDoc}" id="rnDocStaj"/>
+				 </div>
+				 <div class="col-6 ">
+					 <h:outputText value="#{labels['docu.docDate']}" styleClass="form-label req" />
+					 <p:datePicker  value="#{dossierPerson.zaiavStaj.docDate}" id="docDateStaj" pattern="dd.MM.yyyy" mask="true" showIcon="true" locale="bg" />
+				 </div>
+
+				 <div class="col-6 " >
+					 <h:outputText value="#{dossierPerson.staj.stajVid==UriregConstants.CODE_ZNACHENIE_STAJ_VID_INITIAL?labels['dossier.razprSudstaj']:labels['dossier.razprSudstaj1']}"  styleClass="form-label req" />
+					 <ibg:selectOneModalA id="sud"
+										  update="@this"
+										  codeClassif="#{UriregConstants.CODE_CLASSIF_INSTITUTION}"
+										  selectedCode="#{dossierPerson.staj.osnInstitution}"
+										  emptyMessage="#{labels['docu.mestoEmptyMsg']}"
+										  saveStateTree="false" withBtnClear="true" compType="2"
+										  minQueryLength="3" styleAutoComp="" dopInfoAutoComp="true" />
+				 </div>
+
+				 <div class="col-3 ">
+					 <h:outputText value="#{labels['dossier.startStaj']}" styleClass="form-label " />
+					 <p:datePicker  value="#{dossierPerson.staj.osnStartDate}" id="osnStartDate" pattern="dd.MM.yyyy" mask="true" showIcon="true" locale="bg" />
+				 </div>
+				 <div class="col-3 ">
+					 <h:outputText value="#{labels['dossier.stopStaj']}" styleClass="form-label " />
+					 <p:datePicker  value="#{dossierPerson.staj.osnEndDate}" id="osnEndDate" pattern="dd.MM.yyyy" mask="true" showIcon="true" locale="bg" />
+				 </div>
+
+
+				 <div class="col-6 " jsf:rendered="#{dossierPerson.staj.stajVid==UriregConstants.CODE_ZNACHENIE_STAJ_VID_INITIAL}">
+					 <h:outputText value="#{labels['dossier.profStaj']}"  styleClass="form-label" />
+					 <p:inputText value="#{dossierPerson.staj.proLocation}" />
+				 </div>
+
+				 <div class="col-3 "  jsf:rendered="#{dossierPerson.staj.stajVid==UriregConstants.CODE_ZNACHENIE_STAJ_VID_INITIAL}">
+					 <h:outputText value="#{labels['dossier.startStaj']}" styleClass="form-label " />
+					 <p:datePicker  value="#{dossierPerson.staj.proStartDate}" id="proStartDate" pattern="dd.MM.yyyy" mask="true" showIcon="true" locale="bg" />
+				 </div>
+				 <div class="col-3 "  jsf:rendered="#{dossierPerson.staj.stajVid==UriregConstants.CODE_ZNACHENIE_STAJ_VID_INITIAL}">
+					 <h:outputText value="#{labels['dossier.stopStaj']}" styleClass="form-label " />
+					 <p:datePicker  value="#{dossierPerson.staj.proEndDate}" id="proEndDate" pattern="dd.MM.yyyy" mask="true" showIcon="true" locale="bg" />
+				 </div>
+
+				 <div class="col-6 "  jsf:rendered="#{dossierPerson.staj.stajVid==UriregConstants.CODE_ZNACHENIE_STAJ_VID_INITIAL}">
+					 <h:outputText value="#{labels['dossier.nastavnik']}"  styleClass="form-label" />
+					 <p:inputText value="#{dossierPerson.staj.mentor}"/>
+				 </div>
+				 <div class="col-6 "  jsf:rendered="#{dossierPerson.staj.stajVid==UriregConstants.CODE_ZNACHENIE_STAJ_VID_INITIAL}">
+					 <h:outputText value="#{labels['dossier.nastavnikEmail']}"  styleClass="form-label" />
+					 <p:inputText value="#{dossierPerson.staj.mentorEmail}" id="mentorEmail"/>
+				 </div>
+				 <div class="col-6 ">
+					 <h:outputText value="#{labels['docu.dopInfo']}" styleClass="form-label"/>
+					 <p:inputTextarea value="#{dossierPerson.staj.stajInfo}" rows="2"/>
+				 </div>
+				 <div class="col-6 ">
+					 <h:outputText value="#{labels['index.status']} на лице " styleClass="form-label req"/>
+					 <p:selectOneMenu id="statusLiceStaj" value="#{dossierPerson.statusFromStaj}">
+						 <f:selectItems value="#{dossierPerson.statusList}" var="item" itemLabel="#{item.tekst}" itemValue="#{item.code}"/>
+					 </p:selectOneMenu>
+				 </div>
+
+				 <div class="col-12 " >
+					 <p:divider align="left">
+						 <div class="inline-flex align-items-center">
+							 <i class="pi pi-book mr-2"/>
+							 <b>#{labels['dossier.predostaveniDoc']}</b>
+						 </div>
+					 </p:divider>
+
+					 <p:selectManyCheckbox id="prilVidList" value="#{dossierPerson.zaiavStaj.prilVidList}" layout="responsive" columns="3">
+						 <f:selectItems value="#{systemData.getSysClassification(UriregConstants.CODE_CLASSIF_DADENI_DOC  ,dossierPerson.dateNow,dossierPerson.currentLang)}" var="val" itemLabel="#{val.tekst}" itemValue="#{val.code}"/>
+					 </p:selectManyCheckbox>
+
+				 </div>
+				 <div  class="col-12 ">
+					 <p:divider align="left">
+						 <div class="inline-flex align-items-center">
+							 <i class="pi pi-file mr-2"/>
+							 <b>#{labels['dossier.files']}</b>
+
+							 <p:fileUpload id="fileUploadStaj" listener="#{dossierPerson.uploadFileListener}"
+										   dragDropSupport="true"
+										   styleClass="ui-button-success ml-3"
+										   mode="advanced" multiple="true" auto="true"
+										   label="#{labels['traineeshipOrder.addFile']}" update="dossierForm:filesListStaj">
+							 </p:fileUpload>
+						 </div>
+					 </p:divider>
+					 <div class="grid" jsf:id="filesListStaj">
+						 <div class="col-12" >
+							 <p:dataTable var="myRow" value="#{dossierPerson.filesList}" size="small" styleClass="myTable" id="listDataFileStaj">
+
+								 <p:column   style="width:40px">
+									 <p:commandButton   icon="pi pi-download"  ignoreAutoUpdate="true"  ajax="false"  action="#{dossierPerson.download(myRow)}">
+									 </p:commandButton>
+								 </p:column>
+
+								 <p:column headerText="Наименование на файл">
+									 <h:outputText value="#{myRow.filename}" />
+								 </p:column>
+								 <p:column   style="width:40px">
+									 <p:commandButton   icon="fas fa-times"  update="listDataFileStaj" ignoreAutoUpdate="true" styleClass="ui-button-danger"
+														partialSubmit="true" process="@this"  action="#{dossierPerson.actionRemoveFile(myRow)}">
+									 </p:commandButton>
+								 </p:column>
+							 </p:dataTable>
+
+						 </div>
+					 </div>
+
+				 </div>
+			 </div>
+			 <f:facet name="footer">
+				 <p:commandButton value="#{ui_labels['general.save']}"  icon="fas fa-save"
+								  update="zayavStajModalPanelMessage dossierForm:panelStajId dossierForm:statusDataPanel" ignoreAutoUpdate="true"
+								  partialSubmit="true" process="@this zayavStajModalPanel"  action="#{dossierPerson.actionSaveZajavStaj}">
+				 </p:commandButton>
+			 </f:facet>
+		 </p:dialog>
+
+		 <!-- zaqvlenie za izpit -->
+		 <p:dialog  id="zayavIzpitModalPanel" dynamic="true"  width="900px"  widgetVar="zayavIzpitRezolMP"  modal="true" position="top" closeOnEscape="true"   rendered="#{dossierPerson.liceId!=null and isView == null}">
+
+			 <f:facet name="header">
+				 <h:outputText id="zayavIzpitModalPanelHeader" value="#{dossierPerson.zaiavIzpit.id==null?labels['dossier.zayawlenieIzpitPanel']:labels['dossier.zayawlenieIzpitPanelEdit']}"/>
+			 </f:facet>
+
+			 <p:messages  showDetail="true" closable="true" id="zayavIzpitModalPanelMessage"/>
+
+			 <div class="grid ui-fluid">
+				 <div class="col-6 ">
+					 <h:outputText value="#{labels['docu.regNom']}" styleClass="form-label req" />
+					 <p:inputText value="#{dossierPerson.zaiavIzpit.rnDoc}" id="rnDocZIzpit"/>
+				 </div>
+				 <div class="col-6 ">
+					 <h:outputText value="#{labels['docu.docDate']}" styleClass="form-label req" />
+					 <p:datePicker  value="#{dossierPerson.zaiavIzpit.docDate}" id="docDateZIzpit" pattern="dd.MM.yyyy" mask="true" showIcon="true" locale="bg" />
+				 </div>
+				 <div class="col-6 ">
+					 <h:outputText value="#{labels['dossier.dataPodavaneZayav']}" styleClass="form-label req" />
+					 <p:datePicker  value="#{dossierPerson.zaiavIzpit.zaiavDate}" id="zaiavDateZIzpit" pattern="dd.MM.yyyy" mask="true" showIcon="true" locale="bg" />
+				 </div>
+				 <div class="col-6 "></div>
+				 <div class="col-6 ">
+					 <h:outputText value="#{labels['docu.dopInfo']}" styleClass="form-label"/>
+					 <p:inputTextarea value="#{dossierPerson.zaiavIzpit.docInfo}" rows="2"/>
+				 </div>
+
+				 <div class="col-6 ">
+					 <h:outputText value="#{labels['index.status']} на лице " styleClass="form-label req"/>
+					 <p:selectOneMenu id="statusLiceIzpit" value="#{dossierPerson.statusFromIzpit}">
+						 <f:selectItems value="#{dossierPerson.statusList}" var="item" itemLabel="#{item.tekst}" itemValue="#{item.code}"/>
+					 </p:selectOneMenu>
+				 </div>
+
+				 <div  class="col-12 ">
+					 <p:divider align="left">
+						 <div class="inline-flex align-items-center">
+							 <i class="pi pi-file mr-2"/>
+							 <b>#{labels['dossier.files']}</b>
+
+							 <p:fileUpload id="fileUploadIzpit" listener="#{dossierPerson.uploadFileListener}"
+										   dragDropSupport="true"
+										   styleClass="ui-button-success ml-3"
+										   mode="advanced" multiple="true" auto="true"
+										   label="#{labels['traineeshipOrder.addFile']}" update="dossierForm:filesList">
+							 </p:fileUpload>
+						 </div>
+					 </p:divider>
+					 <div class="grid" jsf:id="filesList">
+						 <div class="col-12" >
+							 <p:dataTable var="myRow" value="#{dossierPerson.filesList}" size="small" styleClass="myTable" id="listDataFileIzpit">
+
+								 <p:column   style="width:40px">
+									 <p:commandButton   icon="pi pi-download"  ignoreAutoUpdate="true"  ajax="false"  action="#{dossierPerson.download(myRow)}">
+									 </p:commandButton>
+								 </p:column>
+
+								 <p:column headerText="Наименование на файл">
+									 <h:outputText value="#{myRow.filename}" />
+								 </p:column>
+								 <p:column   style="width:40px">
+									 <p:commandButton   icon="fas fa-times"  update="listDataFileIzpit" ignoreAutoUpdate="true" styleClass="ui-button-danger"
+													  partialSubmit="true" process="@this"  action="#{dossierPerson.actionRemoveFile(myRow)}">
+									 </p:commandButton>
+								 </p:column>
+							 </p:dataTable>
+
+						 </div>
+					 </div>
+
+				 </div>
+
+			 	 <div  class="col-12 ">
+					 <p:divider align="left">
+						 <div class="inline-flex align-items-center">
+							 <i class="pi pi-date mr-2"/>
+							 <b>#{labels['dossier.staj']}</b>
+						 </div>
+					 </p:divider>
+				 </div>
+
+				 <div class="col-6 ">
+					 <h:outputText value="#{labels['dossier.startStaj']} #{dossierPerson.staj.stajVid==UriregConstants.CODE_ZNACHENIE_STAJ_VID_INITIAL?'(основен)':''}" styleClass="form-label " />
+					 <p:datePicker  value="#{dossierPerson.staj.osnStartDate}" id="osnStartDateFromIzpit" pattern="dd.MM.yyyy" mask="true" showIcon="true" locale="bg" />
+				 </div>
+				 <div class="col-6 ">
+					 <h:outputText value="#{labels['dossier.stopStaj']} #{dossierPerson.staj.stajVid==UriregConstants.CODE_ZNACHENIE_STAJ_VID_INITIAL?'(основен)':''}" styleClass="form-label " />
+					 <p:datePicker  value="#{dossierPerson.staj.osnEndDate}" id="osnEndDateFromIzpit" pattern="dd.MM.yyyy" mask="true" showIcon="true" locale="bg" />
+				 </div>
+
+
+				 <div class="col-6 "  jsf:rendered="#{dossierPerson.staj.stajVid==UriregConstants.CODE_ZNACHENIE_STAJ_VID_INITIAL}">
+					 <h:outputText value="#{labels['dossier.startStaj']} (професионален)" styleClass="form-label " />
+					 <p:datePicker  value="#{dossierPerson.staj.proStartDate}" id="proStartDateFromIzpit" pattern="dd.MM.yyyy" mask="true" showIcon="true" locale="bg" />
+				 </div>
+				 <div class="col-6 "  jsf:rendered="#{dossierPerson.staj.stajVid==UriregConstants.CODE_ZNACHENIE_STAJ_VID_INITIAL}">
+					 <h:outputText value="#{labels['dossier.stopStaj']} (професионален)" styleClass="form-label " />
+					 <p:datePicker  value="#{dossierPerson.staj.proEndDate}" id="proEndDateFromIzpit" pattern="dd.MM.yyyy" mask="true" showIcon="true" locale="bg" />
+				 </div>
+
+
+			 </div>
+			 <f:facet name="footer">
+				 <p:commandButton value="#{ui_labels['general.save']}"  icon="fas fa-save"  update="@this zayavIzpitModalPanelMessage dossierForm:panelIzpitId dossierForm:panelStajId dossierForm:statusDataPanel" ignoreAutoUpdate="true"
+								  partialSubmit="true" process="@this zayavIzpitModalPanel"  action="#{dossierPerson.actionSaveIzpit}">
+				 </p:commandButton>
+			 </f:facet>
+		 </p:dialog>
+
+
+		 <!-- zaqvlenie za dublikat -->
+		 <p:dialog  id="zayavDublikatModalPanel" dynamic="true"  width="900px"  widgetVar="zayavDublikatMP"  modal="true" position="top" closeOnEscape="true"   rendered="#{dossierPerson.liceId!=null and isView == null}">
+
+			 <f:facet name="header">
+				 <h:outputText id="zayavDublikatModalPanelHeader" value="#{labels['dossier.duplicateUd']}"/>
+			 </f:facet>
+
+			 <p:messages  showDetail="true" closable="true" id="zayavDublikatModalPanelMessage"/>
+
+			 <div class="grid ui-fluid">
+				 <div class="col-6 ">
+					 <h:outputText value="#{labels['docu.regNom']}" styleClass="form-label req" />
+					 <p:inputText value="#{dossierPerson.zaiavDublikat.rnDoc}" id="rnDocZDublikat"/>
+				 </div>
+				 <div class="col-6 ">
+					 <h:outputText value="#{labels['docu.docDate']}" styleClass="form-label req" />
+					 <p:datePicker  value="#{dossierPerson.zaiavDublikat.docDate}" id="docDateZDublikat" pattern="dd.MM.yyyy" mask="true" showIcon="true" locale="bg" />
+				 </div>
+
+				 <div class="col-12 ">
+					 <h:outputText value="#{labels['docu.dopInfo']}" styleClass="form-label"/>
+					 <p:inputTextarea value="#{dossierPerson.zaiavDublikat.docInfo}" rows="3" id="dopInfoDublikat"/>
+				 </div>
+
+				 <div  class="col-12 ">
+					 <p:divider align="left">
+						 <div class="inline-flex align-items-center">
+							 <i class="pi pi-file mr-2"/>
+							 <b>#{labels['dossier.files']}</b>
+
+							 <p:fileUpload id="fileUploadDublikat" listener="#{dossierPerson.uploadFileListenerDublikat}"
+										   dragDropSupport="true"
+										   styleClass="ui-button-success ml-3"
+										   mode="advanced" multiple="true" auto="true"
+										   label="#{labels['traineeshipOrder.addFile']}" update="dossierForm:filesListDublikat dossierForm:dopInfoDublikat dossierForm:zayavDublikatModalPanelMessage">
+							 </p:fileUpload>
+						 </div>
+					 </p:divider>
+					 <div class="grid" jsf:id="filesListDublikat">
+						 <div class="col-12" >
+							 <p:dataTable var="myRow" value="#{dossierPerson.filesList}" size="small" styleClass="myTable" id="listDataFileDublikat">
+
+								 <p:column   style="width:40px">
+									 <p:commandButton   icon="pi pi-download"  ignoreAutoUpdate="true"  ajax="false"  action="#{dossierPerson.download(myRow)}">
+									 </p:commandButton>
+								 </p:column>
+
+								 <p:column headerText="Наименование на файл">
+									 <h:outputText value="#{myRow.filename}" />
+								 </p:column>
+								 <p:column   style="width:40px">
+									 <p:commandButton   icon="fas fa-times"  update="listDataFileDublikat" ignoreAutoUpdate="true" styleClass="ui-button-danger"
+														partialSubmit="true" process="@this"  action="#{dossierPerson.actionRemoveFile(myRow)}">
+									 </p:commandButton>
+								 </p:column>
+							 </p:dataTable>
+
+						 </div>
+					 </div>
+
+				 </div>
+			 </div>
+			 <f:facet name="footer">
+				 <p:commandButton value="#{ui_labels['general.save']}"  icon="fas fa-save"  update="@this zayavDublikatModalPanelMessage dossierForm:liceDataPanel" ignoreAutoUpdate="true"
+								  partialSubmit="true" process="@this zayavDublikatModalPanel"  action="#{dossierPerson.actionSaveDublikat}">
+				 </p:commandButton>
+			 </f:facet>
+		 </p:dialog>
+
+
+		 <p:dialog  id="regixSprModalPanel" dynamic="true"  width="1100px"  widgetVar="regixSprMP"  modal="true" position="top" closeOnEscape="true"   rendered="#{dossierPerson.liceId!=null and isView == null}">
+
+			 <f:facet name="header">
+				 <h:outputText value="#{labels['dossier.regixSpr']}"/>
+			 </f:facet>
+
+			 <p:messages  showDetail="true" closable="true"/>
+
+			 <div class="grid ui-fluid" >
+
+			 <div class="col-7">
+
+				 <div class="grid ui-fluid" >
+
+					 <div class="col-6">
+						 <h:outputText value="#{labels['dossier.egnLnch']}"  styleClass="form-label"/>
+						 <div class="ui-inputgroup">
+							 <p:scrollPanel mode="native" style="width:100%; padding: 5px; background-color:transparent">
+								 <h:outputText value="#{dossierPerson.liceRegix.egn!=null?dossierPerson.liceRegix.egn:dossierPerson.liceRegix.lnc}" escape="false"/>
+							 </p:scrollPanel>
+
+						 </div>
+
+					 </div>
+					 <div class="col-6 ">
+						 <h:outputText value="#{labels['dossier.dateOfBirth']}"  styleClass="form-label" />
+						 <p:scrollPanel mode="native" style="width:100%; padding: 5px; background-color:transparent">
+							 <h:outputText value="#{dossierPerson.liceRegix.birthDate}" escape="false">
+								 <f:convertDateTime pattern="dd.MM.yyyy" timeZone="#{dossierPerson.timeZone}"/>
+							 </h:outputText>
+						 </p:scrollPanel>
+					 </div>
+
+					 <div class="col-7 ">
+						 <h:outputText value="#{labels['dossier.imena']}"  styleClass="form-label"/>
+						 <p:scrollPanel mode="native" style="width:100%; padding: 5px; background-color:transparent">
+							 <h:outputText value="#{dossierPerson.liceRegix.names}" escape="false"/>
+						 </p:scrollPanel>
+					 </div>
+					 <div class="col-5">
+						 <h:outputText value="#{labels['dossier.placeOfBirth']}"  styleClass="form-label" />
+						 <p:scrollPanel mode="native" style="width:100%; padding: 5px; background-color:transparent">
+							 <h:outputText value="#{dossierPerson.liceRegix.birthPlace}" />
+						 </p:scrollPanel>
+					 </div>
+
+					 <div class="col-12 " >
+						 <!-- address -->
+						 <p:divider align="left">
+							 <div class="inline-flex align-items-center">
+								 <i class="pi pi-book mr-2"/>
+								 <b>#{labels['dossier.postAdres']}</b>
+							 </div>
+						 </p:divider>
+						 <div class="grid ui-fluid">
+							 <div class="col-6 ">
+								 <h:outputText value="#{ui_labels['general.ekatte']}"  styleClass="form-label" />
+								 <p:scrollPanel mode="native" style="width:100%; padding: 5px; background-color:transparent">
+									 <h:outputText value="#{systemData.decodeItem(UriregConstants.CODE_CLASSIF_EKATTE, dossierPerson.liceRegix.addrEkatte,dossierPerson.currentLang ,dossierPerson.dateNow)}" />
+								 </p:scrollPanel>
+
+							 </div>
+							 <div class="col-6 ">
+								 <h:outputText value="#{ui_labels['general.ekatteObshObl']}"
+											   styleClass="form-label" />
+								 <p:scrollPanel mode="native" style="width:100%; padding: 5px; background-color:transparent">
+									 <h:outputText value="#{systemData.decodeItemDopInfo(UriregConstants.CODE_CLASSIF_EKATTE, dossierPerson.liceRegix.addrEkatte,dossierPerson.currentLang ,dossierPerson.dateNow)}" />
+								 </p:scrollPanel>
+							 </div>
+							 <div class="col-12 ">
+								 <h:outputText value="#{ui_labels['general.adres']}" styleClass="form-label"/>
+								 <p:scrollPanel mode="native" style="width:100%; padding: 5px; background-color:transparent">
+									 <h:outputText value="#{dossierPerson.liceRegix.addrText} " />
+								 </p:scrollPanel>
+							 </div>
+						 </div>
+					 </div>
+				 </div>
+
+			 </div><p:divider layout="vertical" />
+			 <div class="col-4" >
+<ui:remove>
+	<!--
+				 <h:outputText value="#{labels['general.liceCardSearch']}" styleClass="form-label"/>
+				 <div class="ui-inputgroup">
+					 <p:inputText value="#{dossierPerson.lcNum}" id="lcNum"/>
+					 <p:commandButton icon="pi pi-search" title="#{labels['dossier.spravkaLC']}"
+									  action="#{dossierPerson.actionSprRegixDoc}"  update="dossierForm:lcDataPanel"
+									partialSubmit="true" process="@this lcNum"/>
+				 </div>
+				 -->
+</ui:remove>
+				 <div   jsf:id="lcDataPanel">
+					 <br/>
+					 <div class="grid ui-fluid" jsf:rendered="#{dossierPerson.liceDocRegix!=null and dossierPerson.liceDocRegix.egn!=null}">
+						 <div class="col-12">
+							 <h:outputText value="Номер на документа" styleClass="form-label" />
+							 <p:scrollPanel mode="native" style="width:100%; padding: 5px; background-color:transparent">
+								 <h:outputText value="#{dossierPerson.liceDocRegix.identityDocumentNumber}" />
+							 </p:scrollPanel>
+						 </div>
+						 <div class="col-12">
+							 <h:outputText value="Имена" styleClass="form-label" />
+							 <p:scrollPanel mode="native" style="width:100%; padding: 5px; background-color:transparent">
+								 <h:outputText value="#{dossierPerson.liceDocRegix.names}" />
+							 </p:scrollPanel>
+
+						 </div>
+						 <div class="col-12">
+							 <h:outputText value="Валидност" styleClass="form-label" />
+							 <p:scrollPanel mode="native" style="width:100%; padding: 5px; background-color:transparent">
+								 <h:outputText value="#{dossierPerson.liceDocRegix.validDate}" />
+							 </p:scrollPanel>
+
+						 </div>
+						 <div class="col-12">
+							 <h:outputText value="Издадена от / Дата на издаване" styleClass="form-label" />
+							 <p:scrollPanel mode="native" style="width:100%; padding: 5px; background-color:transparent">
+								 <h:outputText value="#{dossierPerson.liceDocRegix.issuerPlace} /" />
+								 <h:outputText value="#{dossierPerson.liceDocRegix.issueDate}" />
+							 </p:scrollPanel>
+						 </div>
+					 </div>
+				 </div>
+			 </div>
+			 </div>
+		 </p:dialog>
+
+		 <p:dialog  id="dublikatiModalPanel" dynamic="false"  width="700px"  widgetVar="dublikatiMP"  modal="true" position="top" closeOnEscape="true"   rendered="#{dossierPerson.liceId!=null and isView == null}"
+					>
+
+			 <f:facet name="header">
+				 <h:outputText value="#{labels['dossier.spisakDublikati']}"/>
+			 </f:facet>
+
+			 <p:messages  showDetail="true" closable="true" />
+
+			 <p:dataTable var="myRow" value="#{dossierPerson.dublikatiList}" size="small"  id="listDocDublikati" rowIndexVar="indx">
+				 <p:column style="width:40px" headerText="N:">
+					 <h:outputText value="#{indx+1}" />
+				 </p:column>
+				 <p:column style="width:40px"  headerText="">
+					 <ibg:compFiles idObj="#{myRow[0]}" singleFile="false" showFilePurpse="true" codeObj="#{UriregConstants.CODE_ZNACHENIE_JOURNAL_DOC}" id="dfp"/>
+				 </p:column>
+				 <p:column style="width:40px" headerText="">
+					 <p:commandButton update="dossierForm:docInfoDetail" styleClass="rounded-button ui-button-info ui-button-outlined"
+									  oncomplete="PF('docInfoOP').show('#{component.clientId}')"
+									  icon="pi pi-info" title="Преглед">
+						 <f:setPropertyActionListener value="#{myRow}" target="#{dossierPerson.selectedDocDubl}"/>
+					 </p:commandButton>
+				 </p:column>
+				 <p:column headerText="Номер / Дата на дубликат за УП">
+					 <h:outputText value="#{myRow[1]} / " />
+					 <h:outputText value="#{myRow[2]}" >
+						 <f:convertDateTime pattern="dd.MM.yyyy" timeZone="#{dossierPerson.timeZone}"/>
+					 </h:outputText>
+
+				 </p:column>
+				 <p:column   style="width:40px">
+					 <p:commandButton   icon="fas fa-times"  update="listDocDublikati dossierForm:liceDataPanel"  styleClass="ui-button-danger"
+										partialSubmit="true" process="@this"  action="#{dossierPerson.actionDeleteDub(myRow)}">
+						 <p:confirm header="#{ui_labels['general.comfirmation']}" message="#{beanMessages['general.confirmDeleteMsg']}" icon="fas fa-exclamation-triangle" />
+					 </p:commandButton>
+				 </p:column>
+			 </p:dataTable>
+
+			 <p:overlayPanel widgetVar="docInfoOP" dismissable="false" showCloseIcon="true" dynamic="false" style="width:350px">
+				 <p:outputPanel id="docInfoDetail" style="text-align:center;">
+				 	<h:outputText value="#{dossierPerson.selectedDocDubl[3]} / " />
+				 </p:outputPanel>
+			 </p:overlayPanel>
+
+		 </p:dialog>
+
+		 <p:dialog id="messagesModalPanel"  dynamic="true" header="#{labels['messagesFilterList.addTitle']}"   widgetVar="messagesMP"
+				   modal="true" width="800px" closeOnEscape="true" >
+
+			 <p:messages  showDetail="true" closable="true" id="mmmpp"/>
+
+			 <div class="grid ui-fluid">
+				 <div class="col-12 ">
+					 <h:outputText value="#{labels['messagesFilterList.text']}" styleClass="form-label"/>
+
+					 <p:selectOneMenu value="#{dossierPerson.shablonText}">
+						 <f:selectItem itemLabel="" itemValue=""/>
+						 <f:selectItems value="#{dossierPerson.shabloniList}" var="item" itemLabel="#{item.tekst}" itemValue="#{item.tekst}"/>
+						 <p:ajax event="change" update="msgMsg" listener="#{dossierPerson.actionAddShablonText}" />
+					 </p:selectOneMenu>
+					 <p:textEditor widgetVar="textDlgEditor" value="#{dossierPerson.messageText}" height="150px" id="msgMsg"/>
+
+				 </div>
+			 </div>
+			 <f:facet name="footer">
+				 <p:commandButton value="#{labels['general.publish']}"  icon="fas fa-save"  update="@this mmmpp"
+								  partialSubmit="true" process="@this messagesModalPanel"  action="#{dossierPerson.actionPublishMessage}">
+				 </p:commandButton>
+			 </f:facet>
+		 </p:dialog>
+
+		 <p:dialog widgetVar="zapovedStajMP"  id="zapovedStajModalPanel" dynamic="true"  width="800px" modal="true" position="top" closeOnEscape="true"  rendered="#{dossierPerson.liceId!=null and isView == null}">
+
+			 <f:facet name="header">
+				 <h:outputText id="zapovedStajModalPanelHeader" value="#{labels['dossier.oldZapStaj']}"/>
+			 </f:facet>
+
+			 <p:messages  showDetail="true" closable="true" id="zapovedStajModalPanelMessage"/>
+
+			 <div class="grid ui-fluid">
+				 <div class="col-6 ">
+					 <h:outputText value="#{labels['docu.regNom']}" styleClass="form-label req" />
+					 <p:inputText value="#{dossierPerson.rnDocZapoved}" id="rnDocZapStaj"/>
+				 </div>
+				 <div class="col-6 ">
+					 <h:outputText value="#{labels['docu.docDate']}" styleClass="form-label req" />
+					 <p:datePicker  value="#{dossierPerson.docDateZapoved}" id="docDateZapStaj" pattern="dd.MM.yyyy" mask="true" showIcon="true" locale="bg" />
+				 </div>
+			 </div>
+
+			 <f:facet name="footer">
+				 <p:commandButton value="#{ui_labels['general.save']}"  icon="fas fa-save"  update="@this rnDocZapStaj docDateZapStaj zapovedStajModalPanelMessage dossierForm:panelStajId dossierForm:statusDataPanel dossierForm:bntZajavIzpit"
+								  partialSubmit="true" process="@this zapovedStajModalPanel"  action="#{dossierPerson.actionZapovedStaj}">
+				 </p:commandButton>
+			 </f:facet>
+
+		 </p:dialog>
+
+
+		 <p:dialog widgetVar="statusLiceMP"  id="statusLiceModalPanel" dynamic="true"  width="500px" modal="true" position="top" closeOnEscape="true"  rendered="#{dossierPerson.liceId!=null and isView == null}">
+
+			 <f:facet name="header">
+				 <h:outputText  value="#{labels['dossier.changeStatusTitle']}"/>
+			 </f:facet>
+
+			 <p:messages  showDetail="true" closable="true" id="statusLicelMessage"/>
+
+			 <div class="grid ui-fluid">
+				 <div class="col-12 ">
+					 <h:outputText value="#{labels['index.status']} " styleClass="form-label"/>
+					 <p:selectOneMenu id="statusLiceAdm" value="#{dossierPerson.statusLice}">
+						 <f:selectItems value="#{systemData.getSysClassification(UriregConstants.CODE_CLASSIF_LICE_STATUS  ,dossierPerson.dateNow,dossierPerson.currentLang)}" var="val" itemLabel="#{val.tekst}" itemValue="#{val.code}"/>
+
+					 </p:selectOneMenu>
+				 </div>
+
+			 </div>
+
+			 <f:facet name="footer">
+				 <p:commandButton value="#{ui_labels['general.save']}"  icon="fas fa-save"  update="@this dossierForm:panelStajId dossierForm:statusDataPanel"
+								  partialSubmit="true" process="@this statusLiceModalPanel"  action="#{dossierPerson.actionSaveStatusLice}">
+				 </p:commandButton>
+			 </f:facet>
+
+		 </p:dialog>
+
+	 </h:form>
+
+
+</ui:composition>

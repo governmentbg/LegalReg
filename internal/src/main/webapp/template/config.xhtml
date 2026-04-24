@@ -1,0 +1,166 @@
+<ui:composition
+        xmlns="http://www.w3.org/1999/xhtml"
+        xmlns:f="jakarta.faces.core"
+        xmlns:h="jakarta.faces.html"
+        xmlns:ui="jakarta.faces.facelets"
+        xmlns:p="http://primefaces.org/ui">
+
+    <div id="layout-config" class="layout-config">
+
+		<ui:remove>
+			<!-- Това е ⚙️ иконката, с която се отваря страничното меню. Вместо нея ползваме опцията от менюто. -->
+	        <a href="#" id="layout-config-button" class="layout-config-button">
+	            <i class="pi pi-cog"/>
+	        </a>
+        </ui:remove>
+
+        <a href="#" id="layout-config-close" class="layout-config-close">
+            <i class="fas fa-times"/>
+        </a>
+
+        <div class="layout-config-content">
+            <h:form id="config-form">
+                <h5 style="margin-top: 0;">#{labels['config.titleTheme']}</h5>
+                <p:selectOneRadio value="#{guestPreferences.darkMode}" layout="responsive" columns="2">
+                    <f:selectItem itemLabel="#{labels['config.light']}" itemValue="false" />
+                    <f:selectItem itemLabel="#{labels['config.dark']}" itemValue="true" />
+                    <p:ajax onstart="PrimeFaces.MirageConfigurator.beforeResourceChange()"
+                            listener="#{guestPreferences.onColorSchemeChange}" process="@this" update=":config-form" />
+                </p:selectOneRadio>
+                <p:divider />
+
+                <h5>#{labels['config.menu']}</h5>
+                <p:selectOneRadio value="#{guestPreferences.horizontalMenu}" layout="responsive" columns="2">
+                    <f:selectItem itemLabel="#{labels['config.vertical']}" itemValue="false" />
+                    <f:selectItem itemLabel="#{labels['config.horizontal']}" itemValue="true" />
+                    <p:ajax listener="#{guestPreferences.onMenuTypeChange}" process="@this" update=":config-form menuform"/>
+                </p:selectOneRadio>
+
+                  <p:selectOneRadio value="#{guestPreferences.menuColor}"  layout="responsive" columns="2">
+                    <f:selectItem itemLabel="#{labels['config.light']}" itemValue="light" />
+                    <f:selectItem itemLabel="#{labels['config.dark']}" itemValue="dark" />
+                    <p:ajax onstart="PrimeFaces.MirageConfigurator.beforeResourceChange()" listener="#{guestPreferences.onMenuColorChange()}" update=":config-form"/>
+                </p:selectOneRadio>
+
+                <p:outputPanel id="menucolors-panel">
+                    <div class="layout-themes">
+                        <ui:repeat value="#{guestPreferences.menuColors.get(guestPreferences.menuColor)}" var="menuColor">
+                            <div>
+                                <p:commandLink actionListener="#{guestPreferences.setMenuTheme(menuColor.file)}"
+                                               style="background-color: #{menuColor.color}" title="#{menuColor.name}"
+                                               process="@this" update=":config-form"
+                                               onstart="PrimeFaces.MirageConfigurator.beforeResourceChange()"
+                                               oncomplete="PrimeFaces.MirageConfigurator.changeMenuTheme('#{guestPreferences.menuColor}', '#{menuColor.file}', #{guestPreferences.darkMode})">
+                                    <p:graphicImage name="images/configurator/menu/theme/#{menuColor.color}"
+                                                    library="mirage-layout" title="#{menuColor.name}"
+                                                    style="height: 100%; width: 100%;"
+                                                    rendered="#{guestPreferences.menuColor eq 'custom'}"/>
+                                    <ui:fragment rendered="#{menuColor.file eq guestPreferences.menuTheme}">
+                                        <i class="fas fa-check"/>
+                                    </ui:fragment>
+                                </p:commandLink>
+                            </div>
+                        </ui:repeat>
+                    </div>
+                </p:outputPanel>
+                <p:divider />
+
+                <h5>#{labels['config.componentStyle']}</h5>
+                <p:selectOneRadio value="#{guestPreferences.inputStyle}" layout="responsive" columns="2"
+                                  onchange="PrimeFaces.MirageConfigurator.updateInputStyle(event.target.value)">
+                    <f:selectItem itemLabel="#{labels['config.componentOutlined']}" itemValue="outlined" />
+                    <f:selectItem itemLabel="#{labels['config.componentFilled']}" itemValue="filled" />
+                    <p:ajax listener="#{guestPreferences.onInputStyleChange}" process="@this"/>
+                </p:selectOneRadio>
+
+                <p:outputPanel id="componentThemes-panel">
+                    <div class="layout-themes">
+                        <ui:repeat value="#{guestPreferences.componentThemes}" var="componentTheme">
+                            <div>
+                                <p:commandLink actionListener="#{guestPreferences.setComponentTheme(componentTheme.file)}"
+                                               style="background-color: #{componentTheme.color}"
+                                               process="@this" update=":config-form"
+                                               onstart="PrimeFaces.MirageConfigurator.beforeResourceChange()"
+                                               oncomplete="PrimeFaces.MirageConfigurator.changeComponentsTheme('#{componentTheme.file}', #{guestPreferences.darkMode})">
+                                    <ui:fragment rendered="#{componentTheme.file eq guestPreferences.componentTheme}">
+                                        <i class="fas fa-check"/>
+                                    </ui:fragment>
+                                </p:commandLink>
+                            </div>
+                        </ui:repeat>
+                    </div>
+                </p:outputPanel>
+                <p:divider />
+
+                <h5>#{labels['dashbord.dashbord']}</h5>
+                <div><h:outputText value="#{labels['config.dashboardSubtitle']}" /></div>
+
+                <div class="layout-themes">
+					<div>
+						<p:commandLink class="layout-config-option layout-config-option-image large" actionListener="#{guestPreferencesDashboard.setAutoDisplay(true)}" update=":config-form"
+							oncomplete="$.cookie('dashboard_auto', '1', {path: '/',expires :365,samesite: 'strict'});" process="@this" title="#{labels['config.titleAuto']}">
+							<p:graphicImage name="images/auto.png"/>
+							<ui:fragment rendered="#{guestPreferencesDashboard.autoDisplay}">
+								<i class="fas fa-check-circle"></i>
+							</ui:fragment>
+						</p:commandLink>
+						<span class="layout-config-option-text">#{labels['config.auto']}</span>
+					</div>
+
+					<div>
+						<p:commandLink class="layout-config-option layout-config-option-image large" actionListener="#{guestPreferencesDashboard.setPanelDisplay(true)}" update=":config-form"
+                                oncomplete="$.cookie('dashboard_auto', '2', {path: '/', expires :365 ,samesite: 'strict'});" process="@this" title="#{labels['config.titlePanel']}">
+                            <p:graphicImage name="images/panel.png"/>
+                            <ui:fragment rendered="#{guestPreferencesDashboard.panelDisplay}">
+                                <i class="fas fa-check-circle"></i>
+                            </ui:fragment>
+                        </p:commandLink>
+                        <span class="layout-config-option-text">#{labels['config.panel']}</span>
+					</div>
+					<div>
+						<p:commandLink class="layout-config-option layout-config-option-image large" actionListener="#{guestPreferencesDashboard.setModalDisplay(true)}" update=":config-form"
+                                oncomplete="$.cookie('dashboard_auto', '3', {path: '/', expires :365,samesite: 'strict'});" process="@this" title="#{labels['config.titleModal']}">
+                            <p:graphicImage name="images/modal.png"/>
+                            <ui:fragment rendered="#{guestPreferencesDashboard.modalDisplay}">
+                                <i class="fas fa-check-circle"></i>
+                            </ui:fragment>
+                        </p:commandLink>
+                        <span class="layout-config-option-text">#{labels['config.modal']}</span>
+					</div>
+                </div>
+
+            </h:form>
+
+        </div>
+
+    </div>
+
+    <div id="layout-config-userguide" class="layout-config">
+
+
+
+        <a href="#" id="layout-config-ug-close" class="layout-config-close" onclick="$('#layout-config-userguide').toggleClass('layout-config-active');">
+            <i class="fas fa-times"/>
+        </a>
+
+        <div class="layout-config-content">
+            <h:form id="config-form-userguide">
+
+            	<h5 style="margin-top: 0;">#{ui_labels['instructions.userguide']}</h5>
+            	<br/>
+
+	            	<a href="../../urireg-doc/AdminGuide.pdf" target="_blank">
+                        <i class="fas fa-file-pdf"></i>
+                        <span>#{labels['instructions.admin']}</span>
+	                </a>
+               	<hr/>
+	                <a href="../../urireg-doc/UserGuide.pdf"  target="_blank">
+	                    <i class="fas fa-file-pdf"></i>
+                        <span>#{labels['instructions.user']}</span>
+	                </a>
+
+
+      		</h:form>
+      	</div>
+    </div>
+</ui:composition>

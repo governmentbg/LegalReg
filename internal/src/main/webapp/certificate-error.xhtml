@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://xmlns.jcp.org/jsf/html">
+<h:head>
+    <title>Certificate Authentication Failed</title>
+</h:head>
+<h:body>
+    <h1>Certificate Authentication Failed</h1>
+
+    <p>Your client certificate could not be validated for the following possible reasons:</p>
+    <ul>
+        <li>The certificate has expired</li>
+        <li>The certificate was not issued by a trusted authority</li>
+        <li>The certificate has been revoked</li>
+        <li>Your certificate does not contain the required information</li>
+    </ul>
+
+    <p>Please contact your administrator if you need assistance.</p>
+
+    <h:form>
+        <h:commandButton value="Try Again" action="dashboard.xhtml@clear@?faces-redirect=true" ajax="false" />
+        <h:commandButton value="Continue with Form Login" action="/login.xhtml?faces-redirect=true" />
+    </h:form>
+</h:body>
+</html>

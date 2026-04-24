@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+	  xmlns:h="jakarta.faces.html"
+	  xmlns:f="jakarta.faces.core"
+	   xmlns:jsf="jakarta.faces"
+	  xmlns:p="http://primefaces.org/ui"
+	  xmlns:ui="jakarta.faces.facelets"
+	   xmlns:cc="jakarta.faces.composite"
+>
+
+<cc:interface componentType="compAccess">
+
+   <cc:attribute name="listDocAccess"	 	 type="java.util.List"	  shortDescription="Списък от избраните значения като обект DocAccess." />
+   <cc:attribute name="listDeloAccesss"	 	 type="java.util.List"	  shortDescription="Списък от избраните значения като обект DeloAccess." />
+   <cc:attribute name="typeDocDelo"	 		 type="java.lang.Integer"  shortDescription="Дали се вика от док. или от дело/преписка. (1=delo, 2=doc)" />
+
+   <cc:attribute name="saveStateTree" 		 type="java.lang.Boolean" shortDescription="Да запази ли вече зареденото дърво при повторно отваряне. По подразбиране - true" default="true" />
+   <cc:attribute name="isSelectNode"  		 type="java.lang.Boolean" shortDescription="Да позволи ли да се избира node от дървото. По подразбиране - true" default="true" />
+   <cc:attribute name="update" 		  		 type="java.lang.String"  shortDescription="What id to update. Полета, които трябва да се обновят" />
+
+   <cc:attribute name="dateClassif"   		 type="java.util.Date"    shortDescription="Дата, към която да се зареди дървото. По подразбиране - днешна дата." />
+
+   <cc:attribute name="titleSearchBtn"		 type="java.lang.String"  shortDescription="Подсказка за бутон search. По подразбиране - Търси" default="Търси"/>
+   <cc:attribute name="titleRefreshBtn"		 type="java.lang.String"  shortDescription="Подсказка за бутон Refresh. По подразбиране - Презареди дървото" default="Презареди дървото" />
+
+   <cc:attribute name="valueConfirmBtn"	     type="java.lang.String"  shortDescription="Наименование на бутона за потвърждение. По подразбиране - Потвърждение" default="Потвърждение" />
+   <cc:attribute name="headerSelectedValues" type="java.lang.String"  shortDescription="Наименование на колонкта в табл. с избрани значения. По подразбиране - избрани значения" default="Избрани значения" />
+   <cc:attribute name="titleClear" 			 type="java.lang.String"  shortDescription="Подсказка за бутона за изтриване на избрано значение. По подразбиране - премахни" default="Премахни" />
+   <cc:attribute name="titleClearAll" 		 type="java.lang.String"  shortDescription="Подсказка за бутона за изтриване на всички избрани значения. По подразбиране - Премахни всички" default="Премахни всички" />
+   <cc:attribute name="readOnlyCodes"		 type="java.util.List"	  shortDescription="Списък на кодове на елементи, които да са само за разглеждане в дървото (не позволява да се избират)." />
+   <cc:attribute name="showRadioBtn" 		 type="java.lang.Boolean" shortDescription="Дали да позволява избор на избрано с подинение, подчинените и т.н." default="false" />
+   <cc:attribute name="labelsRadioBtn" 		 type="java.lang.Object"  shortDescription="Списък с лейбъли за радиобутоните за избор" default="#{cc.lblRadioBtnDefault}" />
+   <cc:attribute name="msgNoSelectedCodes" 	 type="java.lang.String"  shortDescription="Текст на съобщението 'Няма избрани значения'" default="Няма избрани значения" />
+   <cc:attribute name="sortByName" 		 	 type="java.lang.Boolean" shortDescription="true/false дали елементите в дървото да са подредени по азбучен ред или по реда на въвеждане" default="false" />
+   <cc:attribute name="expanded" 			 type="java.lang.Boolean" shortDescription="true/false дали дървото да е отворено или затворено при първоначално показване" default="false" />
+   <cc:attribute name="specifics" 			 type="java.util.Map"  	  shortDescription="key=индекс на специфика от масива, value=стойност на специфика, по която да се филтрира. Ако e подаден - се игнорира readOnlyCodes" />
+   <cc:attribute name="onComplete"     		 type="java.lang.String"  shortDescription="Изпълнява функция при връщане на резултата - подава се името на функцията" />
+
+   <cc:attribute name="readonly"        	 type="java.lang.Boolean" shortDescription="само за разглеждане" default="false" />
+   <cc:attribute name="showCheckboxZvena"    type="java.lang.Boolean" shortDescription="дали да се вижда чекбокс за избор само на звена" default="false" />
+
+
+
+</cc:interface>
+
+<cc:implementation>
+
+
+	<h:panelGroup id="dataMPanel" >
+
+		<h:panelGroup id="dataMPanel1" rendered="#{cc.showMe}">
+			<div jsf:id="tree" class="grid  ui-fluid" >
+
+				<div class="col-12 md:col-12 lg:col-7" jsf:rendered="#{!cc.attrs.readonly}">
+					<p:selectOneButton  value="#{cc.treeType}" id="typeTree"
+										unselectable="false" >
+								<f:selectItem itemValue="1"  itemLabel="#{labels['admStruct.admStruct']}"/>
+								<f:selectItem itemValue="2"  itemLabel="#{labels['dvijenie.gripuSlujiteli']}"/>
+							  <p:ajax event="change" listener="#{cc.actionChangeTree}"
+							  		  update="#{cc.clientId}:dataMPanel1"
+									  partialSubmit="true" process="@this #{cc.clientId}:dataMPanel1" />
+					</p:selectOneButton>
+					<p:selectOneRadio id="radioBtn" value="#{cc.selectedType}"
+						rendered="#{cc.attrs.showRadioBtn and cc.treeType==1}">
+						<f:selectItem itemValue="0"
+							itemLabel="#{cc.attrs.labelsRadioBtn[0]}" />
+						<f:selectItem itemValue="1"
+							itemLabel="#{cc.attrs.labelsRadioBtn[1]}" />
+						<f:selectItem itemValue="2"
+							itemLabel="#{cc.attrs.labelsRadioBtn[2]}" />
+						<p:ajax event="click" update="radioBtn" />
+					</p:selectOneRadio>
+
+				<ui:remove><!--
+					<p:selectBooleanCheckbox value="#{cc.onlyZvenaRegistratura}" id="onlyRegZvena"
+									rendered="#{cc.attrs.showCheckboxZvena and cc.treeType==1}"
+									itemLabel="#{labels['delo.onlyZvena']}" title="#{labels['delo.onlyZvena']}">
+				 	</p:selectBooleanCheckbox>
+				--></ui:remove>
+
+					<div class="ui-inputgroup">
+						<p:inputText value="#{cc.searchWord}" id="searchInputM"
+							style="width:90%"
+							onkeypress="if(event.keyCode == 13) {event.preventDefault(); document.getElementById('#{cc.clientId}:searchBtnM').click()}" />
+						<p:commandButton icon="fas fa-search"
+							actionListener="#{cc.search}" id="searchBtnM"  style="width:40px;"
+							partialSubmit="true" process="@this #{cc.clientId}:treeM #{cc.clientId}:searchInputM"
+							update="#{cc.clientId}:treeM" title="#{cc.attrs.titleSearchBtn}" />
+						<p:commandButton icon="fas fa-sync" style="width:40px;"
+							actionListener="#{cc.clear}" id="refreshBtnM" styleClass="ui-button-warning"
+							partialSubmit="true" process="@this #{cc.clientId}:treeM #{cc.clientId}:searchInputM"
+							update="#{cc.clientId}:treeM #{cc.clientId}:searchInputM"
+							title="#{cc.attrs.titleRefreshBtn}" />
+					</div>
+
+					<p:tree dynamic="true" id="treeM" value="#{cc.root}" var="treeNode"
+						nodeVar="rowNode" selectionMode="single"
+						selection="#{cc.selectedNode}"
+						style="width: 100%; max-height: 500px; overflow: auto;">
+						<p:ajax event="select"
+							partialSubmit="true" process="#{cc.clientId}:dataM  @this "
+							update="#{cc.clientId}:dataM"
+							listener="#{cc.onNodeSelect}" />
+						<p:treeNode expandedIcon="fas fa-folder-open"
+							icon="#{rowNode.leaf ? 'fas fa-file':'fas fa-folder'}"
+							collapsedIcon="fas fa-folder">
+							<h:outputText value="#{treeNode.tekst}" escape="false" id="itM"
+								style="#{((!rowNode.leaf and !cc.attrs.isSelectNode) or !rowNode.selectable)?'font-style: italic; cursor:  not-allowed; !important;':''}" />
+						</p:treeNode>
+					</p:tree>
+
+				</div>
+				<div jsf:id="dataM" class="#{cc.attrs.readonly ? 'col-12' : 'col-12 md:col-12 lg:col-5'}" >
+
+					<div style=" float:right;" jsf:id="tbP">
+						<p:commandButton value="#{cc.attrs.valueConfirmBtn}"
+								partialSubmit="true" process="#{cc.attrs.update}    #{cc.clientId}:dataM  @this"
+								update="#{cc.attrs.update}   "
+								actionListener="#{cc.actionConfirm}"
+								rendered="#{!cc.attrs.readonly}" />
+
+							<p:commandButton value="#{ui_labels['general.close']}" rendered="#{cc.attrs.readonly}"
+								oncomplete="#{cc.attrs.onComplete}" />
+
+							<ui:remove><!--  <h:outputText value="  #{ui_labels['general.br']}: #{cc.tempClassifs.size()}"  id="brIzbrani" title="#{ui_labels['general.brSelected']}" rendered="true" />  --></ui:remove>
+
+					</div>
+					<div  class="grid col-12">
+						<p:dataTable id="tblDeloList" var="item" value="#{cc.tempClassifs}" lazy="true"
+							rowIndexVar="idx" sortMode="single" reflow="true"
+							emptyMessage="#{ui_labels['general.emptyMessageTbl']}"
+							paginatorTemplate="{FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink}"
+							rows="10" paginatorPosition="bottom"
+							paginatorAlwaysVisible="false" paginator="true" >
+
+						        <p:column width="100%" headerText="#{cc.attrs.headerSelectedValues}">
+						           <h:outputText value="#{item.tekst}" escape="false" styleClass="mr-3"/>
+						           <h:outputText value="(#{labels['docu.tutleaccessExclude']})" escape="false" rendered="#{item.pored eq '1'}"/>
+						           <i class="fas fa-plus" jsf:rendered="#{item.id eq null}" title="Новоизбрано лице">  </i>
+						        </p:column>
+
+					        	<p:column style="width:40px" rendered="#{!cc.attrs.readonly}">
+					        	   <f:facet name="header">
+											<p:commandButton
+												rendered="#{not empty cc.tempClassifs}" styleClass="ui-button-danger"
+												partialSubmit="true" process="#{cc.clientId}:dataM  @this"
+												update="#{cc.clientId}:dataM " icon="fas fa-times"
+												actionListener="#{cc.clearCodesTable}"
+												title="#{cc.attrs.titleClearAll}" id="btnR1" />
+									</f:facet>
+									<p:commandButton partialSubmit="true"
+									    process="#{cc.clientId}:dataM  @this"
+										update="#{cc.clientId}:dataM " icon="fas fa-times"
+										actionListener="#{cc.removeFromCodes()}" styleClass="ui-button-danger"
+										disabled="#{item.pored eq '1'}"
+										title="#{cc.attrs.titleClear}" id="btnR" >
+										 <f:param name="rItem" value="#{item.code}" />
+									</p:commandButton>
+					       		</p:column>
+
+						   </p:dataTable>
+
+					</div>
+				</div>
+
+			</div>
+
+
+		</h:panelGroup>
+
+
+
+	</h:panelGroup>
+
+
+
+</cc:implementation>
+
+</html>

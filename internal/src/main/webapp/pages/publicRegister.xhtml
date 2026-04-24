@@ -1,0 +1,193 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="jakarta.faces.html"
+                xmlns:f="jakarta.faces.core"
+                xmlns:ui="jakarta.faces.facelets"
+                xmlns:p="http://primefaces.org/ui"
+                template="/template/template.xhtml">
+
+    <ui:define name="metadata">
+        <f:metadata>
+            <f:importConstants type="com.ib.urireg.system.UriregConstants" />
+        </f:metadata>
+    </ui:define>
+
+    <ui:define name="title">Регистър на издадените удостоверения за юридическа правоспособност</ui:define>
+
+    <ui:define name="viewname">
+        <li>Регистър на издадените удостоверения за юридическа правоспособност</li>
+    </ui:define>
+
+    <ui:define name="content">
+        <h:form id="publicRegForm">
+            <div class="container #{guestPreferences.containerPosition}">
+                <h:panelGroup id="panelFilter">
+                    <div class="card">
+
+                        <div class="grid">
+
+                            <!-- Период Дата на протокол -->
+                            <div  class="col-12 sm:col-12 md:col-6 lg:col-3 xl:col-3  ui-fluid">
+                                <h:outputText value="#{labels['publicRegister.dataProtokolPeriod']}" styleClass="form-label"/>
+                                <p:selectOneMenu id ="periodProt" value="#{publicRegister.periodProtokol}">
+                                    <f:selectItem value="#{null}" itemValue="#{null}"/>
+                                    <f:selectItems  value="#{systemData.getSysClassification(UriregConstants.CODE_CLASSIF_PERIOD_NOFUTURE, null, publicRegister.currentLang)}"
+                                                    var="protPer" itemLabel="#{protPer.tekst}" itemValue="#{protPer.code}" />
+                                    <p:ajax event="change" update="periodProt DataOtProt dataDoProt" listener="#{publicRegister.changePeriodProtokol}"/>
+                                </p:selectOneMenu>
+                            </div>
+
+                            <div  class="col-12 sm:col-6 md:col-3 lg:col-3 xl:col-2  ui-fluid">
+                                <h:outputText value="#{ui_labels['general.dataOt']}" styleClass="form-label"/>
+                                <p:datePicker id="DataOtProt" value="#{publicRegister.dateFromProtokol}" pattern="dd.MM.yyyy" mask="true" showOn="button" locale="bg" >
+                                    <p:ajax event="change" update="periodProt" listener="#{publicRegister.changeDateProtokol}"/>
+                                    <p:ajax event="dateSelect" update="periodProt" listener="#{publicRegister.changeDateProtokol}"/>
+                                </p:datePicker>
+                            </div>
+
+                            <div class="col-12 sm:col-6 md:col-3 lg:col-3  xl:col-2  ui-fluid">
+                                <h:outputText value="#{ui_labels['general.dataDo']}" styleClass="form-label"/>
+                                <p:datePicker id="dataDoProt" value="#{publicRegister.dateToProtokol}" pattern="dd.MM.yyyy" mask="true" showOn="button" locale="bg" >
+                                    <p:ajax event="change" update="periodProt" listener="#{publicRegister.changeDateProtokol}"/>
+                                    <p:ajax event="dateSelect" update="periodProt" listener="#{publicRegister.changeDateProtokol}"/>
+                                </p:datePicker>
+                            </div>
+
+                            <!-- Имена -->
+                            <div class="col-12 sm:col-12 md:col-12 lg:col-5 xl:col-5 ui-fluid">
+                                <h:outputText value="#{labels['dossier.imena']}" styleClass="form-label" />
+                                <p:inputText value="#{publicRegister.imena}" id="names"/>
+                            </div>
+
+                            <!-- Дата на УП- период -->
+                            <div  class="col-12 sm:col-12 md:col-6 lg:col-3 xl:col-3  ui-fluid">
+                                <h:outputText value="#{labels['publicRegister.dataUPPeriod']}" styleClass="form-label"/>
+                                <p:selectOneMenu id ="periodDataUP" value="#{publicRegister.periodUP}">
+                                    <f:selectItem value="#{null}" itemValue="#{null}"/>
+                                    <f:selectItems  value="#{systemData.getSysClassification(UriregConstants.CODE_CLASSIF_PERIOD_NOFUTURE, null, publicRegister.currentLang)}"
+                                                    var="zapPer" itemLabel="#{zapPer.tekst}" itemValue="#{zapPer.code}" />
+                                    <p:ajax event="change" update="periodDataUP dataOt dataDo" listener="#{publicRegister.changePeriodUP}"/>
+                                </p:selectOneMenu>
+                            </div>
+
+                            <div  class="col-12 sm:col-6 md:col-3 lg:col-2 xl:col-2  ui-fluid">
+                                <h:outputText value="#{ui_labels['general.dataOt']}" styleClass="form-label"/>
+                                <p:datePicker id="dataOt" value="#{publicRegister.dateFrom}" pattern="dd.MM.yyyy" mask="true" showOn="button" locale="bg">
+                                    <p:ajax event="change" update="periodDataUP" listener="#{publicRegister.changeDateUP}"/>
+                                    <p:ajax event="dateSelect" update="periodDataUP" listener="#{publicRegister.changeDateUP}"/>
+                                </p:datePicker>
+                            </div>
+
+                            <div class="col-12 sm:col-6 md:col-3 lg:col-2  xl:col-2  ui-fluid">
+                                <h:outputText value="#{ui_labels['general.dataDo']}" styleClass="form-label"/>
+                                <p:datePicker id="dataDo" value="#{publicRegister.dateTo}" pattern="dd.MM.yyyy" mask="true" showOn="button" locale="bg">
+                                    <p:ajax event="change" update="periodDataUP" listener="#{publicRegister.changeDateUP}"/>
+                                    <p:ajax event="dateSelect" update="periodDataUP" listener="#{publicRegister.changeDateUP}"/>
+                                </p:datePicker>
+                            </div>
+
+                            <!-- Номер УП -->
+                            <div class="col-12 sm:col-12 md:col-12 lg:col-2 xl:col-2 ui-fluid">
+                                <h:outputText value="#{labels['publicRegister.nomerUP']}" styleClass="form-label" />
+                                <div class="ui-inputgroup">
+                                    <p:inputText value="#{publicRegister.nomerUP}" id="nomerUP"/>
+                                    <p:focus id="focusNomerUP" for="nomerUP" />
+                                    <p:selectBooleanButton id="rndEq" value="#{publicRegister.nomerUpEQ}"
+                                                           onLabel="#{ui_labels['general.yes']}"
+                                                           offLabel="#{ui_labels['general.no']}"
+                                                           title="#{labels['publicRegister.nomerUpEq']}"
+                                                           onIcon="fas fa-toggle-on"
+                                                           offIcon="fas fa-toggle-off"
+                                                           styleClass="inputgroup-button" >
+                                        <p:ajax update="@this nomerUP" partialSubmit="true"	process="@this nomerUP"/>
+                                    </p:selectBooleanButton>
+                                </div>
+
+                            </div>
+
+
+                        </div>
+                        <div class="filter-buttons">
+                            <p:commandButton icon="fas fa-search" value="#{ui_labels['general.search']}" actionListener="#{publicRegister.actionSearch}"
+                                             partialSubmit="true" process="@this panelFilter "
+                                             title="#{ui_labels['general.titleSearch']}" update="resultTable" styleClass="mr-3"/>
+
+                            <p:commandButton icon="fas fa-eraser"  value="#{ui_labels['general.clear']}" actionListener="#{publicRegister.actionClear}"
+                                             partialSubmit="true" process="@this panelFilter resultTable"
+                                             title="#{ui_labels['general.titleClear']}" update="panelFilter resultTable" styleClass="ui-button-warning" />
+                        </div>
+
+                    </div>
+                </h:panelGroup>
+            </div>
+
+            <h:panelGroup id="resultTable" layout="block" styleClass="margin-top">
+                <h:panelGroup layout="block" styleClass="card">
+
+                    <div class="table-toolbar">
+
+                        <h:outputText value="#{ui_labels['general.reportResult']} #{publicRegister.resultList.rowCount}" styleClass="form-label mr-2"/>
+
+                    </div>
+
+                    <p:dataTable id="tableResult" value="#{publicRegister.resultList}" lazy="true" sortMode="single" reflow="true" emptyMessage="#{ui_labels['general.norows']}"
+                                 var="row" rowIndexVar="idx"	rows="15" rowsPerPageTemplate="5,15,20,25" paginatorPosition="bottom" paginator="true"
+                                 paginatorTemplate="{RowsPerPageDropdown} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {Exporters}">
+
+                        <f:facet name="{Exporters}">
+                            <div style="float:left">
+                                <p:commandLink id="excel"  rendered="#{publicRegister.resultList.rowCount le UriregConstants.ROW_LIMITS_REPORTS}"
+                                               update="tableResult" process="tableResult" partialSubmit="true">
+                                    <h:graphicImage library="images" name="excel2.png" />
+                                    <p:dataExporter type="xlsx" target="tableResult" fileName="#{publicRegister.reportFileName}" postProcessor="#{publicRegister.postProcessXLSX}"  />
+                                </p:commandLink>
+                            </div>
+                        </f:facet>
+
+                        <p:column width="50" headerText="#{ui_labels['general.No-symbol']}">
+                            <h:outputText value="#{idx + 1}" />
+                        </p:column>
+
+                        <p:column width="120" headerText="#{labels['publicRegister.nomerUP']}" sortBy="#{row.a2}">
+                            <h:outputText value="#{row[2]}"  />
+                        </p:column>
+
+                        <p:column width="100" headerText="#{labels['publicRegister.dataUP']}" sortBy="#{row.a3}">
+                            <h:outputText value="#{row[3]}">
+                                <f:convertDateTime pattern="dd.MM.yyyy" timeZone="#{publicRegister.timeZone}"/>
+                            </h:outputText>
+                        </p:column>
+
+                        <p:column headerText="#{labels['examOrder.firstName']}" sortBy="#{row.a4}">
+                            <h:outputText value="#{row[4]}"  />
+                        </p:column>
+
+                        <p:column headerText="#{labels['examOrder.prezime']}" sortBy="#{row.a5}">
+                            <h:outputText value="#{row[5]}"  />
+                        </p:column>
+
+                        <p:column headerText="#{labels['examOrder.lastName']}" sortBy="#{row.a6}">
+                            <h:outputText value="#{row[6]}"  />
+                        </p:column>
+
+                        <p:column width="150" headerText="#{labels['publicRegister.dataProtokol']}" sortBy="#{row.a7}">
+                            <h:outputText value="#{row[7]}">
+                                <f:convertDateTime pattern="dd.MM.yyyy" timeZone="#{publicRegister.timeZone}"/>
+                            </h:outputText>
+                        </p:column>
+
+                        <p:column width="120" headerText="#{labels['publicRegister.dublicat']}" sortBy="#{row.a8}">
+                            <h:outputText value="&#10003;" style="color:green; font-weight: bold;" rendered="#{row[8] eq UriregConstants.CODE_ZNACHENIE_NE}"/>
+                        </p:column>
+
+                        <p:column width="140" headerText="#{labels['publicRegister.LishenPravo']}" sortBy="#{row.a9}">
+                            <h:outputText value="&#10003;" style="color:green; font-weight: bold;"  rendered="#{row[9] eq UriregConstants.CODE_ZNACHENIE_LICE_STATUS_PRAVO_LISHEN}"/>
+                        </p:column>
+
+                    </p:dataTable>
+                </h:panelGroup>
+            </h:panelGroup>
+
+        </h:form>
+    </ui:define>
+
+</ui:composition>

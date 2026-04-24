@@ -1,0 +1,649 @@
+<ui:composition
+		xmlns="http://www.w3.org/1999/xhtml"
+		xmlns:h="jakarta.faces.html"
+		xmlns:f="jakarta.faces.core"
+		xmlns:ui="jakarta.faces.facelets"
+		xmlns:ibg="jakarta.faces.composite/components"
+		xmlns:p="http://primefaces.org/ui"
+		xmlns:jsf="http://xmlns.jcp.org/jsf"
+		template="/template/template.xhtml">
+
+	<ui:define name="metadata">
+		<f:metadata>
+			<f:viewAction action="#{userData.checkPageAccess(214)}" onPostback="false" />
+		</f:metadata>
+	</ui:define>
+
+	<ui:define name="title">Попълване на шаблони</ui:define>
+
+	<ui:define name="viewname">
+		<li>Попълване на шаблони</li>
+	</ui:define>
+
+	<ui:define name="content">
+
+		<style type="text/css">
+
+			body .ui-fileupload.upload-basic .ui-fileupload-buttonbar .ui-button.ui-fileupload-choose .ui-icon {
+				font-family: "Font Awesome 5 Free" !important;
+			}
+
+			body .ui-fileupload.upload-basic .ui-fileupload-buttonbar .ui-button.ui-fileupload-choose .ui-icon:before {
+				content: "\f1c2";
+			}
+
+			.ui-fileupload.upload-basic .ui-fileupload-buttonbar {
+				background: transparent;
+			}
+
+			.render-modal.ui-dialog .ui-dialog-content,
+			.render-modal.ui-dialog .ui-scrollpanel {
+				background: #eceff4;
+			}
+
+			.render-modal .doc-preview-wrapper {
+				position: relative;
+			}
+
+			.render-modal .doc-html-wrapper {
+				font-weight: normal;
+				background: #ffffff;
+				border: 1px solid #ced4da;
+				padding: 1rem 2rem;
+				border-radius: 4px;
+			}
+
+			.render-modal .doc-preview-buttons {
+				text-align: right;
+				margin-bottom: 1em;
+			}
+
+			.render-modal .no-available-documents {
+				background: #ffffff;
+				border: 1px solid #ced4da;
+				padding: 1rem 2rem;
+				border-radius: 4px;
+			}
+
+			.thin-border {
+				border-top: 1px solid #dee2e6
+			}
+
+			.bm-type-icon {
+				color: var(--primary-color);
+			}
+
+			body .ui-message.message-success {
+				background-color: #CCFFD8;
+				border-color: #B8FFC8;
+				color: #00855F;
+			}
+
+			body .ui-message.message-success .ui-message-info-icon {
+				color: #00855F;
+			}
+
+			.icon-in-table {
+				margin-left: 4px !important;
+				margin-right: 4px !important;
+			}
+
+			.row-expansion {
+				background-color: var(--surface-c);
+			}
+
+			.adv-icon {
+				color: var(--text-color-secondary);
+				margin-right: 1rem;
+			}
+
+			.file-list {
+				flex-grow: 1;
+				min-width: 300px;
+				max-width: 25%;
+			}
+
+			.file-list > a {
+				flex-grow: 1;
+			}
+
+			.file-list > a:hover {
+				text-decoration: none;
+			}
+
+			.file-list .file-details {
+				width: 100%;
+				font-size: 0.9rem;
+			}
+
+			.file-list.selected .file-details {
+				background-color: var(--primary-color);
+				color: var(--primary-color-text);
+			}
+
+			.menu-item-delete span {
+				color: #dc3545 !important;
+			}
+
+			body .ui-selectmanymenu .ui-selectlistbox-listcontainer .ui-selectlistbox-list .ui-selectlistbox-item.ui-state-highlight {
+				background: inherit;
+				color: inherit;
+			}
+			body .ui-state-highlight .ui-chkbox .ui-chkbox-box.ui-state-active {
+				border-color: var(--primary-color);
+			}
+
+			.light-text {
+				color: #7599bd;
+			}
+
+			.render-modal .ui-dialog-content {
+				overflow: hidden !important;
+			}
+
+			.fixed-height {
+				height: calc(100% - 1.5rem) !important;
+				padding: 0 !important;
+				border: 0 !important;
+			}
+
+			body .ui-datatable.bookmarks-table .row-yellow {
+				background-color: #fff9e5;
+			}
+
+			body .ui-datatable.bookmarks-table .row-red {
+				background-color: #fbe9eb;
+			}
+
+		</style>
+
+		<h:form id="formShabloniFill">
+			<p:importConstants type="com.ib.urireg.udostDocs.UdostDokumentMethods" var="UdostDokumentMethods" />
+			<p:importEnum type="com.ib.urireg.db.dto.ShablonBookmark$FillStrategies" var="FillStrategies"/>
+			<p:importConstants type="com.ib.urireg.system.UriregConstants" />
+
+			<div class="#{guestPreferences.containerPosition}">
+				<div class="grid">
+					<div class="col-12 xl:col-9">
+						<div class="card mb-4">
+							<div jsf:id="panel-left" class="grid">
+
+								<!-- Падащо меню Вид документ -->
+								<div class="col-12 ui-fluid">
+									<div class="form-label">
+										<span>Вид документ</span>
+									</div>
+
+									<p:selectOneMenu id="shablonDropdown" value="#{shabloniFill.selectedVidDokument}"
+													 filter="true" filterMatchMode="contains" autoWidth="false"
+													 hideNoSelectionOption="#{shabloniFill.selectedVidDokument ne null}"
+													 height="500" var="d" converter="omnifaces.SelectItemsConverter">
+
+										<f:facet name="footer">
+											<div style="font-weight:bold;" class="px-3 py-2 thin-border">
+												Общо: #{shabloniFill.vidoveDokumenti.size()}
+											</div>
+										</f:facet>
+
+										<f:selectItem value="#{null}" itemValue="#{null}" itemLabel="" noSelectionOption="true" />
+										<f:selectItems value="#{shabloniFill.vidoveDokumenti}"
+													   var="v" itemValue="#{v}" />
+
+										<p:column style="text-align: right; #{d[2] eq 0 ? 'color: #dc3545;' : ''}; width: 20px;">
+											<div>
+												<h:outputText value="#{d[0]}" style="font-weight: 500"/>
+											</div>
+										</p:column>
+										<p:column style="#{d[2] eq 0 ? 'color: #dc3545;' : ''}">
+											#{d[1]}
+										</p:column>
+
+										<p:ajax event="change"
+												listener="#{shabloniFill.loadShabloniForVidDokument}"
+												update="@this panel-left"
+												partialSubmit="true"
+												process="@this" />
+									</p:selectOneMenu>
+
+								</div>
+
+								<!-- Прикачени шаблони -->
+								<div jsf:id="files-list" jsf:rendered="#{shabloniFill.selectedVidDokument ne null}" class="col-12">
+									<div class="form-label">Файлове</div>
+									<div class="flex flex-wrap">
+										<ui:repeat value="#{shabloniFill.shabloniForVidDokument}" var="s">
+											<div class="file-list #{shabloniFill.shablonLogic ne null and shabloniFill.shablonLogic.id eq s.id ? 'selected shadow-2' : ''}">
+												<p:commandLink action="#{shabloniFill.actionChooseShablon(s)}" title="#{s.filename}" update="formShabloniFill:panel-left">
+													<div class="file-details">
+														<span class="filename">#{s.filename}</span>
+													</div>
+												</p:commandLink>
+												<div class="file-options">
+													<p:commandLink id="file-options">
+														<i class="fas fa-caret-down"/>
+													</p:commandLink>
+												</div>
+												<p:confirmDialog widgetVar="cd-#{s.id}" message="Всички незапаметени настройки ще се загубят!"
+														header="Отваряне на друг шаблон?" severity="alert" showEffect="fade" hideEffect="fade">
+													<p:commandButton value="#{ui_labels['general.da']}" action="#{shabloniFill.loadShablonFile(s)}" update="formShabloniFill:panel-left"
+															oncomplete="PF('cd-#{s.id}').hide()" styleClass="ui-button-success" icon="fas fa-check"/>
+													<p:commandButton value="#{labels['general.otkaz']}" oncomplete="PF('cd-#{s.id}').hide();" icon="fas fa-times"/>
+												</p:confirmDialog>
+												<p:menu id="menu-dropdown" for="file-options" trigger="file-options" styleClass="user-options" overlay="true" my="right top" at="right bottom" style="width:230px">
+													<p:menuitem value="#{ui_labels['general.download']}" ajax="false" action="#{shabloniFill.downloadFile(s.id)}" icon="fas fa-download"/>
+													<p:menuitem value="Смяна на шаблона" oncomplete="openReUploadFile()" icon="fas fa-file-word"
+															update="formShabloniFill:panel-left" actionListener="#{shabloniFill.setIdOfFileToUpdate(s.id)}" >
+														<p:confirm header="Смяна на шаблона"
+																message="Сигурни ли сте, че искате да смените файла?"
+																icon="fas fa-exclamation-triangle" />
+													</p:menuitem>
+													<p:menuitem styleClass="menu-item-delete" value="Изтриване на шаблона" icon="fas fa-times"
+															action="#{shabloniFill.deleteFile(s.id)}" update="formShabloniFill:panel-left">
+														<p:confirm header="#{ui_labels['general.comfirmation']}"
+																message="#{beanMessages['general.confirmDeleteMsg']}"
+																icon="fas fa-exclamation-triangle" />
+													</p:menuitem>
+												</p:menu>
+											</div>
+										</ui:repeat>
+									</div>
+								</div>
+
+								<!-- Бутон за прикачване на нов шаблон -->
+								<div class="col-12" jsf:rendered="#{shabloniFill.selectedVidDokument ne null}">
+									<p:staticMessage
+											rendered="#{shabloniFill.shabloniForVidDokument eq null}"
+											severity="warn"
+											detail="Няма качен шаблон към този вид документ!"
+											style="width: 100%" styleClass="ml-0 mb-3" />
+									<p:fileUpload id="uploadFile"
+											widgetVar="fileUpolad"
+										  	listener="#{shabloniFill.uploadFile}"
+										  	skinSimple="true"
+										  	multiple="false"
+										  	auto="true"
+										  	label="Качване на шаблон"
+										  	styleClass="upload-basic"
+											update="panel-left"/>
+
+									<p:fileUpload
+											id="reUploadFile"
+											widgetVar="fileReUpolad"
+											style="display: none;"
+											listener="#{shabloniFill.updateFile}"
+											skinSimple="true"
+											multiple="false"
+											auto="true"
+											label="Смяна на шаблон"
+											styleClass="upload-basic"
+											update="panel-left"/>
+								</div>
+
+								<!-- Toolbar -->
+								<div jsf:rendered="#{shabloniFill.shablonFile.id ne null}" class="col-12">
+									<p:toolbar>
+										<p:toolbarGroup align="left">
+											<p:commandButton value="Запис" icon="fas fa-save"
+															 styleClass="ui-button-success"
+															 actionListener="#{shabloniFill.actionSave}"
+															 update="panel-left" />
+										</p:toolbarGroup>
+									</p:toolbar>
+								</div>
+
+								<!-- Таблица с букмаркове -->
+								<div jsf:id="panel-bookmarks" jsf:rendered="#{shabloniFill.shablonFile.id ne null}" class="col-12 ui-fluid">
+									<p:staticMessage rendered="#{shabloniFill.showWarningIcon()}" severity="warn" detail="Логиката за попълване на шаблона не е пълна!"
+													 style="width: 100%" styleClass="m-0" />
+									<p:staticMessage rendered="#{shabloniFill.showErrorIcon()}" severity="error" detail="Логиката за попълване на шаблона съдържа грешки!"
+													 style="width: 100%" styleClass="m-0" />
+
+									<div class="form-label mt-2">Начин на попълване</div>
+
+									<p:dataTable id="logicTable"
+										rowKey="#{label}"
+									 	value="#{shabloniFill.bookmarkLabelsInFile}"
+									 	rowIndexVar="index"
+										var="label"
+										expandedRow="#{shabloniFill.expandedRow(index)}"
+										styleClass="bookmarks-table"
+										rowStyleClass="#{shabloniFill.bookmarkMap[label].methodName eq UdostDokumentMethods.EMPTY_METHOD_NAME ? 'row-yellow' : ''}
+														#{shabloniFill.oldIncorrectNames[label] ne null ? 'row-red' : ''}">
+
+										<p:column headerText="Bookmark" width="250">
+											<span style="font-style:italic; font-weight: 500;" class="#{shabloniFill.isInContainer(label) ? 'light-text' : ''}">#{label}</span>
+										</p:column>
+
+										<p:column>
+											<f:facet name="header">
+												<h:outputText value="Метод за попълване" styleClass="req" />
+											</f:facet>
+
+											<div jsf:id="methodNameCellWrapper" class="flex flex-row align-items-center">
+												<p:selectOneMenu id="fillMethod"
+																 value="#{shabloniFill.bookmarkMap[label].methodName}"
+																 filter="true" filterMatchMode="contains"
+																 autoWidth="false"
+																 rendered="#{shabloniFill.bookmarkMap[label].fillStrategy eq FillStrategies.get('NORMAL')}"
+																 styleClass="#{shabloniFill.saveClickedOnce and shabloniFill.componentHasError(''.concat(index).concat(':fillMethod')) ? 'ui-state-error' : ''}">
+													<f:selectItem itemValue="#{null}" value="#{null}" noSelectionOption="true"/>
+													<f:selectItems value="#{shabloniFill.methods}"
+																   var="m" itemLabel="#{m}" itemValue="#{m}"/>
+													<p:ajax update="@this methodNameCellWrapper" process="@this"/>
+												</p:selectOneMenu>
+
+												<p:commandButton
+														rendered="#{shabloniFill.oldIncorrectNames[label] ne null}"
+														ajax="true"	partialSubmit="true" process="@none"
+														styleClass="ui-button-flat ui-button-danger icon-in-table"
+														title="Методът #{shabloniFill.oldIncorrectNames[label]} е преименуван/изтрит!"
+														icon="fas fa-info-circle"/>
+
+												<p:commandButton
+														rendered="#{shabloniFill.bookmarkMap[label].methodName eq UdostDokumentMethods.EMPTY_METHOD_NAME}"
+														ajax="true"	partialSubmit="true" process="@none"
+														styleClass="ui-button-flat ui-button-warning icon-in-table"
+														title="Това е метод, предназначен само за тестване!"
+														icon="fas fa-exclamation-triangle"/>
+
+												<p:commandButton
+														rendered="#{shabloniFill.bookmarkMap[label].methodName eq null and shabloniFill.bookmarkMap[label].fillStrategy eq FillStrategies.get('NORMAL')}"
+														icon="far fa-square"
+														styleClass="ui-button-flat ui-button-info icon-in-table"
+														ajax="true"	partialSubmit="true" process="logicTable"
+														update="logicTable"
+														title="Избиране на празен тестов метод"
+														actionListener="#{shabloniFill.setTheEmptyMethod(label, index)}" />
+
+											</div>
+										</p:column>
+
+										<p:column width="160">
+											<f:facet name="header">
+												<h:outputText value="Вид" styleClass="req" />
+											</f:facet>
+											<div jsf:id="methodTypeCellWrapper" style="display: flex; align-items: center;">
+												<i class="#{shabloniFill.getIconClassForBmType(shabloniFill.bookmarkMap[label].bookmarkType)} mr-2 bm-type-icon"
+												   jsf:rendered="#{shabloniFill.bookmarkMap[label].fillStrategy eq FillStrategies.get('NORMAL')}"/>
+												<p:selectOneMenu id="fillType"
+																 value="#{shabloniFill.bookmarkMap[label].bookmarkType}"
+																 autoWidth="false"
+																 hideNoSelectionOption="#{shabloniFill.bookmarkMap[label].bookmarkType ne null}"
+																 rendered="#{shabloniFill.bookmarkMap[label].fillStrategy eq FillStrategies.get('NORMAL')}"
+																 styleClass="#{shabloniFill.saveClickedOnce and shabloniFill.componentHasError(''.concat(index).concat(':fillType')) ? 'ui-state-error' : ''}">
+													<f:selectItem itemValue="#{null}" value="#{null}" noSelectionOption="true"/>
+													<f:selectItems value="#{shabloniFill.bookmarkTypes}"
+																   var="t" itemLabel="#{t}" itemValue="#{t}"/>
+													<p:ajax update="methodTypeCellWrapper" process="@this"/>
+												</p:selectOneMenu>
+											</div>
+										</p:column>
+
+										<p:column width="175" headerText="Настройки за напреднали" style="text-align: right;">
+											<div jsf:id="advancedCellWrapper" style="display: inline-block;">
+                                                <span class="fas fa-star adv-icon" title="Ще се попълва по специален начин"
+													  jsf:rendered="#{shabloniFill.bookmarkMap[label].fillStrategy eq FillStrategies.get('ADVANCED')}"/>
+												<span class="far fa-star adv-icon" title="Ще се попълва от друг букмарк"
+													  jsf:rendered="#{shabloniFill.bookmarkMap[label].fillStrategy eq FillStrategies.get('PASSIVE')}"/>
+												<span class="fas fa-border-style adv-icon" title="Контейнер с други букмаркове"
+													  jsf:rendered="#{shabloniFill.bookmarkMap[label].fillStrategy eq FillStrategies.get('CONTAINER')}"/>
+												<span class="fas fa-shoe-prints fa-rotate-270 adv-icon" title="Footer"
+													  jsf:rendered="#{label eq 'footer'}"/>
+
+											</div>
+											<p:rowToggler />
+										</p:column>
+
+										<p:rowExpansion>
+											<div jsf:id="rowExpandWrapper" class="grid row-expansion">
+
+												<div class="col-4">
+													<p:selectOneRadio layout="pageDirection" value="#{shabloniFill.bookmarkMap[label].fillStrategy}">
+														<f:selectItem itemLabel="Ще се попълва нормално" itemValue="#{FillStrategies.get('NORMAL')}"/>
+														<f:selectItem itemLabel="Ще се попълва по специален начин" itemValue="#{FillStrategies.get('ADVANCED')}"/>
+														<f:selectItem itemLabel="Ще се попълва от друг букмарк" itemValue="#{FillStrategies.get('PASSIVE')}"/>
+														<f:selectItem itemLabel="Custom implementation" itemValue="#{FillStrategies.get('CUSTOM_IMPL')}"/>
+														<f:selectItem itemLabel="Container bookmark" itemValue="#{FillStrategies.get('CONTAINER')}"/>
+														<f:selectItem itemLabel="Поле за подпис" itemValue="#{FillStrategies.get('SIGN_FIELD')}"/>
+														<p:ajax process="@this" listener="#{shabloniFill.changeFillStrategy(label)}"
+																update="methodNameCellWrapper methodTypeCellWrapper advancedCellWrapper rowExpandWrapper"/>
+													</p:selectOneRadio>
+												</div>
+												<div class="col-8">
+
+													<div class="grid" jsf:rendered="#{shabloniFill.bookmarkMap[label].fillStrategy eq FillStrategies.get('ADVANCED')}">
+														<div class="col-6">
+															<div class="form-label req">Метод за попълване</div>
+															<p:selectOneMenu id="fillMethodAdv"
+																			 value="#{shabloniFill.bookmarkMap[label].methodName}"
+																			 filter="true" filterMatchMode="contains"
+																			 autoWidth="false"
+																			 styleClass="#{shabloniFill.saveClickedOnce and shabloniFill.componentHasError(''.concat(index).concat(':fillMethodAdv')) ? 'ui-state-error' : ''}">
+																<f:selectItem itemValue="#{null}" value="#{null}" noSelectionOption="true"/>
+																<f:selectItems value="#{shabloniFill.advMetodi}"
+																			   var="m" itemLabel="#{m}" itemValue="#{m}"/>
+																<p:ajax update="@this methodNameCellWrapper" process="@this"/>
+															</p:selectOneMenu>
+														</div>
+													</div>
+
+													<div class="grid" jsf:rendered="#{shabloniFill.bookmarkMap[label].fillStrategy eq FillStrategies.get('CUSTOM_IMPL')}">
+														<div class="col-6">
+															<div class="form-label req">Метод за попълване</div>
+															<p:selectOneMenu id="fillMethodCustom"
+																			 value="#{shabloniFill.bookmarkMap[label].methodName}"
+																			 filter="true" filterMatchMode="contains"
+																			 autoWidth="false"
+																			 styleClass="#{shabloniFill.saveClickedOnce and shabloniFill.componentHasError(''.concat(index).concat(':fillMethodCustom')) ? 'ui-state-error' : ''}">
+																<f:selectItem itemValue="#{null}" value="#{null}" noSelectionOption="true"/>
+																<f:selectItems value="#{shabloniFill.customMetodi}"
+																			   var="m" itemLabel="#{m}" itemValue="#{m}"/>
+																<p:ajax update="@this methodNameCellWrapper" process="@this"/>
+															</p:selectOneMenu>
+														</div>
+													</div>
+
+													<div class="grid" jsf:rendered="#{shabloniFill.bookmarkMap[label].fillStrategy eq FillStrategies.get('ADVANCED')}">
+														<div class="col-6">
+															<div class="form-label req">Заглавие, което да се показва в компонентата</div>
+															<p:inputText id="description" value="#{shabloniFill.bookmarkMap[label].description}" maxlength="255"
+																		 styleClass="#{shabloniFill.saveClickedOnce and shabloniFill.componentHasError(''.concat(index).concat(':description')) ? 'ui-state-error' : ''}"/>
+														</div>
+														<div class="col-6" jsf:rendered="#{shabloniFill.bookmarkMap[label].fillStrategy eq FillStrategies.get('ADVANCED')}">
+															<div class="form-label req">Компонент за попълване</div>
+															<p:selectOneMenu id="fillComponent" value="#{shabloniFill.bookmarkMap[label].fillComponent}"
+																			 styleClass="#{shabloniFill.saveClickedOnce and shabloniFill.componentHasError(''.concat(index).concat(':fillComponent')) ? 'ui-state-error' : ''}">
+																<f:selectItem itemValue="#{null}" value="#{null}" noSelectionOption="true"/>
+																<f:selectItems value="#{shabloniFill.fillComponents}"
+																			   var="c" itemLabel="#{c}" itemValue="#{c}"/>
+															</p:selectOneMenu>
+														</div>
+													</div>
+
+													<div class="grid">
+														<div class="col-6" jsf:rendered="#{shabloniFill.bookmarkMap[label].fillStrategy eq FillStrategies.get('ADVANCED')}">
+															<div class="form-label">Метод за изпълнение след генериране на файла</div>
+															<p:selectOneMenu
+																	value="#{shabloniFill.bookmarkMap[label].onCompleteMethodName}"
+																	filter="true" filterMatchMode="contains"
+																	autoWidth="false">
+																<f:selectItem itemValue="#{null}" value="#{null}" noSelectionOption="true"/>
+																<f:selectItems value="#{shabloniFill.onCompleteMetodi}"
+																			   var="m" itemLabel="#{m}" itemValue="#{m}"/>
+															</p:selectOneMenu>
+														</div>
+														<div class="col-6" jsf:rendered="#{shabloniFill.bookmarkMap[label].fillStrategy eq FillStrategies.get('ADVANCED')}">
+															<div class="form-label">Метод за избор на начална стойност</div>
+															<p:selectOneMenu
+																	value="#{shabloniFill.bookmarkMap[label].defaultValueMethodName}"
+																	filter="true" filterMatchMode="contains"
+																	autoWidth="false">
+																<f:selectItem itemValue="#{null}" value="#{null}" noSelectionOption="true"/>
+																<f:selectItems value="#{shabloniFill.defaultValueMetodi}"
+																			   var="m" itemLabel="#{m}" itemValue="#{m}"/>
+															</p:selectOneMenu>
+														</div>
+
+														<div class="col-12 md:col-6" jsf:rendered="#{shabloniFill.bookmarkMap[label].fillStrategy eq FillStrategies.get('CONTAINER')}">
+															<div class="form-label req">Букмаркът е родител на:</div>
+															<p:selectManyMenu id="selectManyChildBookmarks"
+																			  value="#{shabloniFill.bookmarkMap[label].fillsAlso}"
+																			  showCheckbox="true"
+																			  styleClass="#{shabloniFill.saveClickedOnce and shabloniFill.componentHasError(''.concat(index).concat(':selectManyChildBookmarks')) ? 'ui-state-error' : ''}">
+																<f:selectItems value="#{shabloniFill.bookmarkLabelsInFile}"
+																			   var="p" itemLabel="#{p}" itemValue="#{p}"/>
+																<p:ajax process="@this" />
+															</p:selectManyMenu>
+														</div>
+														<div class="col-12 md:col-6" jsf:rendered="#{shabloniFill.bookmarkMap[label].fillStrategy eq FillStrategies.get('CONTAINER')}">
+															<div class="form-label req">Метод за попълване:</div>
+															<p:selectOneMenu id="fillMethodContainer"
+																			 value="#{shabloniFill.bookmarkMap[label].methodName}"
+																			 filter="true" filterMatchMode="contains"
+																			 autoWidth="false"
+																			 styleClass="#{shabloniFill.saveClickedOnce and shabloniFill.componentHasError(''.concat(index).concat(':fillMethodContainer')) ? 'ui-state-error' : ''}">
+																<f:selectItem itemValue="#{null}" value="#{null}" noSelectionOption="true"/>
+																<f:selectItems value="#{shabloniFill.containerMetodi}"
+																			   var="m" itemLabel="#{m}" itemValue="#{m}"/>
+																<p:ajax update="@this methodNameCellWrapper" process="@this"/>
+															</p:selectOneMenu>
+														</div>
+													</div>
+
+													<div class="grid">
+														<div class="col-6" jsf:rendered="#{shabloniFill.bookmarkMap[label].fillStrategy eq FillStrategies.get('ADVANCED')}">
+															<div class="form-label">Методът попълва и друг букмарк</div>
+															<p:selectManyMenu id="selectManyFillsAlso"
+																			  value="#{shabloniFill.bookmarkMap[label].fillsAlso}"
+																			  showCheckbox="true">
+																<f:selectItems value="#{shabloniFill.passiveBookmarks}"
+																			   var="p" itemLabel="#{p}" itemValue="#{p}"/>
+																<p:ajax partialSubmit="true" process="@this" />
+															</p:selectManyMenu>
+														</div>
+
+													</div>
+
+													<div class="grid" jsf:rendered="#{shabloniFill.bookmarkMap[label].fillStrategy eq FillStrategies.get('SIGN_FIELD')}">
+														<div class="col-6">
+															<div class="form-label">Длъжност</div>
+															<ibg:selectOneModalA id="selectSignDlajnost"
+																	codeClassif="#{UriregConstants.CODE_CLASSIF_ADMIN_STR}"
+																	selectedCode="#{shabloniFill.bookmarkMap[label].defaultValueMethodName}"
+																	withBtnClear="true" saveStateTree="true" isSelectNode="false"
+																	compType="2"
+																	styleAutoComp="width:100%; #{shabloniFill.saveClickedOnce and shabloniFill.componentHasError(''.concat(index).concat(':selectSignDlajnost')) ? 'ui-state-error' : ''}"/>
+														</div>
+
+													</div>
+												</div>
+											</div>
+										</p:rowExpansion>
+
+									</p:dataTable>
+								</div>
+
+							</div>
+						</div>
+					</div>
+
+					<div class="col-12 xl:col-3">
+						<!-- Справка по име на метод -->
+						<div class="card">
+							<div jsf:id="title1" style="display: flex">
+								<h5 style="flex-grow: 1">Справка</h5>
+								<p:commandLink
+										update="panelUsage"
+										title="Обновяване"
+										rendered="#{shabloniFill.selectedMethodToCheckUsage != null}"
+										action="#{shabloniFill.refreshSelectedMethodUsages}">
+									<i class="fas fa-sync-alt"/>
+								</p:commandLink>
+							</div>
+
+							<div class="grid ui-fluid">
+								<div class="col-12">
+									<div class="form-label">Метод за попълване</div>
+									<p:selectOneMenu value="#{shabloniFill.selectedMethodToCheckUsage}"
+													 filter="true" filterMatchMode="contains" autoWidth="false">
+										<f:selectItem itemValue="#{null}" value="#{null}"/>
+										<f:selectItems value="#{shabloniFill.methods}"
+													   var="m" itemLabel="#{m}" itemValue="#{m}"/>
+										<p:ajax event="change"
+												listener="#{shabloniFill.refreshSelectedMethodUsages()}"
+												update="panelUsage title1"
+												partialSubmit="true"
+												process="@this" />
+									</p:selectOneMenu>
+								</div>
+
+								<div jsf:id="panelUsage" class="col-12">
+									<div class="form-label" jsf:rendered="#{shabloniFill.selectedMethodToCheckUsage != null}">Използва се в</div>
+									<ui:repeat var="sh" value="#{shabloniFill.selectedMethodUsages}">
+										<div class="thin-border my-2">
+											<p:commandLink value="#{sh[2]}"
+														   actionListener="#{shabloniFill.shablonLinkClicked(sh[3], sh[0])}"
+														   update="formShabloniFill:panel-left" />
+										</div>
+									</ui:repeat>
+								</div>
+
+							</div>
+						</div>
+
+						<!-- Къде се ползва getEmpty -->
+						<div class="card">
+							<div style="display: flex">
+								<h5 style="flex-grow: 1">Къде се ползва #{UdostDokumentMethods.EMPTY_METHOD_NAME}</h5>
+								<p:commandLink action="#{shabloniFill.refreshEmptyMethodUsages}" update="emptyMethod" title="Обновяване">
+									<i class="fas fa-sync-alt"/>
+								</p:commandLink>
+							</div>
+
+							<div jsf:id="emptyMethod">
+								<p:staticMessage rendered="#{shabloniFill.emptyMethodUsages.isEmpty()}"
+												 severity="info" summary="Не се използва"
+												 style="width: 100%" styleClass="m-0 message-success" />
+								<ui:repeat var="sh" value="#{shabloniFill.emptyMethodUsages}">
+									<div class="thin-border my-2">
+										<p:commandLink value="#{sh[2]}"
+													   actionListener="#{shabloniFill.shablonLinkClicked(sh[3], sh[0])}"
+													   update="formShabloniFill:panel-left" />
+									</div>
+								</ui:repeat>
+							</div>
+						</div>
+
+						<!-- Неизползвани методи -->
+						<div class="card">
+							<div style="display: flex">
+								<h5 style="flex-grow: 1">Неизползвани методи</h5>
+								<p:commandLink action="#{shabloniFill.refreshUnusedMethodNames}" update="unusedMethods" title="Обновяване">
+									<i class="fas fa-sync-alt"/>
+								</p:commandLink>
+							</div>
+
+							<div jsf:id="unusedMethods">
+								<p:staticMessage rendered="#{shabloniFill.unusedMethodNames.isEmpty()}"
+												 severity="info" summary="Всички се ползват"
+												 style="width: 100%" styleClass="m-0 message-success" />
+								<ui:repeat var="sh" value="#{shabloniFill.unusedMethodNames}">
+									<div class="thin-border my-2" jsf:rendered="#{sh ne UdostDokumentMethods.EMPTY_METHOD_NAME}">
+										#{sh}
+									</div>
+								</ui:repeat>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<script type="text/javascript">
+				function openReUploadFile() {
+					PF("fileReUpolad").show();
+				}
+			</script>
+		</h:form>
+
+	</ui:define>
+</ui:composition>

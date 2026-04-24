@@ -1,0 +1,876 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+	<modelVersion>4.0.0</modelVersion>
+
+	<groupId>indexbg</groupId>
+	<artifactId>urireg</artifactId>
+	<packaging>war</packaging>
+	<version>1.11</version>
+
+	<name>urireg Maven Webapp</name>
+	<url>http://maven.apache.org</url>
+
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+		<!--  <maven.compiler.release>8</maven.compiler.release>  -->
+<!-- 	Това няма да работи за версия > 1.8
+		За 11 ни трябва <maven.compiler.release>11</maven.compiler.release>
+		+ maven-compiler-plugin  -->
+		<maven.compiler.release>11</maven.compiler.release>
+		<!--<maven.compiler.source>1.8</maven.compiler.source>
+		<maven.compiler.target>1.8</maven.compiler.target>-->
+
+		<war.filename>urireg</war.filename>
+		<prop.file>default.properties</prop.file>
+
+		<sonar.token>sqa_2b9e5dfa6b9622bb7ee5e4570294e6f9cc6e6196</sonar.token>
+		<sonar.projectName>urireg</sonar.projectName>
+		<sonar.projectKey>indexbg:urireg</sonar.projectKey>
+		<!--<sonar.java.home>/home/krasig/MyApps/Java/JDK/jdk-17.0.6/ </sonar.java.home>-->
+		<quartz.start>false</quartz.start>
+		<poi.version>5.0.0</poi.version>
+		<open-pdf.version>1.4.1</open-pdf.version>
+
+		<cxf.version>4.0.3</cxf.version>
+
+		<resteasy-version>6.2.11.Final</resteasy-version> <!--WF 31 -> 6.2.7, WF 34 -> 6.2.11-->
+
+		<hibernate-version>6.6.1.Final</hibernate-version> <!--WF 31 -> 6.4.10, WF 34 -> 6.6.1-->
+	</properties>
+	<repositories>
+		<repository>
+	       <id>AsposeJavaAPI</id>
+	       <name>Aspose Java API</name>
+	       <url>https://repository.aspose.com/repo/</url>
+	   </repository>
+	   	<repository>
+			<id>MvnRepository</id>
+			<name>MvnRepository</name>
+			<url>https://repo1.maven.org/maven2/</url>
+		</repository>
+	</repositories>
+
+
+
+	<profiles>
+		<profile>
+			<id>development</id>
+			<activation><activeByDefault>true</activeByDefault></activation>
+			<properties>
+				<jndi.begin>&lt;!--</jndi.begin>
+				<jndi.end>--&gt;</jndi.end>
+				<conn.params.begin></conn.params.begin>
+				<conn.params.end></conn.params.end>
+				<jndi.quartz>#</jndi.quartz>
+				<conn.params.quartz></conn.params.quartz>
+				<quartz.start>true</quartz.start>
+				<prop.projectStage>Development</prop.projectStage>
+                <prop.faceletsRefreshPeriod>1</prop.faceletsRefreshPeriod>
+			</properties>
+			<dependencies>
+
+				<dependency>
+					<groupId>org.postgresql</groupId>
+					<artifactId>postgresql</artifactId>
+					<version>42.2.4</version>
+				</dependency>
+
+				<dependency>
+					<groupId>com.mchange</groupId>
+					<artifactId>c3p0</artifactId>
+					<version>0.9.5.2</version>
+				</dependency>
+
+			</dependencies>
+		</profile>
+
+		<profile>
+			<id>production</id>
+
+			<properties>
+				<jndi.begin></jndi.begin>
+				<jndi.end></jndi.end>
+				<conn.params.begin>&lt;!--</conn.params.begin>
+				<conn.params.end>--&gt;</conn.params.end>
+				<jndi.quartz></jndi.quartz>
+				<conn.params.quartz>#</conn.params.quartz>
+				<quartz.start>true</quartz.start>
+				<prop.projectStage>Production</prop.projectStage>
+                <prop.faceletsRefreshPeriod>-1</prop.faceletsRefreshPeriod>
+			</properties>
+		</profile>
+
+		<profile>
+			<id>sonar</id>
+			<activation>
+				<activeByDefault>true</activeByDefault>
+			</activation>
+			<properties>
+				<!-- Optional URL to server. Default value is http://localhost:9000 -->
+				<sonar.host.url>
+					http://10.29.1.17:9000
+				</sonar.host.url>
+			</properties>
+		</profile>
+
+	</profiles>
+
+	<dependencies>
+		<!-- Използва се от PrimeFace.TextEditor  secure="true" -->
+		<dependency>
+			<groupId>com.googlecode.owasp-java-html-sanitizer</groupId>
+			<artifactId>owasp-java-html-sanitizer</artifactId>
+			<version>20211018.2</version>
+		</dependency>
+		<!--<dependency>
+			<groupId>org.sonarsource.scanner.maven</groupId>
+			<artifactId>sonar-maven-plugin</artifactId>
+			 <version>5.0.0.4389</version>
+			 <scope>provided</scope>
+		</dependency>-->
+		<dependency>
+			<groupId>com.ib.system</groupId>
+			<artifactId>SystemX</artifactId>
+			<version>2.0.15</version>
+			<type>jar</type>
+			<exclusions>
+
+				<exclusion>
+					<groupId>org.bouncycastle</groupId>
+					<artifactId>bcpkix-jdk15on</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.bouncycastle</groupId>
+					<artifactId>bcprov-jdk15on</artifactId>
+				</exclusion>
+                <exclusion>
+                    <groupId>com.oracle.database.jdbc</groupId>
+                    <artifactId>ojdbc8</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>com.microsoft.sqlserver</groupId>
+                    <artifactId>mssql-jdbc</artifactId>
+                </exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>com.ib.indexui</groupId>
+			<artifactId>IndexUIx</artifactId>
+			<version>2.0.27</version>
+			<type>jar</type>
+			<exclusions>
+
+				<!--<exclusion>
+					<groupId>org.bouncycastle</groupId>
+					<artifactId>*</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>commons-io</groupId>
+					<artifactId>*</artifactId>
+				</exclusion>-->
+			</exclusions>
+		</dependency>
+
+
+
+		<dependency>
+			<groupId>com.ib</groupId>
+			<artifactId>regix-client2</artifactId>
+			<version>2.0.7</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.cxf</groupId>
+			<artifactId>cxf-rt-ws-security</artifactId>
+			<version>${cxf.version}</version>
+			<scope>provided</scope>
+			<exclusions>
+				<exclusion>
+					<groupId>org.glassfish.jaxb</groupId>
+					<artifactId>jaxb-runtime</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<!-- Jakarta JAXB API (4.x) -->
+		<dependency>
+			<groupId>jakarta.xml.bind</groupId>
+			<artifactId>jakarta.xml.bind-api</artifactId>
+			<version>4.0.0</version> <!-- pick latest 4.x (example: 4.0.6) -->
+			<scope>provided</scope>
+		</dependency>
+		<!-- GlassFish / JAXB runtime (4.x) -->
+		<dependency>
+			<groupId>org.glassfish.jaxb</groupId>
+			<artifactId>jaxb-runtime</artifactId>
+			<version>4.0.2</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.cxf</groupId>
+			<artifactId>cxf-rt-frontend-jaxws</artifactId>
+			<version>${cxf.version}</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.cxf</groupId>
+			<artifactId>cxf-rt-transports-http</artifactId>
+			<version>${cxf.version}</version>
+			<scope>provided</scope>
+		</dependency>
+
+
+		<dependency>
+			<groupId>jakarta.platform</groupId>
+			<artifactId>jakarta.jakartaee-api</artifactId>
+			<version>10.0.0</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.hibernate.orm</groupId>
+			<artifactId>hibernate-core</artifactId>
+			<version>${hibernate-version}</version>
+			<scope>provided</scope>
+			<!--<exclusions>
+				<exclusion>
+					<groupId>*</groupId>
+					<artifactId>*</artifactId>
+				</exclusion>
+			</exclusions>-->
+		</dependency>
+		<!-- https://mvnrepository.com/artifact/org.hibernate.orm/hibernate-community-dialects -->
+		<dependency>
+			<groupId>org.hibernate.orm</groupId>
+			<artifactId>hibernate-community-dialects</artifactId>
+			<version>${hibernate-version}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>*</groupId>
+					<artifactId>*</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-api</artifactId>
+			<version>2.0.12</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.quartz-scheduler</groupId>
+			<artifactId>quartz</artifactId>
+			<version>2.5.0</version>
+			<exclusions>
+				<exclusion>
+					<groupId>*</groupId>
+					<artifactId>*</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>org.quartz-scheduler</groupId>
+			<artifactId>quartz-jobs</artifactId>
+			<version>2.5.0</version>
+			<exclusions>
+				<exclusion>
+					<groupId>*</groupId>
+					<artifactId>*</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+
+
+		<!-- Use new libs in WEB_INF/lib -->
+		<!-- <dependency>
+			<groupId>org.primefaces</groupId>
+			<artifactId>primefaces</artifactId>
+			<version>8.0</version>
+		</dependency> -->
+
+		<dependency>
+			<groupId>org.primefaces</groupId>
+			<artifactId>primefaces</artifactId>
+			<version>14.0.8</version>
+			<classifier>jakarta</classifier>
+		</dependency>
+		<dependency>
+			<groupId>org.primefaces</groupId>
+			<artifactId>mirage-jakarta</artifactId>
+			<version>5.0.0</version>
+		</dependency>
+		<dependency>
+			<groupId>com.indexbg</groupId>
+			<artifactId>index-themes</artifactId>
+			<version>1.0.0</version>
+		</dependency>
+		<dependency>
+			<groupId>org.primefaces.extensions</groupId>
+			<artifactId>primefaces-extensions</artifactId>
+			<version>14.0.8</version>
+			<classifier>jakarta</classifier>
+			<exclusions>
+				<exclusion> <!-- това не ни трябва -->
+					<groupId>com.google.code.gson</groupId>
+					<artifactId>gson</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.primefaces</groupId>
+					<artifactId>primefaces</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+
+
+				        <!-- Data Exporter -->
+        <dependency>
+            <groupId>org.apache.poi</groupId>
+            <artifactId>poi</artifactId>
+            <version>${poi.version}</version>
+            <exclusions>
+            	<exclusion>
+            		<groupId>org.slf4j</groupId>
+            		<artifactId>jcl-over-slf4j</artifactId>
+            	</exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.poi</groupId>
+            <artifactId>poi-ooxml</artifactId>
+            <version>${poi.version}</version>
+            <exclusions>
+            	<exclusion>
+            		<groupId>org.apache.xmlgraphics</groupId>
+            		<artifactId>batik-all</artifactId>
+            	</exclusion>
+            	<exclusion>
+            		<groupId>de.rototor.pdfbox</groupId>
+            		<artifactId>graphics2d</artifactId>
+            	</exclusion>
+            	<exclusion>
+            		<groupId>org.apache.santuario</groupId>
+            		<artifactId>xmlsec</artifactId>
+            	</exclusion>
+            	<exclusion>
+            		<groupId>org.bouncycastle</groupId>
+            		<artifactId>bcpkix-jdk15on</artifactId>
+            	</exclusion>
+            	<exclusion>
+            		<groupId>com.github.virtuald</groupId>
+            		<artifactId>curvesapi</artifactId>
+            	</exclusion>
+            	<exclusion>
+            		<groupId>org.bouncycastle</groupId>
+            		<artifactId>bcprov-jdk15on</artifactId>
+            	</exclusion>
+            </exclusions>
+        </dependency>
+       <dependency>
+            <groupId>com.github.librepdf</groupId>
+            <artifactId>openpdf</artifactId>
+            <version>${open-pdf.version}</version>
+        </dependency>
+
+		<dependency>
+			<groupId>com.fasterxml.jackson.core</groupId>
+			<artifactId>jackson-databind</artifactId>
+			<version>2.15.3</version>
+			<scope>provided</scope>
+		</dependency>
+
+		<!-- JUNIT TEST SETUP BEGIN -->
+		<dependency>
+			<groupId>com.h2database</groupId>
+			<artifactId>h2</artifactId>
+			<version>1.4.199</version>
+			<!-- <scope>test</scope>  само докато се разработва, защото като се използва кеша от сървъра и има повече системни се смесват данните -->
+		</dependency>
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>4.12</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.logging.log4j</groupId>
+			<artifactId>log4j-slf4j2-impl</artifactId>
+			<version>2.23.1</version>
+			<scope>test</scope>
+		</dependency>
+
+		<!--<dependency>
+			<groupId>org.apache.logging.log4j</groupId>
+			<artifactId>log4j-core</artifactId>
+			<version>2.11.2</version>
+			<scope>test</scope>
+		</dependency>-->
+
+		<!-- https://mvnrepository.com/artifact/org.jboss.resteasy/resteasy-client -->
+		<dependency>
+			<groupId>org.jboss.resteasy</groupId>
+			<artifactId>resteasy-client</artifactId>
+			<version>${resteasy-version}</version>
+			<scope>provided</scope>
+		</dependency>
+
+		<!-- https://mvnrepository.com/artifact/org.jboss.resteasy/resteasy-jackson2-provider-->
+		<dependency>
+			<groupId>org.jboss.resteasy</groupId>
+			<artifactId>resteasy-jackson2-provider</artifactId>
+			<version>${resteasy-version}</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.jboss.resteasy</groupId>
+			<artifactId>resteasy-jaxb-provider</artifactId>
+			<version>${resteasy-version}</version>
+			<scope>provided</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>org.jboss.resteasy</groupId>
+			<artifactId>resteasy-jaxrs-all</artifactId>
+			<version>${resteasy-version}</version>
+			<scope>provided</scope>
+			<type>pom</type>
+		</dependency>
+
+
+		<dependency>
+	        <groupId>com.itextpdf</groupId>
+	        <artifactId>itext7-core</artifactId>
+	        <version>7.1.12</version>
+	        <type>pom</type>
+	        <exclusions>
+	        	<exclusion>
+	        		<groupId>com.itextpdf</groupId>
+	        		<artifactId>font-asian</artifactId>
+	        	</exclusion>
+	        </exclusions>
+		</dependency>
+
+
+
+		<!-- JUNIT TEST SETUP END -->
+
+
+		<dependency>
+		    <groupId>org.omnifaces</groupId>
+		    <artifactId>omnifaces</artifactId>
+		   <version>4.4.1</version>
+		</dependency>
+
+		<dependency>
+		  <groupId>org.jsoup</groupId>
+		  <artifactId>jsoup</artifactId>
+		  <version>1.13.1</version>
+		</dependency>
+
+		<dependency>
+		<!-- Имаме лиценз за макс 01,2023!!!! -->
+		    <groupId>com.aspose</groupId>
+		    <artifactId>aspose-words</artifactId>
+		    <version>23.1</version>
+			<classifier>jdk17</classifier>
+			<exclusions>
+				<exclusion>
+					<groupId>org.jogamp.jogl</groupId>
+					<artifactId>jogl-all-main</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.jogamp.gluegen</groupId>
+					<artifactId>gluegen-rt-main</artifactId>
+				</exclusion>
+			</exclusions>
+		 </dependency>
+		 <!--  С този в WildFLy  16 се чупи forword-a -->
+		 <!-- Няма нужда. Сетнал съм го в jboss-deployment-structure /KrasiG/ -->
+		<!-- https://mvnrepository.com/artifact/com.sun.mail/javax.mail -->
+ 		<!--<dependency>
+		    <groupId>com.sun.mail</groupId>
+		    <artifactId>javax.mail</artifactId>
+		    <version>1.6.2</version>
+		</dependency>-->
+		<dependency>
+			<groupId>de.taimos</groupId>
+			<artifactId>totp</artifactId>
+			<version>1.0</version>
+		</dependency>
+
+		<!-- for JDK 11 -->
+		<!--<dependency>
+			<groupId>com.sun.xml.ws</groupId>
+			<artifactId>jaxws-rt</artifactId>
+			<version>2.3.3</version>
+			<scope>provided</scope>
+		</dependency>-->
+		<dependency>
+			<groupId>jakarta.xml.ws</groupId>
+			<artifactId>jakarta.xml.ws-api</artifactId>
+			<version>4.0.0</version>
+			<scope>provided</scope>
+		</dependency>
+		<!-- Това е същинската имплементация за маил-а. Другото е бошлаф -->
+		<dependency>
+				<groupId>org.eclipse.angus</groupId>
+				<artifactId>angus-mail</artifactId>
+				<version>2.0.3</version>
+				<scope>provided</scope>
+		</dependency>
+
+		<!--<dependency>
+				    <groupId>org.apache.tika</groupId>
+				    <artifactId>tika-app</artifactId>
+				    <version>3.1.0</version>
+				    <exclusions>
+				    	<exclusion>
+				    		 <groupId>org.apache.logging</groupId>
+        					<artifactId>*</artifactId>>
+				    	</exclusion>
+				    	<exclusion>
+				    		<groupId>org.slf4j</groupId>
+      						<artifactId>slf4j-jdk14</artifactId>
+				    	</exclusion>
+				    	<exclusion>
+				    		<groupId>org.slf4j</groupId>
+      						<artifactId>slf4j-api</artifactId>
+				    	</exclusion>
+
+
+				    </exclusions>
+				</dependency>-->
+		<!-- За работа с токените СТАРТ-->
+		<dependency>
+			<groupId>io.jsonwebtoken</groupId>
+			<artifactId>jjwt-api</artifactId>
+			<version>0.12.3</version>
+		</dependency>
+		<dependency>
+			<groupId>io.jsonwebtoken</groupId>
+			<artifactId>jjwt-impl</artifactId>
+			<version>0.12.3</version>
+			<scope>runtime</scope>
+		</dependency>
+		<dependency>
+			<groupId>io.jsonwebtoken</groupId>
+			<artifactId>jjwt-jackson</artifactId> <!-- or jjwt-gson if Gson is preferred -->
+			<version>0.12.3</version>
+			<scope>runtime</scope>
+		</dependency>
+		<!-- За работа с токените ЕНД-->
+
+
+        <!-- Swagger -->
+        <dependency>
+            <groupId>io.swagger.core.v3</groupId>
+            <artifactId>swagger-jaxrs2-jakarta</artifactId>
+            <version>2.2.35</version>
+            <exclusions>
+                <!-- Exclude the problematic ClassGraph version -->
+                <exclusion>
+                    <groupId>io.github.classgraph</groupId>
+                    <artifactId>classgraph</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.javassist</groupId>
+                    <artifactId>javassist</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.yaml</groupId>
+                    <artifactId>snakeyaml</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>com.fasterxml.jackson.core</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>com.fasterxml.jackson.jakarta.rs</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.apache.commons</groupId>
+                    <artifactId>commons-lang3</artifactId>
+                </exclusion>
+                <!--<exclusion>
+                    <groupId>com.fasterxml.jackson.dataformat</groupId>
+                    <artifactId>jackson-dataformat-yaml</artifactId>
+                </exclusion>-->
+                <exclusion>
+                    <groupId>com.fasterxml.jackson.datatype</groupId>
+                    <artifactId>jackson-datatype-jsr310</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>jakarta.validation</groupId>
+                    <artifactId>jakarta.validation-api</artifactId>
+                </exclusion>
+            </exclusions>
+
+        </dependency>
+        <!-- Add newer ClassGraph version that works better with modern Java -->
+        <dependency>
+            <groupId>io.github.classgraph</groupId>
+            <artifactId>classgraph</artifactId>
+            <version>4.8.177</version>
+        </dependency>
+        <dependency>
+            <groupId>io.swagger.core.v3</groupId>
+            <artifactId>swagger-jaxrs2-servlet-initializer-jakarta</artifactId>
+            <version>2.2.35</version>
+        </dependency>
+	</dependencies>
+
+
+	<build>
+		<finalName>${war.filename}</finalName>
+		<filters>
+			<filter>src/main/resources/META-INF/${prop.file}</filter>
+		</filters>
+		<resources>
+			<resource>
+				<directory>src/main/resources</directory>
+				<filtering>false</filtering>
+				<includes>
+					<include>**/*.docx</include>
+				</includes>
+			</resource>
+			<resource>
+				<directory>src/main/resources</directory>
+				<filtering>true</filtering>
+				<excludes>
+					<exclude>**/*.docx</exclude>
+				</excludes>
+			</resource>
+		</resources>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-war-plugin</artifactId>
+				<version>3.2.2</version>
+				<configuration>
+					<detail>true</detail>
+					<!-- Махаме приопърти файловете за персистанса -->
+					<packagingExcludes>**/META-INF/*.properties</packagingExcludes>
+					<webResources>
+						<resource>
+							<!-- За да се сетнат в системните настройки стойности от ${prop.file} -->
+							<directory>src/main/resources</directory>
+							<include>system.properties</include>
+							<filtering>true</filtering>
+						</resource>
+						<resource>
+							<!-- за да се сетне билд версията -->
+							<directory>src/main/webapp</directory>
+							<include>**/footer.xhtml</include>
+							<include>**/web.xml</include>
+							<filtering>true</filtering>
+							</resource>
+					</webResources>
+					<!-- ако го няма това, филтрите скапват фонтовете!!! -->
+					<nonFilteredFileExtensions>
+						<nonFilteredFileExtension>eot</nonFilteredFileExtension>
+						<nonFilteredFileExtension>ttf</nonFilteredFileExtension>
+						<nonFilteredFileExtension>woff</nonFilteredFileExtension>
+						<nonFilteredFileExtension>woff2</nonFilteredFileExtension>
+						<nonFilteredFileExtension>doc</nonFilteredFileExtension>
+					</nonFilteredFileExtensions>
+					<!-- За да махнем докуемнтацията -->
+					<warSourceExcludes>
+						resources/ResourcesDS/**,
+						resources/docs/**
+					</warSourceExcludes>
+				</configuration>
+			</plugin>
+			<!-- Това е за да генерираме билд тайма.
+				Ако ползваме стандартната възможност на MAVEN-a часа е неверен -->
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+	            <artifactId>build-helper-maven-plugin</artifactId>
+	            <version>1.10</version>
+	            <executions>
+	                <execution>
+	                    <id>timestamp-property</id>
+	                    <goals>
+	                        <goal>timestamp-property</goal>
+	                    </goals>
+	                    <configuration>
+	                        <name>build.timestamp</name>
+	                        <pattern>ddMMyy(HH:mm)</pattern>
+	                        <locale>bg_BG</locale>
+	                        <timeZone>Europe/Sofia</timeZone>
+	                    </configuration>
+	                </execution>
+	            </executions>
+	         </plugin>
+
+			<!-- този плъгин се ползва за да отпечатаме стойност на MVN променливи
+				Не случайно е извън <pluginManafer>
+				Ако на някой му трябва: разкоментира и пуска  "mvn validate"
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-antrun-plugin</artifactId>
+					<version>1.8</version>
+					<executions>
+						<execution>
+							<phase>validate</phase>
+							<goals>
+								<goal>run</goal>
+							</goals>
+							<configuration>
+								<tasks>
+									<echo>******** Displaying value of property ********</echo>
+									<echo> All Properties </echo>
+									 <echoproperties/>
+
+
+									<echo>[build.timestamp]: ${build.timestamp}</echo>
+									<echo>[build.timestamp]: ${build.time}</echo>
+
+									<echo>[buildNumber]: ${buildNumber}</echo>
+
+								</tasks>
+							</configuration>
+						</execution>
+					</executions>
+				</plugin>
+				-->
+
+			<plugin>
+		        <groupId>org.apache.maven.plugins</groupId>
+		        <artifactId>maven-compiler-plugin</artifactId>
+		        <version>3.8.1</version>
+ 		        <configuration>
+		        	   <release>${maven.compiler.release}</release>
+		        	  <!-- <source>${maven.compiler.source}</source>
+		        	   <target>${maven.compiler.target}</target>-->
+		        </configuration>
+		    </plugin>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-install-plugin</artifactId>
+				<version>2.5.2</version>
+				<executions>
+
+
+					<execution>
+						<id>3</id>
+						<phase>clean</phase>
+						<goals>
+							<goal>install-file</goal>
+						</goals>
+						<configuration>
+							<file>local-maven-repo/mirage-theme-5.0.0-jakarta.jar</file>
+							<groupId>org.primefaces</groupId>
+							<artifactId>mirage-jakarta</artifactId>
+							<version>5.0.0</version>
+							<packaging>jar</packaging>
+						</configuration>
+					</execution>
+					<execution>
+						<id>4</id>
+						<phase>clean</phase>
+						<goals>
+							<goal>install-file</goal>
+						</goals>
+						<configuration>
+							<file>local-maven-repo/index-themes.jar</file>
+							<groupId>com.indexbg</groupId>
+							<artifactId>index-themes</artifactId>
+							<version>1.0.0</version>
+							<packaging>jar</packaging>
+						</configuration>
+					</execution>
+					<execution>
+						<id>5</id>
+						<phase>clean</phase>
+						<goals>
+							<goal>install-file</goal>
+						</goals>
+						<configuration>
+							<file>local-maven-repo/SystemX-2.0.15.jar</file>
+							<groupId>com.ib.system</groupId>
+							<artifactId>SystemX</artifactId>
+							<version>2.0.15</version>
+							<packaging>jar</packaging>
+						</configuration>
+					</execution>
+					<execution>
+						<id>6</id>
+						<phase>clean</phase>
+						<goals>
+							<goal>install-file</goal>
+						</goals>
+						<configuration>
+							<file>local-maven-repo/IndexUIx-2.0.27.jar</file>
+							<groupId>com.ib.indexui</groupId>
+							<artifactId>IndexUIx</artifactId>
+							<version>2.0.27</version>
+							<packaging>jar</packaging>
+						</configuration>
+					</execution>
+					<execution>
+						<id>7</id>
+						<phase>clean</phase>
+						<goals>
+							<goal>install-file</goal>
+						</goals>
+						<configuration>
+							<file>local-maven-repo/regix-client2-2.0.7.jar</file>
+							<groupId>com.ib</groupId>
+							<artifactId>regix-client2</artifactId>
+							<version>2.0.7</version>
+							<packaging>jar</packaging>
+						</configuration>
+					</execution>
+
+
+				</executions>
+			</plugin>
+
+		</plugins>
+
+		<pluginManagement>
+			<plugins>
+				<plugin>
+					<groupId>org.sonarsource.scanner.maven</groupId>
+					<artifactId>sonar-maven-plugin</artifactId>
+					<version>5.0.0.4389</version> <!-- Use Java 11 compatible version -->
+				</plugin>
+				<!--This plugin's configuration is used to store Eclipse m2e settings only. It has no influence on the Maven build itself.-->
+				<plugin>
+					<groupId>org.eclipse.m2e</groupId>
+					<artifactId>lifecycle-mapping</artifactId>
+					<version>1.0.0</version>
+					<configuration>
+						<lifecycleMappingMetadata>
+							<pluginExecutions>
+								<pluginExecution>
+									<pluginExecutionFilter>
+										<groupId>
+											org.codehaus.mojo
+										</groupId>
+										<artifactId>
+											build-helper-maven-plugin
+										</artifactId>
+										<versionRange>
+											[1.10,)
+										</versionRange>
+										<goals>
+											<goal>
+												timestamp-property
+											</goal>
+										</goals>
+									</pluginExecutionFilter>
+									<action>
+										<ignore></ignore>
+									</action>
+								</pluginExecution>
+							</pluginExecutions>
+						</lifecycleMappingMetadata>
+					</configuration>
+				</plugin>
+			</plugins>
+		</pluginManagement>
+	</build>
+</project>

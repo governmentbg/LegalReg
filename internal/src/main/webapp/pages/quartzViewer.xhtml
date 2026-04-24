@@ -1,0 +1,428 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="jakarta.faces.html"
+                xmlns:f="jakarta.faces.core"
+                xmlns:ui="jakarta.faces.facelets"
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:jsf="http://xmlns.jcp.org/jsf"
+                template="/template/template.xhtml">
+
+    <ui:define name="metadata">
+        <f:metadata>
+            <f:importConstants type="com.ib.urireg.system.UriregConstants"/>
+            <f:viewAction action="#{userData.checkPageAccess(5)}" onPostback="false"/>
+        </f:metadata>
+    </ui:define>
+
+
+    <ui:define name="title">#{navTexts['/pages/quartzViewer.xhtml']}</ui:define>
+
+    <ui:define name="viewname">
+        <li>#{navTexts['/pages/quartzViewer.xhtml']}</li>
+    </ui:define>
+
+    <ui:define name="content">
+        <style type="text/css">
+            .tag {
+                color: #ffffff;
+                font-weight: 650;
+                display: inline-flex;
+                align-items: center;
+                gap: 6px;
+                padding: 4px 8px;
+                border-radius: 500px; /* pill форма */
+                min-width: 90px;
+                justify-content: center;
+            }
+
+            .scheduler-info {
+                text-align: center; /* централно за всички колони */
+            }
+
+            .scheduler-info .field-block {
+                display: flex;
+                flex-direction: column;
+                align-items: center; /* центрира етикет и стойност по хоризонтала */
+                justify-content: center;
+                padding: 10px 0;
+                border-bottom: 1px solid #e0e0e0;
+            }
+
+            .scheduler-info .form-label {
+                font-weight: bold;
+                margin-bottom: 4px;
+            }
+
+            .scheduler-info .field-value {
+                font-size: 14px;
+            }
+
+            .tag {
+                padding: 3px 8px;
+                border-radius: 3px;
+                color: #fff;
+                font-weight: bold;
+                min-width: 60px;
+                display: inline-block;
+            }
+
+            .ui-state-highlight .fas.fa-pause,
+            .ui-state-highlight .fas.fa-play {
+                color: white !important;
+            }
+        </style>
+
+        <h:form id="quartzForm" prependId="false">
+
+            <h:panelGroup id="formPnl" layout="block"  styleClass="card">
+
+            <p:panel id="panel0" collapsed="false">
+
+                <f:facet name="header">Scheduler: #{quartzInfoBean.scheduler.metaData.schedulerName}
+                    <span class="fas fa-asterisk"
+                          style="color:#{quartzInfoBean.scheduler.started?'#5cb85c':'red'}"
+                          title="Scheduler started: #{quartzInfoBean.scheduler.metaData.started}" />
+                    <span class="fas fa-asterisk"
+                          style="color:#{quartzInfoBean.scheduler.inStandbyMode?'#5cb85c':'red'};"
+                          title="Scheduler in standby mode: #{quartzInfoBean.scheduler.metaData.inStandbyMode}" />
+                    <span class="fas fa-asterisk"
+                          style="color:#{quartzInfoBean.scheduler.metaData.shutdown?'#5cb85c':'red'};"
+                          title="Scheduler is sutted down: #{quartzInfoBean.scheduler.metaData.shutdown}" />
+                </f:facet>
+
+                <div class="grid ui-fluid align-items-center scheduler-info">
+                    <div class="col-12 md:col-4 field-block">
+                        <h:outputLabel value="Scheduler name:" styleClass="form-label " />
+                        <h:outputText id="sname"
+                                      value="#{quartzInfoBean.scheduler.metaData.schedulerName}"
+                                      styleClass="field-value" />
+                    </div>
+
+                    <div class="col-12 md:col-4 field-block">
+                        <h:outputLabel value="Scheduler instance:" styleClass="form-label " />
+                        <h:outputText
+                                value="#{quartzInfoBean.scheduler.metaData.schedulerInstanceId}" />
+                    </div>
+
+                    <div class="col-12 md:col-4 field-block">
+                        <h:outputLabel value="Num Jobs Exec:" styleClass="form-label " />
+                        <h:outputText
+                                value="#{quartzInfoBean.scheduler.metaData.numberOfJobsExecuted}" />
+                    </div>
+
+                    <div class="col-12 md:col-4 field-block">
+                        <h:outputLabel value="Started:" styleClass="form-label" />
+                        <h:outputText value="#{quartzInfoBean.scheduler.metaData.started}"
+                                      class="tag"
+                                      style="background-color: #{quartzInfoBean.scheduler.started?'#5cb85c':'red'}; text-align-right;" />
+                    </div>
+
+                    <div class="col-12 md:col-4 field-block">
+                        <h:outputLabel value="Is in Standby:" styleClass="form-label " />
+                        <h:outputText
+                                value="#{quartzInfoBean.scheduler.metaData.inStandbyMode}"
+                                class="tag"
+                                style="background-color: #{quartzInfoBean.scheduler.inStandbyMode?'#5cb85c':'red'};" />
+                    </div>
+
+                    <div class="col-12 md:col-4 field-block">
+                        <h:outputLabel value="ShutDown:" styleClass="form-label" />
+                        <h:outputText value="#{quartzInfoBean.scheduler.metaData.shutdown}"
+                                      class="tag"
+                                      style="background-color: #{quartzInfoBean.scheduler.metaData.shutdown?'#5cb85c':'red'};" />
+                    </div>
+                </div>
+                <br />
+
+                <div class="filter-buttons">
+                    <p:commandButton styleClass="mr-2"
+                                     action="#{quartzInfoBean.actionStartStopScheduler()}"
+                                     value="Start/Stop Scheduler"
+                                     process="@this" update="panel0">
+                    </p:commandButton>
+
+                    <p:commandButton action="#{quartzInfoBean.actionStandbyOnOff()}"
+                                     value="StandBy On/Off" process="@this" update="panel0" />
+                </div>
+            </p:panel>
+
+                <h:panelGroup id="allDataTbl" layout="block"  styleClass="mt-5">
+                    <h:outputText
+                            value="#{ui_labels['general.reportResult']} #{quartzInfoBean.allTrigger.size()}"
+                            styleClass="form-label"/>
+
+                    <p:dataTable id="allData" widgetVar="tblProc" var="rows"
+                                 rowIndexVar="idx" value="#{quartzInfoBean.allTrigger}"
+                                 paginatorTemplate="{RowsPerPageDropdown} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {Exporters}"
+                                 rowsPerPageTemplate="5,10,15,20,25" paginatorPosition="bottom"
+                                 paginatorAlwaysVisible="false" paginator="true" rows="5"
+                                 emptyMessage="#{ui_labels['general.norows']}" reflow="true">
+
+                        <p:column width="10" headerText="#{ui_labels['general.No-symbol']}">
+                            <h:outputText value="#{idx + 1}" />
+                        </p:column>
+
+                        <p:column width="30">
+                            <p:commandButton icon="fas fa-eye"
+                                             title="#{labels['general.view']}"
+                                             action="#{quartzInfoBean.actionSelectTrigger()}" process="@form"
+                                             partialSubmit="true" update="@this historyPnl"
+                                             onclick="$('.ui-state-highlight').removeClass('ui-state-highlight');PF('tblProc').selectRow($(this).parents('tr:first').addClass('ui-state-highlight'));"
+                                             oncomplete="PrimeFaces.scrollTo('jobsResult')">
+
+                                <f:setPropertyActionListener value="#{rows}" target="#{quartzInfoBean.selectedTrigger}" />
+                            </p:commandButton>
+                        </p:column>
+
+                        <p:column width="20">
+                            <i class="fas fa-info"
+                               title="[TriggerKe=#{rows.triggerKey}],
+						[TriggerName=#{rows.triggerName}],
+						[TriggerGroup=#{rows.triggerGroup}],
+						[JobKey=	#{rows.jobKey}]" />
+                        </p:column>
+
+                        <p:column headerText="TriggerState " width="80">
+                            <f:facet name="header">
+                                State
+                                <p:commandLink update="@none"
+                                               process="@none" value="" class="glyphicon glyphicon-info-sign"
+                                               onclick="PF('trgStateDlg').show(); return false;"
+                                               style="text-decoration:none;">
+                                    <i class="fa fa-info-circle" />
+                                </p:commandLink>
+                            </f:facet>
+                            #{rows.triggerState}
+                        </p:column>
+
+                        <p:column headerText="Job Name" width="180">
+                            <h:outputText value="#{rows.jobName}" />
+                        </p:column>
+
+                        <p:column headerText="Job Group" width="150">
+                            <h:outputText value="#{rows.jobGroup}" />
+                        </p:column>
+
+                        <p:column headerText="Job Description">
+                            <h:outputText value="#{rows.jobDescription}" />
+                        </p:column>
+
+                        <p:column headerText="Previous start" width="150">
+                            <h:outputText value="#{rows.triggerPrevFireTime}">
+                                <f:convertDateTime pattern="dd.MM.yyyy HH:mm:ss"   />
+                            </h:outputText>
+                        </p:column>
+
+                        <p:column headerText="Next start" width="150">
+                            <h:outputText value="#{rows.triggerNextFireTime}">
+                                <f:convertDateTime pattern="dd.MM.yyyy HH:mm:ss"  />
+                            </h:outputText>
+                        </p:column>
+
+                        <p:column width="85">
+                            <p:commandLink
+                                    action="#{quartzInfoBean.actionPauseResumeTrg(rows.triggerName,rows.triggerGroup)}"
+                                    process="@this" update="allData" ajax="true" title="pause/resume"
+                                    disabled="#{rows.triggerState == 'NORMAL' or rows.triggerState == 'PAUSED'?false:true}]">
+                                <i class="fas fa-pause" /> / <i class="fas fa-play" />
+                            </p:commandLink>
+
+                            <p:commandLink
+                                    styleClass="p-ml-5"
+                                    action="#{quartzInfoBean.actionFireTrigger(rows.jobName,rows.jobGroup)}"
+                                    process="@this" update="allData" ajax="true" title="run now"
+                                    disabled="#{rows.triggerState == 'NORMAL'?false:true}]">
+                                <i class="fas fa-play" />
+                            </p:commandLink>
+                        </p:column>
+
+                    </p:dataTable>
+                </h:panelGroup>
+
+                <p:divider/>
+
+                <h:panelGroup id="historyPnl">
+                    <!-- ИСТОРИЯ -->
+                    <div jsf:id="tabName" class="title-group mt-5" jsf:rendered="#{quartzInfoBean.jobHistory.rowCount ne null}">
+                        <p:commandLink class="extended-search-toggle expanded"
+                                       onclick="toggleSection(this, '#jobsResult')">
+                            <h:outputText value="#{labels['general.view']}" />
+                            <i class="fas fa-caret-right"></i>
+                        </p:commandLink>
+                    </div>
+
+                    <div jsf:id="jobsResult" jsf:rendered="#{quartzInfoBean.jobHistory.rowCount ne null}">
+
+                        <h:panelGroup id="searchPnl">
+
+                            <div class="grid ui-fluid align-items-end search-bar">
+                                <!-- ПЕРИОД -->
+                                <div class="col-12 md:col-3 lg:col-2">
+                                    <h:outputText value="#{ui_labels['journal.period']}" styleClass="form-label" />
+                                    <p:selectOneMenu value="#{quartzInfoBean.period}" id="periodV" class="form-control">
+                                        <f:selectItem value="#{null}" itemValue="#{null}"/>
+                                        <f:selectItems value="#{userContext.periodNoFuture}" />
+                                        <f:ajax event="change" listener="#{quartzInfoBean.actionPeriod}" render="dateOtV dateDoV" />
+                                    </p:selectOneMenu>
+                                </div>
+
+                                <!-- ДАТА ОТ -->
+                                <div class="col-12 md:col-3 lg:col-2">
+                                    <h:outputText value="#{ui_labels['general.dataOt']}" styleClass="form-label" />
+                                    <p:datePicker value="#{quartzInfoBean.jobSearch.startTime}" id="dateOtV"
+                                                  pattern="dd.MM.yyyy HH:mm:ss" mask="true" showIcon="true"
+                                                  showOnFocus="false" showTime="true" showSeconds="true">
+                                        <p:ajax event="dateSelect" update="periodV" listener="#{quartzInfoBean.changeDate}" />
+                                    </p:datePicker>
+                                </div>
+
+                                <!-- ДАТА ДО -->
+                                <div class="col-12 md:col-3 lg:col-2">
+                                    <h:outputText value="#{ui_labels['general.dataDo']}" styleClass="form-label" />
+                                    <p:datePicker value="#{quartzInfoBean.jobSearch.endTime}" id="dateDoV"
+                                                  pattern="dd.MM.yyyy HH:mm:ss" mask="true" showIcon="true"
+                                                  showOnFocus="false" showTime="true" showSeconds="true">
+                                        <p:ajax event="dateSelect" update="periodV" listener="#{quartzInfoBean.changeDate}" />
+                                    </p:datePicker>
+                                </div>
+
+                                <!-- БУТОН -->
+                                <div class="col-12 md:col-2 lg:col-1">
+                                    <p:commandButton icon="fas fa-search"
+                                                     partialSubmit="true" process="@this"
+                                                     update="@this historyTbl"
+                                                     value="#{ui_labels['general.search']}"
+                                                     styleClass="p-button-sm w-full"
+                                                     action="#{quartzInfoBean.actionSearchTrigger}" />
+                                </div>
+                            </div>
+
+                        </h:panelGroup>
+
+
+                        <!-- ИСТОРИЯ РЕЗУЛТАТ-->
+                        <h:panelGroup id="historyTbl" layout="block" styleClass="mt-4">
+                            <h:outputText
+                                    value="#{ui_labels['general.reportResult']} #{quartzInfoBean.jobHistory.rowCount}"
+                                    styleClass="form-label"/>
+
+                            <p:dataTable id="history" var="row" rowIndexVar="idx"
+                                         value="#{quartzInfoBean.jobHistory}" lazy="true"
+                                         rowsPerPageTemplate="5,10,15,20,25" paginatorPosition="bottom"
+                                         paginatorAlwaysVisible="false" paginator="true" rows="5"
+                                         emptyMessage="#{ui_labels['general.norows']}"
+                                         selectionMode="single" reflow="true">
+
+                                <p:column width="20" exportable="false"
+                                          headerText="#{ui_labels['general.No-symbol']}">
+                                    <h:outputText value="#{idx + 1}" />
+                                </p:column>
+
+                                <p:column width="30">
+                                    <p:commandButton icon="fas fa-eye"
+                                                     oncomplete="PF('job_details').show()" update="job_details"
+                                                     ajax="true" class="btn btn-primary btn-xs"
+                                                     rendered="#{row[5] ne null or row[6] ne null}">
+                                        <span class="glyphicon glyphicon-eye-open" />
+                                        <f:setPropertyActionListener value="#{row}"
+                                                                     target="#{quartzInfoBean.selectedHistory}" />
+                                    </p:commandButton>
+                                </p:column>
+
+                                <p:column headerText="TRIGGER_NAME" width="150">
+                                    <h:outputText value="#{row[2]}" />
+                                </p:column>
+
+                                <p:column headerText="JOB_NAME">
+                                    <h:outputText value="#{row[1]}" />
+                                </p:column>
+
+                                <p:column headerText="START_TIME" width="200">
+                                    <h:outputText value="#{row[3]}">
+                                        <f:convertDateTime pattern="dd.MM.yyyy HH:mm:ss" timeZone="#{quartzInfoBean.timeZone}" />
+                                    </h:outputText>
+                                </p:column>
+
+                                <p:column headerText="END_TIME" width="200">
+                                    <h:outputText value="#{row[4]}">
+                                        <f:convertDateTime pattern="dd.MM.yyyy HH:mm:ss" timeZone="#{quartzInfoBean.timeZone}" />
+                                    </h:outputText>
+                                </p:column>
+
+                                <p:column headerText="STATUS" width="100"
+                                          style="text-align: center;">
+                                    <h:graphicImage width="18" height="18"
+                                                    rendered="#{quartzInfoBean.getImageSourceAlt(row[5]) ne null}"
+                                                    name="#{quartzInfoBean.getImageSource(row[5])}"
+                                                    alt="#{quartzInfoBean.getImageSourceAlt(row[5])}"
+                                                    title="#{quartzInfoBean.getImageSourceAlt(row[5])}"
+                                                    library="images" />
+                                </p:column>
+                            </p:dataTable>
+
+                        </h:panelGroup>
+                    </div>
+                </h:panelGroup>
+
+            </h:panelGroup>
+
+            <p:dialog header="Trigger state information" widgetVar="trgStateDlg"
+                      modal="true" height="auto" closeOnEscape="true">
+                <p>
+                    <strong>WAITING</strong> = the normal state of a trigger, waiting
+                    for its fire time to arrive and be acquired for firing by a
+                    scheduler.
+                </p>
+                <p>
+                    <strong>PAUSED</strong> = means that one of the
+                    scheduler.pauseXXX() methods was used. The trigger is not eligible
+                    for being fired until it is resumed.
+                </p>
+                <p>
+                    <strong>ACQUIRED</strong> = a scheduler node has identified this
+                    trigger as the next trigger it will fire - may still be waiting for
+                    its fire time to arrive. After it fires the trigger will be updated
+                    (per its repeat settings, if any) and placed back into the WAITING
+                    state (or be deleted if it does not repeat again).
+                </p>
+                <p>
+                    <strong>BLOCKED</strong> = the trigger is prevented from being
+                    fired because it relates to a StatefulJob that is already
+                    executing. When the statefuljob completes its execution, all
+                    triggers relating to that job will return to the WAITING state.
+                </p>
+                <p>In other words, When a state is BLOCKED, another trigger (or
+                    an instance of this trigger) is already executing for the trigger's
+                    stateful job, so this trigger is blocked until the other trigger is
+                    finished." /></p>
+            </p:dialog>
+
+            <p:dialog id="job_details" widgetVar="job_details" modal="true"
+                      minWidth="1000" minHeight="640" width="1000" height="640"
+                      closeOnEscape="true" closable="true" header="Job details">
+
+                <div class="card border-red-100">
+
+                    <div class="form-label">COMMENT/DESCRIPTION</div>
+                    <p:inputTextarea readonly="true"
+                                     value="#{quartzInfoBean.selectedHistory[6]} #{quartzInfoBean.selectedHistory[8]}" rows="16"
+                                     escape="false"
+                                     styleClass="block"
+                                     style="max-width:100%; min-width:100%; max-height: 10"
+                                     autoResize="false" />
+
+
+                    <div class="form-label p-mt-4">EXCEPTION</div>
+                    <p:inputTextarea readonly="true"
+                                     value="#{quartzInfoBean.convertRowIfClob(quartzInfoBean.selectedHistory[7])}" rows="16"
+                                     styleClass="block"
+                                     style="max-width:100%; min-width:100%; max-height: 10"
+                                     autoResize="false" />
+
+                </div>
+            </p:dialog>
+
+
+        </h:form>
+    </ui:define>
+
+</ui:composition>

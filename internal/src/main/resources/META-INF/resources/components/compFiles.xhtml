@@ -1,0 +1,53 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+				xmlns:h="jakarta.faces.html"
+				xmlns:ui="jakarta.faces.facelets"
+				xmlns:p="http://primefaces.org/ui"
+				xmlns:cc="jakarta.faces.composite">
+
+	<cc:interface componentType="compFiles">
+		<cc:attribute name="idObj" required="true" type="java.lang.Integer"  shortDescription="id на обекта,към който са прикачените файлове"/>
+		<cc:attribute name="codeObj" required="true" type="java.lang.Integer"  shortDescription="код на обекта,към който са прикачените файлове"/>
+		<cc:attribute name="idObj1" required="false" type="java.lang.Integer"  shortDescription="допълнително id на обект,ако трябва да се обединят файлове от два обекта"/>
+		<cc:attribute name="codeObj1" required="false" type="java.lang.Integer"  shortDescription="допълнителен код на обекта,ако трябва да се обединят файлове от два обекта"/>
+		<cc:attribute name="showFilePurpse" required="false" type="java.lang.Boolean" default="false" shortDescription="Полето File purpose да излиза само,когато компонентата се вика за разглеждане на УП"/>
+		<cc:attribute name="singleFile" required="true" type="java.lang.Boolean" default="false" shortDescription="Дали да свали автоматично файла,ако е само един. При false поакзва таблицата, при true сваля файла."/>
+	</cc:interface>
+
+	<cc:implementation>
+
+		<!-- Когато е зададено да сваля автоматично файла,ако е само един. При няколко показва списъка с файлове. -->
+		<p:commandButton id="btnLoadFilesSignle" title="#{labels['compFiles.files']}" icon="fa fa-paperclip" process="@this" rendered="#{cc.attrs.singleFile}"
+						 actionListener="#{cc.actionLoadFiles}" ajax="false">
+			<p:fileDownload value="#{cc.fileToDownload}" />
+		</p:commandButton>
+
+		<!-- Винаги показва списъка с файлове,дори да е само един. -->
+		<p:commandButton id="btnLoadFiles" title="#{labels['compFiles.files']}" icon="fa fa-paperclip" process="@this" rendered="#{!cc.attrs.singleFile}"
+						 actionListener="#{cc.actionLoadFiles}" ajax="true">
+		</p:commandButton>
+
+		<p:dialog id="filesDialog" header="#{labels['compFiles.files']}"   widgetVar="#{cc.clientId.replace(':', '_')}_fileDialogWV" style="margin-top:50px !important"
+				  modal="true" resizable="true" appendTo="@form" width="650px" fitViewport="true" closeOnEscape="true">
+
+			<h:panelGroup id="fileDialogGroup">
+				<p:dataTable id="filesTable" var="file" value="#{cc.filesList}" emptyMessage="#{ui_labels['general.norows']}" style="width:100%" rowIndexVar="idx">
+
+					<p:column width="20" headerText="#{ui_labels['general.No-symbol']}">
+						<h:outputText value="#{idx + 1}" />
+					</p:column>
+
+					<p:column  width="30" >
+						<p:commandButton action="#{cc.download(file.id)}" id="btnDown"  ajax="false"
+										 title="#{ui_labels['general.download']}" styleClass="btn-normal" icon="fa fa-fw fa-download"  />
+					</p:column>
+
+					<p:column headerText="Файл">
+						<h:outputText value="#{file.filename} " />
+						<h:outputText value="#{systemData.decodeItem(UriregConstants.CODE_CLASSIF_FILE_PURPOSE, file.filePurpose, cc.currentLang, null)}" rendered="#{cc.attrs.showFilePurpse}"/>
+					</p:column>
+
+				</p:dataTable>
+			</h:panelGroup>
+		</p:dialog>
+	</cc:implementation>
+</ui:composition>

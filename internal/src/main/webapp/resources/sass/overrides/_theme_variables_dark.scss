@@ -1,0 +1,8 @@
+/* Настройки за тъмната тема */
+
+$toggleButtonBg: $shade900;
+$toggleButtonBorder: 1px solid $shade600;
+$toggleButtonTextColor: $textColor;
+$toggleButtonIconColor: $textColor;
+$toggleButtonHoverBg: scale-color($toggleButtonBg, $lightness: 10%);
+$toggleButtonHoverBorderColor: $shade600;

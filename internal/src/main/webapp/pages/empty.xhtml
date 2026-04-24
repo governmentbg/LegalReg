@@ -1,0 +1,25 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:ui="jakarta.faces.facelets"
+                xmlns:p="http://primefaces.org/ui"
+                template="/template/template.xhtml">
+
+    <ui:define name="title">#{labels['general.systemName']}</ui:define>
+    <ui:define name="viewname">
+        <li>Pages</li>
+        <li><i class="fas fa-angle-right"></i></li>
+        <li><p:link outcome="empty">#{labels['general.systemName']}</p:link></li>
+    </ui:define>
+
+    <ui:define name="content">
+        <div class="grid">
+            <div class="col-12">
+                <div class="card">
+                    <h1>#{labels['general.systemName']}</h1>
+                    <p:button outcome="dashboard" value="#{labels['dashbord.dashbord']}" style="display:inline-block;margin-top:6px" icon="fas fa-home"/>
+                </div>
+            </div>
+        </div>
+
+    </ui:define>
+
+</ui:composition>

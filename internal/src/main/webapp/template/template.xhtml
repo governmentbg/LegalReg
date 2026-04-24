@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:h="jakarta.faces.html"
+	xmlns:f="jakarta.faces.core"
+	xmlns:ui="jakarta.faces.facelets"
+	xmlns:p="http://primefaces.org/ui"  xmlns:jsf="jakarta.faces"
+	lang="en">
+<f:view locale="#{environment.language}">
+<ui:insert name="metadata"/>
+	<h:head>
+		<f:facet name="first">
+			<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+			<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+			<meta name="viewport"
+				content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" />
+			<meta name="apple-mobile-web-app-capable" content="yes" />
+			<link rel="icon" type="image/png" sizes="144x144" href="#{request.contextPath}/resources/mirage-layout/images/favicon/favicon.png"></link>
+		</f:facet>
+
+		<title><ui:insert name="title">PrimeFaces Mirage</ui:insert></title>
+		<h:outputScript name="js/layout.js" library="mirage-layout" />
+		<h:outputScript name="js/prism.js" library="mirage-layout"/>
+
+		<h:outputScript name="js/notifications.js" />
+		<script type="module" src="#{request.contextPath}/js/pdfjs/pdf.mjs"></script>
+
+		<ui:insert name="head"/>
+	</h:head>
+
+	<h:body styleClass="#{guestPreferences.inputStyleClass}">
+
+		<!-- SESSION EXPIRED MONITOR -->
+
+		<p:idleMonitor timeout="#{session.maxInactiveInterval * 1000 - 30000}"
+			onidle="window.location.href = '../sessionExpired.xhtml';return" />
+
+		<h:form prependId="false">
+			<p:hotkey bind="alt+r" action="#{environment.resetSystemData()}"
+				update="messagesGl" />
+			<p:hotkey bind="alt+l" handler="toggleLog()"
+				rendered="#{facesContext.application.projectStage!='Production'}" />
+			<p:log id="log"  rendered="#{facesContext.application.projectStage!='Production'}"/>
+		</h:form>
+
+		<div class="layout-wrapper #{guestPreferences.layoutConfig}">
+			<p:tooltip />
+			<ui:include src="./sidebar.xhtml" />
+
+			<div class="layout-main">
+				<ui:include src="./topbar.xhtml" />
+				<ui:include src="./rightpanel.xhtml" />
+
+				<h:form id="breadcrumbForm">
+					<ui:include src="./breadcrumb.xhtml" />
+				</h:form>
+
+				<div class="layout-content">
+					<p:messages id="messagesGl" showDetail="true" closable="true">
+						<p:autoUpdate />
+					</p:messages>
+					<ui:insert name="content" />
+				</div>
+
+				<ui:include src="./footer.xhtml" />
+
+				<ui:include src="./config.xhtml" />
+
+				<div class="layout-main-mask"></div>
+			</div>
+		</div>
+
+
+		<p:ajaxStatus
+			style="width:32px;height:32px;position:fixed;left:50%;top:50%;transform: translate(-50%,-50%);z-index: 1000002;pointer-events: none;">
+			<f:facet name="start">
+				<i class="fas fa-circle-notch fa-spin ajax-loader"
+					aria-hidden="true"></i>
+			</f:facet>
+
+			<f:facet name="complete">
+				<h:outputText value="" />
+			</f:facet>
+		</p:ajaxStatus>
+
+		<h:form prependId="false">
+			<!-- global confirmDialog -->
+			<p:confirmDialog id="confirmDialog" global="true" showEffect="fade"
+				hideEffect="fade">
+				<div class="grid">
+					<div class="col-12 filter-buttons">
+						<div class="left">
+							<p:commandButton value="#{ui_labels['general.da']}" type="button"
+								styleClass="ui-confirmdialog-yes" icon="fas fa-check" />
+						</div>
+						<div class="right">
+							<p:commandButton value="#{ui_labels['general.ne']}" type="button"
+								styleClass="ui-confirmdialog-no ui-button-secondary"
+								icon="fas fa-times" />
+						</div>
+					</div>
+				</div>
+			</p:confirmDialog>
+		</h:form>
+
+
+		<h:form id="formLogin">
+
+
+			<p:dialog header="#{ui_labels['general.changePass']}" id="change-pass-dialog"
+				widgetVar="dlg-change-pass" modal="true" resizable="false"
+				draggable="false" closable="false" width="450px" dynamic="true">
+
+				<h:panelGroup id="fields" styleClass="grid " layout="block">
+					<div class="col-12">
+						<div class="form-label req">#{ui_labels['general.oldPass']}</div>
+						<p:password value="#{userContext.oldPassword}" id="oldPassword" />
+						<p:message for="oldPassword" showSummary="true" />
+					</div>
+
+					<div class="col-12">
+						<div class="form-label req">#{ui_labels['general.newPass']}</div>
+						<p:password value="#{userContext.newPassword1}" id="newPassword1" />
+						<p:message for="newPassword1" showSummary="true" />
+					</div>
+
+					<div class="col-12">
+						<div class="form-label req">#{ui_labels['general.confirmPass']}</div>
+						<p:password value="#{userContext.newPassword2}" id="newPassword2" />
+						<p:message for="newPassword2" showSummary="true" />
+					</div>
+				</h:panelGroup>
+
+				<f:facet name="footer">
+					<div class="grid">
+						<div class="col-12 filter-buttons">
+							<div class="left">
+								<p:commandButton value="#{ui_labels['general.change']}"
+									action="#{userContext.actionChangePassword()}" update="fields"
+									ignoreAutoUpdate="true" />
+							</div>
+							<div class="right">
+								<p:commandButton value="#{ui_labels['general.cancel']}"
+									action="#{userContext.actionClear()}"
+									oncomplete="PF('dlg-change-pass').hide()" />
+							</div>
+						</div>
+					</div>
+				</f:facet>
+
+				<p:ajax event="close" listener="#{userContext.actionClear()}"
+					update="formLogin" ignoreAutoUpdate="true" />
+			</p:dialog>
+
+			<p:dialog header="#{ui_labels['general.loginOptions']}" id="user-login-options-dialog"
+				widgetVar="dlg-user-login-options" modal="true" resizable="false"
+				draggable="false" closable="false" width="700px" dynamic="true"  rendered="#{userLoginOptions.twoFactorAuth>0}">
+
+				<div class="grid" jsf:id="panel2FA">
+                    <div class="col">
+                       	 <p:selectOneRadio value="#{userLoginOptions.user.two_fa}" layout="responsive" columns="1" >
+                            <f:selectItem itemLabel="#{ui_labels['userEdit.2faNone']}" itemValue="#{UriregConstants.TWO_FA_NONE}" />
+                            <f:selectItem itemLabel="#{ui_labels['userEdit.2faCodeMail']}" itemValue="#{UriregConstants.TWO_FA_EMAIL}"
+                                    itemDisabled="#{userLoginOptions.twoFactorAuth ne 1 and userLoginOptions.twoFactorAuth ne 3}"/>
+                            <f:selectItem itemLabel="#{ui_labels['userEdit.2faCodeGoogle']}" itemValue="#{UriregConstants.TWO_FA_AUTH}"
+                                    itemDisabled="#{userLoginOptions.twoFactorAuth ne 2 and userLoginOptions.twoFactorAuth ne 3}"/>
+                            <p:ajax event="change" update="panel2FA" partialSubmit="true" process=" @this" listener="#{userLoginOptions.actionChoose2FA}" />
+                        </p:selectOneRadio>
+                    </div>
+                    <div class="col-fixed" style="width: 222px;"  jsf:rendered="#{userLoginOptions.authQrCode ne null}">
+                        <p:graphicImage value="#{userLoginOptions.authQrCode}" stream="false"  style="border: 4px solid #dee2e6; border-radius: 8px;"/>
+                        <p:commandButton value="#{ui_labels['userEdit.sendByMali']}" icon="far fa-envelope" styleClass="mt-1" style="width: 100%;" actionListener="#{userLoginOptions.actionSendMail}" update="@this"/>
+                    </div>
+                </div>
+
+				<f:facet name="footer">
+					<div class="grid">
+						<div class="col-12 filter-buttons">
+							<div class="right">
+								<p:commandButton value="#{ui_labels['general.close']}"
+									oncomplete="PF('dlg-user-login-options').hide()" />
+							</div>
+						</div>
+					</div>
+				</f:facet>
+			</p:dialog>
+
+		</h:form>
+
+		<h:outputStylesheet name="css/primeicons.css" library="mirage-layout" />
+		<h:outputStylesheet name="css/primeflex.min.css" library="mirage-layout" />
+		<h:outputStylesheet name="css/#{guestPreferences.layout}.css" library="mirage-layout" />
+		<h:outputStylesheet name="css/all.css" library="font-awesome" />
+		<h:outputStylesheet name="css/delo.css" />
+
+		<h:outputScript library="js" name="scripts.js" />
+
+
+		<ui:remove>
+		<!--
+		<script>
+			(function(d) {
+				var s = d.createElement("script");
+				/* uncomment the following line to override default position*/
+				/* s.setAttribute("data-position", 3);*/
+				/* uncomment the following line to override default size (values: small, large)*/
+				/* s.setAttribute("data-size", "small");*/
+				/* uncomment the following line to override default language (e.g., fr, de, es, he, nl, etc.)*/
+				s.setAttribute("data-language", "bg");
+				/* uncomment the following line to override color set via widget (e.g., #053f67)*/
+				s.setAttribute("data-color", "#5e81ac");
+				/* uncomment the following line to override type set via widget (1=person, 2=chair, 3=eye, 4=text)*/
+				/* s.setAttribute("data-type", "1");*/
+				/* s.setAttribute("data-statement_text:", "Our Accessibility Statement");*/
+				/* s.setAttribute("data-statement_url", "http://www.example.com/accessibility")";*/
+				/* uncomment the following line to override support on mobile devices*/
+				s.setAttribute("data-mobile", true);
+				/* uncomment the following line to set custom trigger action for accessibility menu*/
+				s.setAttribute("data-trigger", "access-trigger");
+				s.setAttribute("data-account", "4ffGtsrqQZ");
+				s.setAttribute("src", "https://cdn.userway.org/widget.js");
+				(d.body || d.head).appendChild(s);
+			})(document)
+		</script>
+		<noscript>
+			Please ensure Javascript is enabled for purposes of <a
+				href="https://userway.org">website accessibility</a>
+		</noscript>
+		 -->
+		</ui:remove>
+	</h:body>
+</f:view>
+</html>

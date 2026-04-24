@@ -1,0 +1,22 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:ui="jakarta.faces.facelets"
+      xmlns:f="jakarta.faces.core"
+      template="/template/template.xhtml">
+
+	<ui:define name="metadata">
+	    <f:metadata>
+	        <f:viewAction action="#{userData.checkPageAccess(8)}" onPostback="false"/>
+	    </f:metadata>
+    </ui:define>
+
+    <ui:define name="title">#{navTexts['/pages/groupsList.xhtml']}</ui:define>
+
+    <ui:define name="viewname">
+        <li>#{navTexts['/pages/groupsList.xhtml']}</li>
+    </ui:define>
+
+    <ui:define name="content">
+        <ui:include src="/pages/groupsListSys.xhtml"/>
+    </ui:define>
+
+</ui:composition>

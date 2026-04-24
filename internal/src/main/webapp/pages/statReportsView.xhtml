@@ -1,0 +1,192 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="jakarta.faces.html"
+                xmlns:f="jakarta.faces.core"
+                xmlns:ui="jakarta.faces.facelets"
+                xmlns:p="http://primefaces.org/ui"
+                template="/template/template.xhtml">
+
+    <ui:define name="metadata">
+        <f:metadata>
+            <f:importConstants type="com.ib.urireg.system.UriregConstants" />
+            <f:viewAction action="#{userData.checkReloadPage}" onPostback="false" />
+        </f:metadata>
+    </ui:define>
+
+    <ui:define name="title">#{navTexts['/pages/statReportsView.xhtml']}</ui:define>
+
+    <ui:define name="viewname">
+        <li>#{navTexts['/pages/statReportsView.xhtml']}</li>
+    </ui:define>
+
+    <ui:define name="head">
+    </ui:define>
+
+    <ui:define name="content">
+        <h:form id="statForm">
+            <div class="container #{guestPreferences.containerPosition}">
+                <h:panelGroup id="panelFilter">
+                    <div class="card">
+
+                        <div class="grid">
+
+                            <div  class="col-12 sm:col-12 md:col-6 lg:col-2 xl:col-2  ui-fluid">
+                                <h:outputText value="#{labels['journal.period']}" styleClass="form-label"/>
+                                <p:selectOneMenu id ="period" value="#{statReportsView.period}"  >
+                                    <f:selectItem value="#{null}" itemValue="#{null}" />
+                                    <f:selectItems  value="#{userContext.periodNoFuture}" />
+                                    <p:ajax event="change" update="period dataOt dataDo" listener="#{statReportsView.changePeriod}"/>
+                                </p:selectOneMenu>
+                            </div>
+
+                            <div  class="col-12 sm:col-6 md:col-3 lg:col-2 xl:col-2  ui-fluid">
+                                <h:outputText value="#{ui_labels['general.dataOt']}" styleClass="form-label"/>
+                                <p:datePicker id="dataOt" value="#{statReportsView.startDate}" pattern="dd.MM.yyyy" mask="true" showOn="button" locale="bg">
+                                    <p:ajax event="change" update="period" listener="#{statReportsView.changeDate}"/>
+                                    <p:ajax event="dateSelect" update="period" listener="#{statReportsView.changeDate}"/>
+                                </p:datePicker>
+                            </div>
+                            <div  class="col-12 sm:col-6 md:col-3 lg:col-2 xl:col-2  ui-fluid">
+                                <h:outputText value="#{ui_labels['general.dataDo']}" styleClass="form-label"/>
+                                <p:datePicker id="dataDo" value="#{statReportsView.endDate}" pattern="dd.MM.yyyy" mask="true" showOn="button" locale="bg">
+                                    <p:ajax event="change" update="period" listener="#{statReportsView.changeDate}"/>
+                                    <p:ajax event="dateSelect" update="period" listener="#{statReportsView.changeDate}"/>
+                                </p:datePicker>
+                            </div>
+
+                            <div  class="col-12 sm:col-6  ui-fluid align-content-end">
+                                <p:selectOneRadio id="line" value="#{statReportsView.vidReport}" unselectable="false"
+                                                  layout="lineDirection" styleClass="form-label">
+                                    <f:selectItem itemLabel="По университети" itemValue="1"/>
+                                    <f:selectItem itemLabel="По протоколи и университети" itemValue="2"/>
+                                      <p:ajax event="change" update="resultTable" listener="#{statReportsView.changeVid}" />
+                                </p:selectOneRadio>
+                            </div>
+
+                        </div>
+                        <div class="filter-buttons">
+                            <p:commandButton icon="fas fa-search" value="#{ui_labels['general.search']}" actionListener="#{statReportsView.actionSearch}"
+                                             partialSubmit="true" process="@this panelFilter "
+                                             title="#{ui_labels['general.titleSearch']}" update="resultTable" styleClass="mr-3"/>
+
+                            <p:commandButton icon="fas fa-eraser"  value="#{ui_labels['general.clear']}" actionListener="#{statReportsView.actionClear}"
+                                             partialSubmit="true" process="@this panelFilter resultTable"
+                                             title="#{ui_labels['general.titleClear']}" update="panelFilter resultTable" styleClass="ui-button-warning" />
+                        </div>
+
+                    </div>
+                </h:panelGroup>
+            </div>
+
+            <h:panelGroup id="resultTable" layout="block" styleClass="margin-top">
+                <h:panelGroup layout="block" styleClass="card">
+
+                    <div class="table-toolbar">
+
+                    </div>
+
+                    <p:dataTable id="tableResult1" value="#{statReportsView.resultList}" rendered="#{statReportsView.vidReport eq 1}" lazy="false"
+                                 reflow="true" emptyMessage="#{ui_labels['general.norows']}"
+                                 var="row" rowIndexVar="idx"	rows="15" rowsPerPageTemplate="5,15,20,25" paginatorPosition="bottom" paginator="true"
+                                 paginatorTemplate="{RowsPerPageDropdown} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {Exporters}">
+
+                        <f:facet name="{Exporters}">
+                            <div style="float:left">
+                                <div style="float:left">
+
+                                    <p:commandLink id="excel"  update="tableResult1" process="tableResult1" partialSubmit="true">
+                                        <h:graphicImage library="images" name="excel2.png" />
+                                        <p:dataExporter type="xlsx" target="tableResult1" fileName="#{statReportsView.reportFileName1}" postProcessor="#{statReportsView.postProcessXLSX}"  />
+                                    </p:commandLink>
+                                    <ui:remove><!--
+                                    <p:commandLink id="pdf" update="tableResult1" process="tableResult1" partialSubmit="true">
+                                        <h:graphicImage library="images" name="pdf.png" />
+                                        <p:dataExporter type="pdf" target="tableResult1" fileName="#{statReportsView.reportFileNam1}"	 encoding="windows-1251"
+                                                        preProcessor="#{statReportsView.preProcessPDF}" options="#{statReportsView.pdfOptions()}"/>
+                                    </p:commandLink>
+                                    --></ui:remove>
+                                </div>
+                            </div>
+                        </f:facet>
+
+                        <p:column width="20" headerText="#{ui_labels['general.No-symbol']}"  exportable="false">
+                            <h:outputText value="#{idx + 1}" />
+                        </p:column>
+
+                        <p:column width="250"  headerText="Университет" sortBy="#{row[0]}">
+                            <h:outputText value="#{row[0]}"  />
+                        </p:column>
+
+                        <p:column width="100"  headerText="Общ брой явили се" sortBy="#{row[1]}">
+                            <h:outputText value="#{row[1]}"  />
+                        </p:column>
+
+                        <p:column width="100"  headerText="Издържали" sortBy="#{row[2]}">
+                            <h:outputText value="#{row[2]}"  />
+                        </p:column>
+
+                        <p:column width="100" headerText="Неиздържали" sortBy="#{row[3]}">
+                            <h:outputText value="#{row[3]}"  />
+                        </p:column>
+
+                        <p:column width="100"  headerText="Неявили се" sortBy="#{row[4]}">
+                            <h:outputText value="#{row[4]}"  />
+                        </p:column>
+
+                    </p:dataTable>
+
+                    <p:dataTable id="tableResult2" value="#{statReportsView.resultList}" rendered="#{statReportsView.vidReport eq 2}" lazy="false"
+                                 reflow="true" emptyMessage="#{ui_labels['general.norows']}"
+                                 var="row" rowIndexVar="idx"	rows="30" rowsPerPageTemplate="5,15,20,25,30" paginatorPosition="bottom" paginator="true"
+                                 paginatorTemplate="{RowsPerPageDropdown} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {Exporters}">
+
+                        <f:facet name="{Exporters}">
+                            <div style="float:left">
+                                <div style="float:left">
+
+                                    <p:commandLink id="excel"  update="tableResult2" process="tableResult2" partialSubmit="true">
+                                        <h:graphicImage library="images" name="excel2.png" />
+                                        <p:dataExporter type="xlsx" target="tableResult2" fileName="#{statReportsView.reportFileName2}" postProcessor="#{statReportsView.postProcessXLSX}"  />
+                                    </p:commandLink>
+                                    <ui:remove><!--
+                                    <p:commandLink id="pdf"  update="tableResult2" process="tableResult2" partialSubmit="true">
+                                        <h:graphicImage library="images" name="pdf.png" />
+                                        <p:dataExporter type="pdf" target="tableResult2" fileName="#{statReportsView.reportFileName2}"	 encoding="windows-1251"
+                                                        preProcessor="#{statReportsView.preProcessPDF}" options="#{statReportsView.pdfOptions()}"/>
+                                    </p:commandLink>
+                                    --></ui:remove>
+                                </div>
+                            </div>
+                        </f:facet>
+                        <p:column width="20"  headerText="#{ui_labels['general.No-symbol']}" exportable="false">
+                            <h:outputText value="#{idx + 1}" />
+                        </p:column>
+
+                        <p:column width="150" headerText="Дата на протокол - брой явили се" >
+                            <h:outputText value="#{row[0]}" />
+                        </p:column>
+
+                        <p:column width="250"  headerText="Университет">
+                            <h:outputText value="#{row[1]}"  />
+                        </p:column>
+
+                        <p:column width="100"  headerText="Издържали">
+                            <h:outputText value="#{row[2]}"  />
+                        </p:column>
+
+                        <p:column width="100" headerText="Неиздържали">
+                            <h:outputText value="#{row[3]}"  />
+                        </p:column>
+
+                        <p:column width="100"  headerText="Неявили се">
+                            <h:outputText value="#{row[4]}"  />
+                        </p:column>
+
+                    </p:dataTable>
+
+                </h:panelGroup>
+            </h:panelGroup>
+
+        </h:form>
+    </ui:define>
+
+</ui:composition>

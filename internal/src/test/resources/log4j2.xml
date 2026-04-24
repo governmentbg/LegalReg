@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="INFO">
+
+	<!-- МОЖЕ БИ ЗА JUNIT ТЕСТОВЕ Е ДОБРЕ ДА СЕ ПИШЕ САМО В КОНЗОЛАТА -->
+
+	<Appenders>
+		<Console name="Console" target="SYSTEM_OUT">
+			<!--<PatternLayout pattern="%d{HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n" />-->
+			<PatternLayout pattern="%d{HH:mm:ss,SSS} %-5p [%c.%M](%L) (%t) %msg%n" />
+		</Console>
+	</Appenders>
+
+	<Loggers>
+		<Root level="INFO">
+			<AppenderRef ref="Console" />
+		</Root>
+
+		<Logger name="com.ib.system.mail" level="debug"></Logger>
+		<Logger name="com.ib.indexui.db.dao" level="debug"></Logger>
+		<Logger name="com.ib.urireg.system.filters.LogClientRequestFilter" level="info"></Logger>
+
+		<Logger name="com.ib.urireg.eforms.utils.EFormUtils" level="debug"></Logger>
+
+	</Loggers>
+
+
+</Configuration>

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<entity-mappings>
+	<entity class="com.ib.indexui.db.dto.AdmUser" name="AdmUser">
+		<attributes>
+			<id name="id" attribute-type="Integer">
+				<column name="USER_ID" />
+			</id>
+		</attributes>
+	</entity>
+</entity-mappings>

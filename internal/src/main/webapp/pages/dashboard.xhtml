@@ -1,0 +1,113 @@
+<ui:composition
+        xmlns="http://www.w3.org/1999/xhtml"
+        xmlns:h="jakarta.faces.html"
+        xmlns:f="jakarta.faces.core"
+        xmlns:ui="jakarta.faces.facelets"
+        template="/template/template.xhtml">
+
+    <ui:define name="title">#{labels['dashbord.dashbord']}</ui:define>
+
+
+    <ui:define name="viewname">
+        <li>#{labels['dashbord.dashbord']}</li>
+    </ui:define>
+
+	<ui:define name="head">
+		<style>
+			.ql-editor {padding:10px 0px;}
+			.ql-container.ql-snow {border: 0px;}
+			body .ui-texteditor .ql-snow {border: 0px}
+
+			@media (max-width: 1600px) {
+			   .dbCol200 {width:200px !important}
+			}
+
+			@media (max-width: 2400px) {
+				.dbCol2000 {width:200px !important}
+			}
+
+			.layout-dashboard .store-items .store-cards-container .store-cards {
+			 	overflow: visible;
+			 	max-height: none;
+			}
+			.layout-dashboard .store-items .store-cards-container .store-cards .store-card .store-card-content span{
+				font-size: 14px;
+				color:inherit;
+			}
+			.layout-dashboard .store-items .store-cards-container .store-cards .store-card .store-card-content {
+			    text-align: left;
+			    padding-left: 10px;
+			}
+			.layout-dashboard .store-items .store-cards-container .store-cards .store-card .store-card-content span { color: inherit ;}
+
+			body .ui-dataview .ui-dataview-header {
+				display:none;
+			}
+
+			body a  {
+			    color: inherit !important;
+			    text-decoration: none;
+			}
+			body .checkboxes a:hover  {
+			    color: inherit;
+			    text-decoration: underline;
+
+			}
+
+			.timeline-icon {
+			    width: 36px;
+			    height: 36px;
+			    -moz-border-radius: 4px;
+			    -webkit-border-radius: 4px;
+			    border-radius: 4px;
+			    display: -webkit-box;
+			    display: -ms-flexbox;
+			    display: flex;
+			    justify-content: center;
+			    align-items: center;
+			    color: #ffffff;
+			    font-size: 16px;
+			    margin-bottom: 10px;
+			    margin-top: 10px;
+			}
+
+			.comment-icon {
+			    background: -moz-linear-gradient(225deg, #f2c260 0%, #ebcb8b 100%);
+			    background: -webkit-gradient(linear, left bottom, right top, color-stop(0%, #f2c260), color-stop(100%, #ebcb8b));
+			    background: -webkit-linear-gradient(225deg, #f2c260 0%, #ebcb8b 100%);
+			    background: -o-linear-gradient(225deg, #f2c260 0%, #ebcb8b 100%);
+			    background: -ms-linear-gradient(225deg, #f2c260 0%, #ebcb8b 100%);
+			    background: linear-gradient(225deg, #f2c260 0%, #ebcb8b 100%);
+			    filter: progid:DXImageTransform.Microsoft.gradient( startColorstr="#f2c260", endColorstr="#ebcb8b",GradientType=1 );
+			}
+
+			.color-icon{ color: #ebcb8b}
+
+			.newTaskComplete{
+				background-color: #c4c4c4 !important;
+			}
+
+		</style>
+
+
+		<script>
+
+		</script>
+
+
+	</ui:define>
+
+	<ui:define name="metadata">
+		<f:metadata>
+			<f:importConstants type="com.ib.urireg.system.UriregConstants" />
+
+		</f:metadata>
+	</ui:define>
+
+    <ui:define name="content">
+     <h:form id="dashboard" enctype="multipart/form-data">
+
+     </h:form>
+    </ui:define>
+
+</ui:composition>

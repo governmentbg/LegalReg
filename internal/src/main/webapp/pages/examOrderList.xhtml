@@ -1,0 +1,258 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="jakarta.faces.html"
+                xmlns:f="jakarta.faces.core"
+                xmlns:ui="jakarta.faces.facelets"
+                xmlns:p="http://primefaces.org/ui"
+                template="/template/template.xhtml">
+
+    <ui:define name="metadata">
+        <f:metadata>
+            <f:importConstants type="com.ib.urireg.system.UriregConstants" />
+            <f:viewAction action="#{userData.checkReloadPage}" onPostback="false" />
+        </f:metadata>
+    </ui:define>
+
+    <ui:define name="title">#{navTexts['/pages/examOrderList.xhtml']}</ui:define>
+
+    <ui:define name="viewname">
+        <li>#{navTexts['/pages/examOrderList.xhtml']}</li>
+    </ui:define>
+
+    <ui:define name="head">
+        <style>
+            @media (max-width: 1920px) {
+                .dbCol200 {width:400px !important}
+            }
+
+            .visited-btn {
+                background-color: #1f4b99 !important;
+                border-color: #163b73 !important;
+                color: #ffffff !important;
+            }
+        </style>
+    </ui:define>
+
+    <ui:define name="content">
+        <h:form id="zapovedForm">
+            <div class="container #{guestPreferences.containerPosition}">
+                <h:panelGroup id="panelFilter">
+                    <div class="card">
+
+                        <div class="grid">
+
+                            <!-- Дата на заповед- период -->
+                            <div  class="col-12 sm:col-12 md:col-6 lg:col-3 xl:col-3  ui-fluid">
+                                <h:outputText value="#{labels['zapovedList.periodDataZapoved']}" styleClass="form-label"/>
+                                <p:selectOneMenu id ="periodZapoved" value="#{examOrderList.periodZapoved}">
+                                    <f:selectItem value="#{null}" itemValue="#{null}"/>
+                                    <f:selectItems  value="#{userContext.periodNoFuture}" />
+                                    <p:ajax event="change" update="periodZapoved zapovedDataOt zapovedDataDo" listener="#{examOrderList.changePeriodZap}"/>
+                                </p:selectOneMenu>
+                            </div>
+
+                            <div  class="col-12 sm:col-6 md:col-3 lg:col-2 xl:col-2  ui-fluid">
+                                <h:outputText value="#{ui_labels['general.dataOt']}" styleClass="form-label"/>
+                                <p:datePicker id="zapovedDataOt" value="#{examOrderList.docSearch.zapDateFrom}" pattern="dd.MM.yyyy" mask="true" showOn="button" locale="bg">
+                                    <p:ajax event="change" update="periodZapoved" listener="#{examOrderList.changeDateZap}"/>
+                                    <p:ajax event="dateSelect" update="periodZapoved" listener="#{examOrderList.changeDateZap}"/>
+                                </p:datePicker>
+                            </div>
+
+                            <div class="col-12 sm:col-6 md:col-3 lg:col-2  xl:col-2  ui-fluid">
+                                <h:outputText value="#{ui_labels['general.dataDo']}" styleClass="form-label"/>
+                                <p:datePicker id="zapovedDataDo" value="#{examOrderList.docSearch.zapDateTo}" pattern="dd.MM.yyyy" mask="true" showOn="button" locale="bg">
+                                    <p:ajax event="change" update="periodZapoved" listener="#{examOrderList.changeDateZap}"/>
+                                    <p:ajax event="dateSelect" update="periodZapoved" listener="#{examOrderList.changeDateZap}"/>
+                                </p:datePicker>
+                            </div>
+
+                            <!-- Номер на заповед -->
+                            <div class="col-12 sm:col-12 md:col-12 lg:col-2 xl:col-2 ui-fluid">
+                                <h:outputText value="#{labels['zapovedList.nomerZapoved']}" styleClass="form-label" />
+                                <div class="ui-inputgroup">
+                                    <p:inputText value="#{examOrderList.docSearch.rnZap}" id="nomerZapoved"/>
+                                    <p:focus id="focusNomerZap" for="nomerZapoved" />
+                                    <p:selectBooleanButton id="rndEq" value="#{examOrderList.docSearch.rnZapEQ}"
+                                                           onLabel="#{ui_labels['general.yes']}"
+                                                           offLabel="#{ui_labels['general.no']}"
+                                                           title="#{labels['examOrderList.nomerZapEq']}"
+                                                           onIcon="fas fa-toggle-on"
+                                                           offIcon="fas fa-toggle-off"
+                                                           styleClass="inputgroup-button" >
+                                        <p:ajax update="@this nomerZapoved" partialSubmit="true"	process="@this nomerZapoved"/>
+                                    </p:selectBooleanButton>
+                                </div>
+                            </div>
+
+                            <!-- Вид протокол-->
+                            <div  class="col-12 sm:col-12 md:col-6 lg:col-3 xl:col-3  ui-fluid">
+                                <h:outputText value="#{labels['zapovedList.vidProtokol']}" styleClass="form-label"/>
+                                <p:selectOneMenu id ="vidProt" value="#{examOrderList.docSearch.protDocVid}">
+                                    <f:selectItem value="#{null}" itemValue="#{null}"/>
+                                    <f:selectItems  value="#{examOrderList.vidProtList}" />
+                                </p:selectOneMenu>
+                            </div>
+
+                            <!-- Период Дата на протокол - тест-->
+                            <div  class="col-12 sm:col-12 md:col-6 lg:col-3 xl:col-3  ui-fluid">
+                                <h:outputText value="#{labels['zapovedList.periodDataProtTest']}" styleClass="form-label"/>
+                                <p:selectOneMenu id ="periodProtTest" value="#{examOrderList.periodProtTest}">
+                                    <f:selectItem value="#{null}" itemValue="#{null}"/>
+                                    <f:selectItems  value="#{userContext.periodNoFuture}" />
+                                    <p:ajax event="change" update="periodProtTest DataOtTest dataDoTest" listener="#{examOrderList.changePeriodProtTest}"/>
+                                </p:selectOneMenu>
+                            </div>
+
+                            <div  class="col-12 sm:col-6 md:col-3 lg:col-3 xl:col-2  ui-fluid">
+                                <h:outputText value="#{ui_labels['general.dataOt']}" styleClass="form-label"/>
+                                <p:datePicker id="DataOtTest" value="#{examOrderList.docSearch.protTestDateFrom}" pattern="dd.MM.yyyy" mask="true" showOn="button" locale="bg" >
+                                    <p:ajax event="change" update="periodProtTest" listener="#{examOrderList.changeDateProtTest}"/>
+                                    <p:ajax event="dateSelect" update="periodProtTest" listener="#{examOrderList.changeDateProtTest}"/>
+                                </p:datePicker>
+                            </div>
+
+                            <div class="col-12 sm:col-6 md:col-3 lg:col-3  xl:col-2  ui-fluid">
+                                <h:outputText value="#{ui_labels['general.dataDo']}" styleClass="form-label"/>
+                                <p:datePicker id="dataDoTest" value="#{examOrderList.docSearch.protTestDateTo}" pattern="dd.MM.yyyy" mask="true" showOn="button" locale="bg" >
+                                    <p:ajax event="change" update="periodProtTest" listener="#{examOrderList.changeDateProtTest}"/>
+                                    <p:ajax event="dateSelect" update="periodProtTest" listener="#{examOrderList.changeDateProtTest}"/>
+                                </p:datePicker>
+                            </div>
+
+                            <!-- Вид заповед-->
+                            <div  class="col-12 sm:col-12 md:col-6 lg:col-5 xl:col-5  ui-fluid">
+                                <h:outputText value="#{labels['examOrder.vidZapoved']}" styleClass="form-label"/>
+                                <p:selectOneMenu id ="vidZapoved" value="#{examOrderList.docSearch.zapDocVid}">
+                                    <f:selectItem value="#{null}" itemValue="#{null}"/>
+                                    <f:selectItems  value="#{examOrderList.vidDocList}" />
+                                </p:selectOneMenu>
+                            </div>
+
+                            <!-- Период	Дата на протокол – казус -->
+                            <div  class="col-12 sm:col-12 md:col-6 lg:col-3 xl:col-3  ui-fluid">
+                                <h:outputText value="#{labels['zapovedList.periodDataProtKazus']}" styleClass="form-label"/>
+                                <p:selectOneMenu id ="periodProtKazus" value="#{examOrderList.periodProtKasus}">
+                                    <f:selectItem value="#{null}" itemValue="#{null}"/>
+                                    <f:selectItems  value="#{userContext.periodNoFuture}" />
+                                    <p:ajax event="change" update="periodProtKazus DataOtKazus dataDoKazus" listener="#{examOrderList.changePeriodProtKazus}"/>
+                                </p:selectOneMenu>
+                            </div>
+
+                            <div  class="col-12 sm:col-6 md:col-3 lg:col-2 xl:col-2  ui-fluid">
+                                <h:outputText value="#{ui_labels['general.dataOt']}" styleClass="form-label"/>
+                                <p:datePicker id="DataOtKazus" value="#{examOrderList.docSearch.protCaseDateFrom}" pattern="dd.MM.yyyy" mask="true" showOn="button" locale="bg" >
+                                    <p:ajax event="change" update="periodProtKazus" listener="#{examOrderList.changeDateProtKazus}"/>
+                                    <p:ajax event="dateSelect" update="periodProtKazus" listener="#{examOrderList.changeDateProtKazus}"/>
+                                </p:datePicker>
+                            </div>
+
+                            <div class="col-12 sm:col-6 md:col-3 lg:col-2  xl:col-2  ui-fluid">
+                                <h:outputText value="#{ui_labels['general.dataDo']}" styleClass="form-label"/>
+                                <p:datePicker id="dataDoKazus" value="#{examOrderList.docSearch.protCaseDateTo}" pattern="dd.MM.yyyy" mask="true" showOn="button" locale="bg">
+                                    <p:ajax event="change" update="periodProtKazus" listener="#{examOrderList.changeDateProtKazus}"/>
+                                    <p:ajax event="dateSelect" update="periodProtKazus" listener="#{examOrderList.changeDateProtKazus}"/>
+                                </p:datePicker>
+                            </div>
+
+                            <!-- Председател -->
+                            <div class="col-12 sm:col-12 md:col-12 lg:col-5 xl:col-5 ui-fluid">
+                                <h:outputText value="#{labels['zapovedList.predsedatel']}" styleClass="form-label" />
+                                <p:inputText id="predsedatel" value="#{examOrderList.docSearch.predsProt}" />
+                            </div>
+
+                        </div>
+                        <div class="filter-buttons">
+                            <p:commandButton icon="fas fa-search" value="#{ui_labels['general.search']}" actionListener="#{examOrderList.actionSearch}"
+                                             partialSubmit="true" process="@this panelFilter "
+                                             title="#{ui_labels['general.titleSearch']}" update="resultTable" styleClass="mr-3"/>
+
+                            <p:commandButton icon="fas fa-eraser"  value="#{ui_labels['general.clear']}" actionListener="#{examOrderList.actionClear}"
+                                             partialSubmit="true" process="@this panelFilter resultTable"
+                                             title="#{ui_labels['general.titleClear']}" update="panelFilter resultTable" styleClass="ui-button-warning" />
+                        </div>
+
+                    </div>
+                </h:panelGroup>
+            </div>
+
+            <h:panelGroup id="resultTable" layout="block" styleClass="margin-top">
+                <h:panelGroup layout="block" styleClass="card">
+
+                    <div class="table-toolbar">
+                        <h:outputText value="#{ui_labels['general.reportResult']} #{examOrderList.zapovedList.rowCount}" styleClass="form-label mr-2"/>
+                    </div>
+
+                    <p:dataTable id="tableZapoved" value="#{examOrderList.zapovedList}" lazy="true" sortMode="single" reflow="true" emptyMessage="#{ui_labels['general.norows']}"
+                                 var="row" rowIndexVar="idx"	rows="15" rowsPerPageTemplate="5,15,20,25" paginatorPosition="bottom" paginator="true"
+                                 paginatorTemplate="{RowsPerPageDropdown} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {Exporters}">
+
+                        <f:facet name="{Exporters}">
+                            <div style="float:left">
+                                <div style="float:left">
+                                    <p:commandLink id="excel"  rendered="#{examOrderList.zapovedList.rowCount le UriregConstants.ROW_LIMITS_REPORTS}"
+                                                   update="tableZapoved" process="tableZapoved" partialSubmit="true">
+                                        <h:graphicImage library="images" name="excel2.png" />
+                                        <p:dataExporter type="xlsx" target="tableZapoved" fileName="#{examOrderList.reportFileName}" postProcessor="#{examOrderList.postProcessXLSX}"  />
+                                    </p:commandLink>
+                                    <ui:remove>
+                                    <p:commandLink id="pdf"  rendered="#{examOrderList.zapovedList.rowCount le UriregConstants.ROW_LIMITS_REPORTS}"
+                                                   update="tableZapoved" process="tableZapoved" partialSubmit="true">
+                                        <h:graphicImage library="images" name="pdf.png" />
+                                        <p:dataExporter type="pdf" target="tableZapoved" fileName="zapovedList"	 encoding="windows-1251"
+                                                        preProcessor="#{examOrderList.preProcessPDF}" options="#{examOrderList.pdfOptions()}"/>
+                                    </p:commandLink>
+                                    </ui:remove>
+                                </div>
+                            </div>
+                        </f:facet>
+
+                        <p:column width="20" headerText="#{ui_labels['general.No-symbol']}">
+                            <h:outputText value="#{idx + 1}" />
+                        </p:column>
+
+                        <p:column  width="30" exportable="false">
+                            <p:commandButton   icon="fas fa-edit"  action="#{examOrderList.actionGoto(row)}" styleClass="#{examOrderList.isVisited(row[0]) ? 'visited-btn' : ''}" ajax="false" title="#{ui_labels['general.edit']}"/>
+                        </p:column>
+
+                        <p:column width="150" sortBy="#{row.a1}" headerText="#{labels['zapovedList.nomerZapoved']}">
+                            <h:outputText value="#{row[1]}"  />
+                        </p:column>
+
+                        <p:column width="140" sortBy="#{row.a2}" headerText="#{labels['zapovedList.dataZapoved']}">
+                            <h:outputText value="#{row[2]}">
+                                <f:convertDateTime pattern="dd.MM.yyyy" timeZone="#{examOrderList.timeZone}"/>
+                            </h:outputText>
+                        </p:column>
+
+                        <p:column width="150" sortBy="#{row.a6}" headerText="#{labels['zapovedList.dataProtokol']}">
+                            <h:outputText value="#{row[6]}">
+                                <f:convertDateTime pattern="dd.MM.yyyy" timeZone="#{examOrderList.timeZone}"/>
+                            </h:outputText>
+                        </p:column>
+
+                        <p:column width="150" sortBy="#{row.a10}" headerText="#{labels['examOrderList.dateZaqvlenie']}">
+                            <h:outputText value="#{row[10]}">
+                                <f:convertDateTime pattern="dd.MM.yyyy" timeZone="#{examOrderList.timeZone}"/>
+                            </h:outputText>
+                        </p:column>
+
+                        <p:column width="230" sortBy="#{row.a7}" headerText="#{labels['zapovedList.vidProtokol']}">
+                            <h:outputText value="#{systemData.decodeItem(UriregConstants.CODE_CLASSIF_DOC_VID, row[7], examOrderList.currentLang, null)}"/>
+                        </p:column>
+
+                        <p:column width="250" sortBy="#{row.a8}" headerText="#{labels['zapovedList.predsedatel']}">
+                            <h:outputText value="#{row[8]}"  />
+                        </p:column>
+
+                        <p:column styleClass="dbCol200" sortBy="#{row.a9}" headerText="#{labels['zapovedList.chlenoveKomisia']}">
+                            <h:outputText value="#{row[9]}"  />
+                        </p:column>
+
+                    </p:dataTable>
+                </h:panelGroup>
+            </h:panelGroup>
+
+        </h:form>
+    </ui:define>
+
+</ui:composition>

@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="jakarta.faces.html"
+      xmlns:f="jakarta.faces.core"
+      xmlns:p="http://primefaces.org/ui">
+<f:view locale="bg" />
+<h:head>
+	<f:facet name="first">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+		<meta name="viewport"
+			content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" />
+		<meta name="apple-mobile-web-app-capable" content="yes" />
+		<link rel="icon" type="image/png" sizes="144x144" href="#{request.contextPath}/resources/mirage-layout/images/favicon/favicon.png"></link>
+	</f:facet>
+	<title>#{labels['general.systemName']}</title>
+	<h:outputScript name="js/layout.js" library="mirage-layout" />
+
+	<script type="text/javascript">
+            //<![CDATA[
+            function changeMode() {
+                var body = $('.login-body');
+
+                if (body) {
+                    if (body.hasClass('layout-dark')) {
+                        body.removeClass('layout-dark').addClass('layout-light');
+                    } else {
+                        body.removeClass('layout-light').addClass('layout-dark');
+                    }
+                }
+            }
+            //]]>
+        </script>
+</h:head>
+
+<h:body styleClass="login-body layout-light">
+
+	<div class="login-content" style="background-image: none !important;">
+		<div class="night-switch">
+			<h:form>
+				<p:commandButton href="#" styleClass="dark-switch" icon="far fa-sun"
+					onclick="changeMode(); return false;" />
+				<p:commandButton href="#" styleClass="light-switch" icon="far fa-moon"
+					onclick="changeMode(); return false;" />
+			</h:form>
+		</div>
+		<div class="login-panel">
+			<div class="login-panel-content">
+				<div class="logo">
+					<p:graphicImage name="images/gerb.png"
+						library="mirage-layout" />
+				</div>
+				<h1>#{labels['general.systemName']}</h1>
+
+				<h:form styleClass="forms">
+					<div class="login-input-wrapper">
+						<p:outputLabel value="#{beanMessages['login.erorEavtentifikaciq']} " />
+						<p:outputLabel value="#{beanMessages['login.erorEavt2']}" />
+					</div>
+
+					<div class="buttons">
+						<div></div>
+						<p:button href="login" value="#{beanMessages['login.erorEavt4']}" title="#{beanMessages['login.erorEavt3']}" />
+					</div>
+				</h:form>
+			</div>
+		</div>
+
+	</div>
+
+	<h:outputStylesheet name="css/layout-green-dark.css"
+		library="mirage-layout" />
+
+	<h:outputScript library="js" name="scripts.js" />
+</h:body>
+
+</html>

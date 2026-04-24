@@ -1,0 +1,17 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:ui="jakarta.faces.facelets"
+>
+
+    <div class="layout-footer">
+
+    	<div></div>
+
+        <div class="logo-text">
+            <div class="text">
+                <h1>#{labels['general.systemName']}</h1>
+                <span>v #{systemData.srcVersion} ${build.timestamp} #{facesContext.application.projectStage}</span>
+            </div>
+        </div>
+
+    </div>
+</ui:composition>

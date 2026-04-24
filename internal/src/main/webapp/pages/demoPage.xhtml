@@ -1,0 +1,220 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="jakarta.faces.html"
+                xmlns:f="jakarta.faces.core"
+                xmlns:ui="jakarta.faces.facelets"
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:ibg="jakarta.faces.composite/components"
+                 xmlns:jsf="jakarta.faces"
+                template="/template/template.xhtml">
+
+    <ui:define name="title"> Демо страница за въвеждане на обект</ui:define>
+    <ui:define name="viewname">
+
+        <li>
+        	<p:commandLink title="#{ui_labels['general.back']}" action="#{navigation.goBack()}" rendered="#{navigation.navPath.size()>1}">
+				<i class="fas fa-caret-left" />
+			</p:commandLink>
+		</li>
+        <li>Демо страница за въвеждане на обект</li>
+    </ui:define>
+
+    <ui:define name="content">
+        <h:form id="fm">
+
+            	<!-- страница за въвеждане на обект с толбар и панел -->
+            	<div class="card title-group margin-bottom">
+            		Страница за въвеждане на обект с тулбар и панел
+            	</div>
+
+            	<div class="container #{guestPreferences.containerPosition}">
+
+            	<p:toolbar id="tbtnPanel1t">
+					<f:facet name="left">
+						<p:commandButton icon="fas fa-save" value="#{ui_labels['general.save']}"
+							actionListener="#"
+							title="#{labels['doc.saveTitle']}" >
+						</p:commandButton>
+
+						<span class="fas fa-ellipsis-v SoftGray mx-2" />
+
+
+                        <p:commandButton icon="fas fa-edit" value="#{ui_labels['general.new']}"
+							actionListener="#" styleClass="ui-button-success"
+							title="Нов" >
+						</p:commandButton>
+
+					</f:facet>
+					<f:facet name="right">
+
+
+						<p:commandButton icon="fas fa-times" value="#{ui_labels['general.delete']}" title="Изтриване на документ"
+				           	styleClass="ui-button-danger"
+							actionListener="#"  >
+							<p:confirm header="#{ui_labels['general.comfirmation']}" message="#{beanMessages['docu.docDelete']}" icon="fas fa-exclamation-triangle" />
+						</p:commandButton>
+					</f:facet>
+				</p:toolbar>
+                <div class="card">
+
+                    <div class="grid ui-fluid">
+                    	<div class="col-12 lg:col-4">
+                    		<h:outputText value="Име" styleClass="form-label req"/>
+                    		<p:inputText />
+                    	</div>
+                    	<div  class="col-12 lg:col-4">
+                    		<h:outputText value="Презиме" styleClass="form-label req"/>
+                    		<p:inputText  />
+                    	</div>
+                    	<div class="col-12 lg:col-4">
+                    		<h:outputText value="Фамилия" styleClass="form-label req"/>
+                    		<p:inputText  />
+                    	</div>
+                    	<div  class="col-12">
+                    		<h:outputText value="Допълнителни информация" styleClass="form-label"/>
+                    		<p:inputTextarea rows="2"  />
+                    	</div>
+                    </div>
+
+
+                </div>
+
+         		</div>
+         		<!-- край на страница за въвеждане на обект с тулбар и панел -->
+
+         		<br/>
+
+         		<!-- страница за въвеждане на обект с табове и тулбар -->
+         		<div class="card title-group margin-bottom">
+            		Страница за въвеждане на обект с табове и тулбар
+            	</div>
+
+         		<p:tabView id="tabsDoc" dynamic="true" cache="true">
+
+				  	<p:tab title="#{labels['docu.document']}" id="tabMain">
+
+						<p:toolbar styleClass="margin-bottom">
+							<f:facet name="left">
+								<p:commandButton icon="fas fa-save" value="#{ui_labels['general.save']}"
+									actionListener="#"
+									title="#{labels['doc.saveTitle']}" >
+								</p:commandButton>
+
+								<span class="fas fa-ellipsis-v SoftGray mx-2" />
+
+
+		                        <p:commandButton icon="fas fa-edit" value="#{ui_labels['general.new']}"
+										actionListener="#" styleClass="ui-button-success" title="Нов" >
+								</p:commandButton>
+
+							</f:facet>
+							<f:facet name="right">
+
+
+								<p:commandButton icon="fas fa-times" value="#{ui_labels['general.delete']}" title="Изтриване на документ"
+						           	styleClass="ui-button-danger"
+									actionListener="#"  >
+									<p:confirm header="#{ui_labels['general.comfirmation']}" message="#{beanMessages['docu.docDelete']}" icon="fas fa-exclamation-triangle" />
+								</p:commandButton>
+							</f:facet>
+						</p:toolbar>
+
+						<div >
+
+						<div class="table-toolbar">
+							<p:commandLink styleClass="extended-search-toggle expanded" onclick="toggleSection(this, '#fm:tabsDoc:p1RegD')" >
+								<h:outputText value="#{labels['doc.regData']}" />
+								<i class="fas fa-caret-right"></i>
+							</p:commandLink>
+						</div>
+
+						<div jsf:id="p1RegD" class="grid  ui-fluid">
+
+						   <div class="col-12">
+								<p:selectOneRadio  id="typeDoc" immediate="true">
+											<f:selectItems value="#{docData.docTypeList}" />
+								</p:selectOneRadio>
+							</div>
+
+							<h:panelGroup id="pRnDoc" styleClass="col-12  md:col-4"  layout="block" >
+
+								<h:outputText value="#{labels['repDoc.regnom']}" styleClass="form-label req"/>
+								<div class="ui-inputgroup">
+									<p:inputText id="regN"  > </p:inputText>
+
+									<p:commandButton  icon="fas fa-search"
+									 	   id="btnSrcRnDelog"
+										   actionListener="#"
+										   partialSubmit="true"
+										   process=" @this"
+										   update="@form "
+										   title="Търсене на преписка с посочения номер." >
+								 	</p:commandButton>
+
+									<p:selectBooleanButton id="avtNom"
+										styleClass="inputgroup-button"
+									    onLabel="#{ui_labels['general.yes']}"
+										offLabel="#{ui_labels['general.no']}"
+										title="#{labels['docu.avtomRegNom']}"
+									    onIcon="fas fa-toggle-on"
+										offIcon="fas fa-toggle-off" >
+
+									</p:selectBooleanButton>
+								</div>
+							</h:panelGroup>
+
+							<div class="col-12  md:col-2" >
+									<h:outputText value="Дата на рег." styleClass="form-label req" />
+									<p:datePicker id="regDat" showOn="button" inputStyleClass="max-width:150px"  pattern="dd.MM.yyyy HH:mm"   mask="true" />
+							</div>
+
+							<h:panelGroup id="pRnDeloDoc" styleClass="col-12  md:col-6 "  layout="block" >
+								<div style="height: 2em;"></div>
+								<p:selectBooleanCheckbox  itemLabel="#{labels['docu.newPrepiska']}"  />
+							</h:panelGroup>
+
+							<!-- вид документ -->
+							<div  class=" col-12  md:col-6 ">
+								<h:outputText value="#{labels['docu.vid']}" styleClass="form-label req" />
+
+								<ibg:selectOneModalA  id="dVid"
+								    codeClassif="#{UriregConstants.CODE_CLASSIF_DOC_VID}"
+									styleAutoComp=""
+									saveStateTree="true" withBtnClear="true" compType="2"/>
+
+							</div>
+
+
+							<div  class="col-12">
+								<h:outputText value="#{labels['docu.otnosno']}" styleClass="form-label req" />
+								<p:inputTextarea id="otnosno"   rows="4"  />
+							</div>
+
+
+						</div>
+						</div>
+
+					</p:tab>
+
+					<p:tab title="#{labels['docu.tasks']}" id="tabTasks">
+
+			    	</p:tab>
+
+					<p:tab title="#{labels['docu.dvijenie']}" id="tabDvig" >
+
+					</p:tab>
+
+					<p:tab title="#{labels['docu.vraz']}" id="tabVraz" >
+
+		 			</p:tab>
+
+					<p:tab title="#{labels['docu.prepTab']}" id="tabPrep" >
+
+					</p:tab>
+
+				</p:tabView>
+
+
+        </h:form>
+    </ui:define>
+
+</ui:composition>

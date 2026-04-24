@@ -1,0 +1,14 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="jakarta.faces.facelets" xmlns:h="jakarta.faces.html"
+                xmlns:p="http://primefaces.org/ui" xmlns:f="jakarta.faces.core"
+>
+
+	<p:importConstants type="com.ib.urireg.system.UriregConstants" var="UriregConstants" className="com.ib.urireg.system.UriregConstants"/>
+<ui:remove><!--
+	<p:column>
+		<f:facet name="header">
+			<h:outputText value="#{labels['users.zveno']}" />
+		</f:facet>
+		<h:outputText value="#{systemData.decodeItemDopInfo (Constants.CODE_CLASSIF_ADMIN_STR, row[0], userList.currentLang, userList.currentDate)}" />
+	</p:column>
+--></ui:remove>
+</ui:composition>

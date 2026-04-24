@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<persistence xmlns="https://jakarta.ee/xml/ns/persistence"
+			 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+			 xsi:schemaLocation="https://jakarta.ee/xml/ns/persistence https://jakarta.ee/xml/ns/persistence/persistence_3_0.xsd"
+			 version="3.0">
+
+	<persistence-unit name="hibernate" transaction-type="RESOURCE_LOCAL">
+		<provider>org.hibernate.jpa.HibernatePersistenceProvider</provider>
+
+		${jndi.begin}
+		<non-jta-data-source>${urireg.data.source}</non-jta-data-source>
+		${jndi.end}
+
+		<mapping-file>META-INF/orm.xml</mapping-file>
+
+		<class>com.ib.system.db.dto.SystemJournal</class>
+		<class>com.ib.system.db.dto.SystemOption</class>
+		<class>com.ib.system.db.dto.SystemClassifOpis</class>
+		<class>com.ib.system.db.dto.SystemClassif</class>
+		<class>com.ib.system.db.dto.SyslogicListOpisEntity</class>
+		<class>com.ib.system.db.dto.SyslogicListEntity</class>
+		<class>com.ib.system.db.dto.Files</class>
+		<class>com.ib.system.db.dto.FileObject</class>
+
+		<class>com.ib.indexui.db.dto.AdmGroupRole</class>
+		<class>com.ib.indexui.db.dto.AdmGroup</class>
+		<class>com.ib.indexui.db.dto.AdmUserRole</class>
+		<class>com.ib.indexui.db.dto.AdmUser</class>
+
+		<class>com.ib.indexui.db.dto.ModelAis</class>
+		<class>com.ib.indexui.db.dto.ModelAttribute</class>
+		<class>com.ib.indexui.db.dto.ModelMultilang</class>
+		<class>com.ib.indexui.db.dto.ModelObject</class>
+		<class>com.ib.indexui.db.dto.ModelTable</class>
+		<class>com.ib.indexui.db.dto.ModelTableJoin</class>
+		<class>com.ib.indexui.db.dto.MultilangKey</class>
+		<class>com.ib.indexui.db.dto.ModelPersistence</class>
+
+		<class>com.ib.indexui.db.dto.StatElement</class>
+		<class>com.ib.indexui.db.dto.StatTable</class>
+
+		<class>com.ib.indexui.db.dto.UniversalReport</class>
+
+		<class>com.ib.system.db.dto.JobHistory</class>
+
+        <class>com.ib.urireg.db.dto.Referent</class>
+		<class>com.ib.urireg.db.dto.ReferentAddress</class>
+
+		<class>com.ib.urireg.db.dto.Doc</class>
+		<class>com.ib.urireg.db.dto.Izpit</class>
+		<class>com.ib.urireg.db.dto.IzpitResult</class>
+		<class>com.ib.urireg.db.dto.Lice</class>
+		<class>com.ib.urireg.db.dto.LiceDoc</class>
+		<class>com.ib.urireg.db.dto.Staj</class>
+
+		<class>com.ib.urireg.db.dto.ShablonBookmark</class>
+		<class>com.ib.urireg.db.dto.ShablonFile</class>
+		<class>com.ib.urireg.db.dto.ShablonLogic</class>
+
+		<class>com.ib.urireg.db.dto.Message</class>
+		<class>com.ib.urireg.db.dto.MessageLang</class>
+
+		<properties>
+			<property name="db.vendor.name" value="${db.vendor.name}" />
+
+			${conn.params.begin}
+			<property name="hibernate.connection.driver_class" value="${hibernate.connection.driver_class}" />
+			<property name="hibernate.connection.url" value="${hibernate.connection.url}" />
+			<property name="hibernate.connection.username" value="${hibernate.connection.username}" />
+			<property name="hibernate.connection.password" value="${hibernate.connection.password}" />
+			<property name="hibernate.connection.isolation" value="${hibernate.connection.isolation}" />
+			${conn.params.end}
+
+			<property name="hibernate.dialect" value="${hibernate.dialect}" />
+			<property name="hibernate.current_session_context_class" value="${hibernate.current_session_context_class}" />
+			<property name="hibernate.show_sql" value="${hibernate.show_sql}" />
+			<property name="hibernate.format_sql" value="${hibernate.format_sql}" />
+
+			<!-- експериментално -->
+			<property name="hibernate.jdbc.batch_size" value="10" />
+			<property name="hibernate.order_inserts" value="true" />
+			<property name="hibernate.order_updates" value="true" />
+			<property name="hibernate.jdbc.fetch_size" value="40" />
+
+		</properties>
+	</persistence-unit>
+</persistence>

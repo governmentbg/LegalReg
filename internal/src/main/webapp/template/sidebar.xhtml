@@ -1,0 +1,115 @@
+<ui:composition
+		xmlns="http://www.w3.org/1999/xhtml"
+		xmlns:h="jakarta.faces.html"
+		xmlns:ui="jakarta.faces.facelets"
+		xmlns:p="http://primefaces.org/ui"
+		xmlns:pm="http://primefaces.org/mirage"
+		xmlns:o="http://omnifaces.org/ui">
+
+	<p:importConstants type="com.ib.urireg.system.UriregConstants" />
+
+    <div class="layout-sidebar">
+        <div class="sidebar-logo">
+            <a href="#" class="sidebar-pin" title="Toggle Menu">
+                <i class="fas fa-thumbtack"></i>
+            </a>
+            <a href="dashboard.xhtml">
+            	<p:graphicImage name="images/gerb.png" library="mirage-layout" />
+                <span class="app-name">#{labels['general.systemNameShort']}</span>
+            </a>
+        </div>
+
+		<div class="layout-menu-container">
+			<h:form id="menuform">
+				<p:remoteCommand name="cmdUnlockAll"
+								 process="@this" partialSubmit="true"
+								 actionListener="#{sideBar.unlockDoc()}" />
+				<o:cache time="3600" key="docuMenuCache">
+	                <pm:menu>
+
+						<p:submenu id="dosie"  rendered="#{request.userPrincipal.hasAccess(UriregConstants.CODE_CLASSIF_MENU,201)}" label="Досие" icon="fas fa-fw fa-copy" >
+                            <p:menuitem id="dosie_new"  rendered="#{request.userPrincipal.hasAccess(UriregConstants.CODE_CLASSIF_MENU,204)}"  value="Ново досие" action="dossierPerson.xhtml@clear@?faces-redirect=true"  ajax="false"
+                                        icon="fas fa-fw fa-file" title="Въвеждане на ново досие"/>
+	                        <p:menuitem id="dosie_search"  rendered="#{request.userPrincipal.hasAccess(UriregConstants.CODE_CLASSIF_MENU,205)}"  value="Търсене" action="dossierFilterList.xhtml@clear@?faces-redirect=true"  ajax="false"
+                                        icon="fas fa-fw fa-search" title="Търсене за актуализация и разглеждане"/>
+	                    </p:submenu>
+
+                        <p:submenu id="staj" rendered="#{request.userPrincipal.hasAccess(UriregConstants.CODE_CLASSIF_MENU,202)}" label="Заповед за стаж" icon="fas fa-fw fa-copy">
+                            <p:menuitem id="staj_new"  rendered="#{request.userPrincipal.hasAccess(UriregConstants.CODE_CLASSIF_MENU,206)}"  value="Нова заповед за стаж" action="traineeshipOrder.xhtml@clear@?faces-redirect=true"  ajax="false"
+                                        icon="fas fa-fw fa-file" title="Въвеждане на нова заповед за стаж"/>
+                            <p:menuitem id="staj_search"  rendered="#{request.userPrincipal.hasAccess(UriregConstants.CODE_CLASSIF_MENU,207)}"  value="Търсене" action="trainOrderList.xhtml@clear@?faces-redirect=true"  ajax="false"
+                                        icon="fas fa-fw fa-search" title="Търсене за актуализация и разглеждане"/>
+                        </p:submenu>
+
+						<p:submenu id="izpit" rendered="#{request.userPrincipal.hasAccess(UriregConstants.CODE_CLASSIF_MENU,203)}" label="Изпит" icon="fas fa-fw fa-copy">
+							<p:menuitem id="izpit_new"  rendered="#{request.userPrincipal.hasAccess(UriregConstants.CODE_CLASSIF_MENU,208)}"  value="Нова заповед за изпит" action="examOrderEdit.xhtml@clear@?faces-redirect=true"  ajax="false"
+										icon="fas fa-fw fa-file" title="Въвеждане на нова заповед за изпит"/>
+							<p:menuitem id="izpit_search"  rendered="#{request.userPrincipal.hasAccess(UriregConstants.CODE_CLASSIF_MENU,209)}"  value="Търсене" action="examOrderList.xhtml@clear@?faces-redirect=true"  ajax="false"
+										icon="fas fa-fw fa-search" title="Търсене за актуализация и разглеждане"/>
+						</p:submenu>
+
+						<p:menuitem id="mess"  rendered="#{request.userPrincipal.hasAccess(UriregConstants.CODE_CLASSIF_MENU,212)}"  value="Съобщения" action="messagesFilterList.xhtml@clear@?faces-redirect=true"  ajax="false"
+									icon="fas fa-fw fa-comment" title="Съобщения"/>
+
+
+	                    <p:submenu id="spravki" rendered="#{request.userPrincipal.hasAccess(UriregConstants.CODE_CLASSIF_MENU,64)}" label="Справки" icon="fas fa-th-list">
+
+							<p:menuitem id="pblReg"  onclick="cmdUnlockAll()" rendered="#{request.userPrincipal.hasAccess(UriregConstants.CODE_CLASSIF_MENU,211)}" value="#{systemData.decodeItem(UriregConstants.CODE_CLASSIF_MENU, 211, userData.getCurrentLang(), null)}" action="publicRegister.xhtml@clear@?faces-redirect=true" ajax="false" title="Публичен регистър"
+										icon="fas fa-fw fa-copy"/>
+                            <p:menuitem id="izdUP" onclick="cmdUnlockAll()" rendered="#{request.userPrincipal.hasAccess(UriregConstants.CODE_CLASSIF_MENU,210)}" value="#{systemData.decodeItem(UriregConstants.CODE_CLASSIF_MENU, 210, userData.getCurrentLang(), null)}" action="regUD.xhtml@clear@?faces-redirect=true" ajax="false"
+                                        icon="fas fa-fw fa-copy"/>
+							<p:menuitem id="statRep" onclick="cmdUnlockAll()" rendered="#{request.userPrincipal.hasAccess(UriregConstants.CODE_CLASSIF_MENU,216)}" value="#{systemData.decodeItem(UriregConstants.CODE_CLASSIF_MENU, 216, userData.getCurrentLang(), null)}" action="statReportsView.xhtml@clear@?faces-redirect=true" ajax="false"
+										icon="fas fa-fw fa-copy"/>
+                            <p:menuitem id="izdMigr" onclick="cmdUnlockAll()" rendered="#{request.userPrincipal.hasAccess(UriregConstants.CODE_CLASSIF_MENU,213)}" value="#{systemData.decodeItem(UriregConstants.CODE_CLASSIF_MENU, 213, userData.getCurrentLang(), null)}" action="regMigr.xhtml@clear@?faces-redirect=true" ajax="false"
+                                        icon="fas fa-fw fa-copy"/>
+							<p:menuitem id="spravkiJurnal"  onclick="cmdUnlockAll()" rendered="#{request.userPrincipal.hasAccess(UriregConstants.CODE_CLASSIF_MENU,49)}" value="#{systemData.decodeItem(UriregConstants.CODE_CLASSIF_MENU, 49, userData.getCurrentLang(), null)}" action="journal.xhtml@clear@?faces-redirect=true" ajax="false"  icon="fas fa-fw fa-eye" title="#{systemData.decodeItemDopInfo(UriregConstants.CODE_CLASSIF_MENU, 49, userData.getCurrentLang(), null)}" />
+<ui:remove><!--
+							<p:submenu id="spravkiUni" rendered="#{request.userPrincipal.hasAccess(UriregConstants.CODE_CLASSIF_MENU,10)}" label="#{systemData.decodeItem(UriregConstants.CODE_CLASSIF_MENU, 10, userData.getCurrentLang(), null)}" icon="fas fa-file-alt">
+								<p:menuitem id="spravkiInfModel"  onclick="cmdUnlockAll()" rendered="#{request.userPrincipal.hasAccess(UriregConstants.CODE_CLASSIF_MENU,11)}" value="#{systemData.decodeItem(UriregConstants.CODE_CLASSIF_MENU, 11, userData.getCurrentLang(), null)}" action="aisList.xhtml@clear@?faces-redirect=true" ajax="false" title="#{systemData.decodeItemDopInfo(UriregConstants.CODE_CLASSIF_MENU, 11, userData.getCurrentLang(), null)}" icon="fab fa-buromobelexperte"/>
+								<p:menuitem id="spravkiUnivers"  onclick="cmdUnlockAll()" rendered="#{request.userPrincipal.hasAccess(UriregConstants.CODE_CLASSIF_MENU,12)}" value="#{systemData.decodeItem(UriregConstants.CODE_CLASSIF_MENU, 12, userData.getCurrentLang(), null)}" action="uReportList.xhtml@clear@?faces-redirect=true" ajax="false" title="#{systemData.decodeItemDopInfo(UriregConstants.CODE_CLASSIF_MENU, 12, userData.getCurrentLang(), null)}" icon="fas fa-file-alt"/>
+								<p:menuitem id="spravkiStatTabl"  onclick="cmdUnlockAll()" rendered="#{request.userPrincipal.hasAccess(UriregConstants.CODE_CLASSIF_MENU,13)}" value="#{systemData.decodeItem(UriregConstants.CODE_CLASSIF_MENU, 13, userData.getCurrentLang(), null)}" action="statisticsList.xhtml@clear@?faces-redirect=true" ajax="false" title="#{systemData.decodeItemDopInfo(UriregConstants.CODE_CLASSIF_MENU, 13, userData.getCurrentLang(), null)}" icon="fas fa-fw fa-table"/>
+								<p:menuitem id="spravkiStat"  onclick="cmdUnlockAll()" rendered="#{request.userPrincipal.hasAccess(UriregConstants.CODE_CLASSIF_MENU,14)}" value="#{systemData.decodeItem(UriregConstants.CODE_CLASSIF_MENU, 14, userData.getCurrentLang(), null)}" action="reportList.xhtml@clear@?faces-redirect=true" ajax="false" icon="fas fa-fw fa-chart-line" title="#{systemData.decodeItemDopInfo(UriregConstants.CODE_CLASSIF_MENU, 14, userData.getCurrentLang(), null)}" />
+							</p:submenu>
+--></ui:remove>
+                      	</p:submenu>
+
+						<p:submenu id="admin" rendered="#{request.userPrincipal.hasAccess(UriregConstants.CODE_CLASSIF_MENU,1)}" label="#{systemData.decodeItem(UriregConstants.CODE_CLASSIF_MENU, 1, userData.getCurrentLang(), null)}" icon="fas fa-fw fa-cog">
+	                      	<p:submenu id="adminUchastniciProces" rendered="#{request.userPrincipal.hasAccess(UriregConstants.CODE_CLASSIF_MENU,31)}" label="#{systemData.decodeItem(UriregConstants.CODE_CLASSIF_MENU, 31, userData.getCurrentLang(), null)}" icon="fas fa-fw fa-users">
+	                      		<p:menuitem id="adminAdmStrukt" rendered="#{request.userPrincipal.hasAccess(UriregConstants.CODE_CLASSIF_MENU,32)}" value="#{systemData.decodeItem(UriregConstants.CODE_CLASSIF_MENU, 32, userData.getCurrentLang(), null)}" action="admStruct.xhtml@clear@?faces-redirect=true" ajax="false" title="#{systemData.decodeItemDopInfo(UriregConstants.CODE_CLASSIF_MENU, 32, userData.getCurrentLang(), null)}"
+	                      			icon="fas fa-building"/>
+	                      	    <p:menuitem id="adminUser"  onclick="cmdUnlockAll()" rendered="#{request.userPrincipal.hasAccess(UriregConstants.CODE_CLASSIF_MENU,7)}" value="#{systemData.decodeItem(UriregConstants.CODE_CLASSIF_MENU, 7, userData.getCurrentLang(), null)}" action="userList.xhtml@clear@?faces-redirect=true" ajax="false" title="#{systemData.decodeItemDopInfo(UriregConstants.CODE_CLASSIF_MENU, 7, userData.getCurrentLang(), null)}"
+	                      	    	icon="fas fa-user"/>
+	                           <p:menuitem id="adminGrupiUser"  onclick="cmdUnlockAll()" rendered="#{request.userPrincipal.hasAccess(UriregConstants.CODE_CLASSIF_MENU,8)}" value="#{systemData.decodeItem(UriregConstants.CODE_CLASSIF_MENU, 8, userData.getCurrentLang(), null)}" action="groupsList.xhtml@clear@?faces-redirect=true" ajax="false" title="#{systemData.decodeItemDopInfo(UriregConstants.CODE_CLASSIF_MENU, 8, userData.getCurrentLang(), null)}"
+	                           		icon="fas fa-user-friends"/>
+	                           <p:menuitem id="adminUserAktiv" onclick="cmdUnlockAll()"  rendered="#{request.userPrincipal.hasAccess(UriregConstants.CODE_CLASSIF_MENU,9)}" value="#{systemData.decodeItem(UriregConstants.CODE_CLASSIF_MENU, 9, userData.getCurrentLang(), null)}" action="activeUserList.xhtml@clear@?faces-redirect=true" ajax="false" icon="fas fa-fw fa-child" title="#{systemData.decodeItemDopInfo(UriregConstants.CODE_CLASSIF_MENU, 9, userData.getCurrentLang(), null)}" />
+	                      	</p:submenu>
+
+	                      	<p:submenu id="adminSysNastroiki" rendered="#{request.userPrincipal.hasAccess(UriregConstants.CODE_CLASSIF_MENU,38)}" label="#{systemData.decodeItem(UriregConstants.CODE_CLASSIF_MENU, 38, userData.getCurrentLang(), null)}" icon="fas fa-tools">
+                      			<p:menuitem id="adminKlassif" rendered="#{request.userPrincipal.hasAccess(UriregConstants.CODE_CLASSIF_MENU,2)}" value="#{systemData.decodeItem(UriregConstants.CODE_CLASSIF_MENU, 2, userData.getCurrentLang(), null)}" action="systemClassifList.xhtml@clear@?faces-redirect=true" ajax="false" title="#{systemData.decodeItemDopInfo(UriregConstants.CODE_CLASSIF_MENU, 2, userData.getCurrentLang(), null)}"
+	                      			icon="fas fa-tree"/>
+	                           	<p:menuitem id="adminEkatte" rendered="#{request.userPrincipal.hasAccess(UriregConstants.CODE_CLASSIF_MENU,39)}" value="#{systemData.decodeItem(UriregConstants.CODE_CLASSIF_MENU, 39, userData.getCurrentLang(), null)}" action="ekatte.xhtml@clear@?faces-redirect=true" ajax="false" title="#{systemData.decodeItemDopInfo(UriregConstants.CODE_CLASSIF_MENU, 39, userData.getCurrentLang(), null)}"
+	                           		icon="fas fa-map"/>
+							<ui:remove>	<!--
+	                           	<p:menuitem id="adminLogSpisaci" rendered="#{request.userPrincipal.hasAccess(UriregConstants.CODE_CLASSIF_MENU,3)}" value="#{systemData.decodeItem(UriregConstants.CODE_CLASSIF_MENU, 3, userData.getCurrentLang(), null)}" action="syslogicListOpis.xhtml@clear@?faces-redirect=true" ajax="false" title="#{systemData.decodeItemDopInfo(UriregConstants.CODE_CLASSIF_MENU, 3, userData.getCurrentLang(), null)}"
+	                           		icon="fas fa-list"/>
+	                           		--></ui:remove>
+	                           	<p:menuitem id="adminSysNastr" rendered="#{request.userPrincipal.hasAccess(UriregConstants.CODE_CLASSIF_MENU,4)}" value="#{systemData.decodeItem(UriregConstants.CODE_CLASSIF_MENU, 4, userData.getCurrentLang(), null)}" action="systemOptions.xhtml@clear@?faces-redirect=true" ajax="false" icon="fas fa-screwdriver" title="#{systemData.decodeItemDopInfo(UriregConstants.CODE_CLASSIF_MENU, 4, userData.getCurrentLang(), null)}" />
+	                           	<p:menuitem id="adminSysProcesi" rendered="#{request.userPrincipal.hasAccess(UriregConstants.CODE_CLASSIF_MENU,5)}" value="#{systemData.decodeItem(UriregConstants.CODE_CLASSIF_MENU, 5, userData.getCurrentLang(), null)}" action="quartzViewer.xhtml@clear@?faces-redirect=true" ajax="false" title="#{systemData.decodeItemDopInfo(UriregConstants.CODE_CLASSIF_MENU, 5, userData.getCurrentLang(), null)}"
+	                           		icon="fas fa-wrench"/>
+								<p:menuitem id="adminOtkliuchObekt" rendered="#{request.userPrincipal.hasAccess(UriregConstants.CODE_CLASSIF_MENU,43)}"  value="#{systemData.decodeItem(UriregConstants.CODE_CLASSIF_MENU, 43, userData.getCurrentLang(), null)}" action="unLockObjects.xhtml@clear@?faces-redirect=true" ajax="false" title="#{systemData.decodeItemDopInfo(UriregConstants.CODE_CLASSIF_MENU, 43, userData.getCurrentLang(), null)}"
+											icon="fas fa-lock-open"/>
+								<p:menuitem id="adminShabloniFill" rendered="#{request.userPrincipal.hasAccess(UriregConstants.CODE_CLASSIF_MENU,214)}" value="#{systemData.decodeItem(UriregConstants.CODE_CLASSIF_MENU, 214, userData.getCurrentLang(), null)}" action="shabloniFill.xhtml@clear@?faces-redirect=true" ajax="false" title="#{systemData.decodeItemDopInfo(UriregConstants.CODE_CLASSIF_MENU, 214, userData.getCurrentLang(), null)}"
+										icon="fas fa-file-code" />
+							</p:submenu>
+
+							<p:menuitem id="loadingUserData" rendered="#{request.userPrincipal.hasAccess(UriregConstants.CODE_CLASSIF_MENU,215)}" value="#{systemData.decodeItem(UriregConstants.CODE_CLASSIF_MENU, 215, userData.getCurrentLang(), null)}" action="loadingDataFromFile.xhtml@clear@?faces-redirect=true" ajax="false" title="#{systemData.decodeItemDopInfo(UriregConstants.CODE_CLASSIF_MENU, 215, userData.getCurrentLang(), null)}"
+										icon="fas fa-file-upload"/>
+
+	   					</p:submenu>
+
+					</pm:menu>
+              	</o:cache>
+			</h:form>
+		</div>
+	</div>
+</ui:composition>

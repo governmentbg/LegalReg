@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<faces-config
+		xmlns="https://jakarta.ee/xml/ns/jakartaee"
+		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		xsi:schemaLocation="https://jakarta.ee/xml/ns/jakartaee https://jakarta.ee/xml/ns/jakartaee/web-facesconfig_4_0.xsd"
+		version="4.0">
+
+<!--	<managed-bean eager="true">
+		<managed-bean-name>systemData</managed-bean-name>
+		<managed-bean-class>com.ib.uriregeg.system.SystemData</managed-bean-class>
+		<managed-bean-scope>application</managed-bean-scope>
+	</managed-bean>-->
+ 	<!--<managed-bean eager="true">
+		<managed-bean-name>globalDocHolder</managed-bean-name>
+		<managed-bean-class>com.ib.uriregeg.experimental.GlobalHolder</managed-bean-class>
+		<managed-bean-scope>application</managed-bean-scope>
+	</managed-bean>-->
+	<!--<managed-bean eager="true">
+		<managed-bean-name>dvijObserver</managed-bean-name>
+		<managed-bean-class>com.ib.uriregeg.observers.DvijObserver</managed-bean-class>
+		<managed-bean-scope>application</managed-bean-scope>
+	</managed-bean>-->
+<!--	<managed-bean>
+		<managed-bean-name>auditComparator</managed-bean-name>
+		<managed-bean-class>com.ib.uriregeg.components.CompObjAudit</managed-bean-class>
+		<managed-bean-scope>none</managed-bean-scope>
+	</managed-bean>-->
+
+	<!-- <managed-bean eager="true">
+		<managed-bean-name>pushBean</managed-bean-name>
+		<managed-bean-class>com.ib.uriregeg.notifications.PushBean</managed-bean-class>
+		<managed-bean-scope>application</managed-bean-scope>
+	</managed-bean>  -->
+
+
+	<application>
+
+		<!-- ИМА ДОПЪЛНИТЕЛНА КОНФИГУРАЦИЯ В /IndexUIx/src/main/resources/META-INF/faces-config.xml
+			КОЯТО СЕ НАСЛЕДЯВА ТУКА -->
+
+		<locale-config>
+			<default-locale>bg</default-locale>
+			<supported-locale>en</supported-locale>
+		</locale-config>
+
+		<!-- Навигационните са общи и стоят в основния проект -->
+		<resource-bundle>
+			<base-name>i18n.navigation</base-name>
+			<var>navTexts</var>
+		</resource-bundle>
+		<!-- и тези конкретните за системата -->
+		<resource-bundle>
+			<base-name>i18n.beanMessages</base-name>
+			<var>beanMessages</var>
+		</resource-bundle>
+		<resource-bundle>
+			<base-name>i18n.labels</base-name>
+			<var>labels</var>
+		</resource-bundle>
+
+		<system-event-listener>
+			<system-event-listener-class>com.ib.urireg.system.MySystemListener</system-event-listener-class>
+			<system-event-class>jakarta.faces.event.PostConstructApplicationEvent</system-event-class>
+		</system-event-listener>
+		<system-event-listener>
+			<system-event-listener-class>com.ib.urireg.system.MySystemListener</system-event-listener-class>
+			<system-event-class>jakarta.faces.event.PreDestroyApplicationEvent</system-event-class>
+		</system-event-listener>
+
+	</application>
+
+</faces-config>

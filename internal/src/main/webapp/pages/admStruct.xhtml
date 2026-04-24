@@ -1,0 +1,728 @@
+<ui:composition
+ 		xmlns="http://www.w3.org/1999/xhtml"
+		xmlns:h="jakarta.faces.html"
+		xmlns:f="jakarta.faces.core"
+		xmlns:ui="jakarta.faces.facelets"
+		xmlns:p="http://primefaces.org/ui"
+		xmlns:ibg="jakarta.faces.composite/components"
+		template="/template/template.xhtml">
+
+		<ui:define name="metadata">
+			<f:metadata>
+				<f:importConstants type="com.ib.urireg.system.UriregConstants" />
+			    <f:viewAction action="#{userData.checkPageAccess(32)}" onPostback="false" />
+				<f:viewAction action="#{userData.checkReloadPage}" onPostback="false" />
+			</f:metadata>
+		</ui:define>
+
+		<ui:define name="title">#{navTexts['/pages/admStructТree.xhtml']}</ui:define>
+
+		<ui:define name="viewname">
+	        <li>#{navTexts['/pages/admStructТree.xhtml']}</li>
+	    </ui:define>
+
+
+	<ui:define name="content">
+
+		<h:form id="admStructForm">
+
+	    <h:panelGroup id="pgOK" rendered="#{admStruct.fLockOk}">
+
+			<div class="grid container-white">
+            	<div class="col-12 md:col-4 ui-fluid">
+
+					<p:tabView id="tabsAdmStruct"  dynamic="true" cache="true">
+						<p:tab title="#{labels['admStruct.admStruct']}" id="tabTree" >
+							<p:scrollPanel mode="native" style="width:100%; height:595px; padding: 0;">
+								<p:tree value="#{admStruct.rootNode}"  var="node" style="width:100%;border:none" id="admStrTree" nodeVar="rowNode" selectionMode="single">
+								    <p:ajax event="select" update="admStructForm:tabsEditZvenaSluj admStructForm:tabsAdmStruct:menuGroup" listener="#{admStruct.processSelection}"/>
+								    <p:ajax event="contextMenu" listener="#{admStruct.onContextMenu}" />
+								     <p:treeNode expandedIcon="fas fa-folder-open" collapsedIcon="fas fa-folder" icon="fas fa-folder" >
+								           <h:outputText value="#{node.tekst}" escape="false"/>
+								     </p:treeNode>
+
+								</p:tree>
+							</p:scrollPanel>
+							<h:panelGroup id="menuGroup">
+								<p:contextMenu  rendered="#{admStruct.selectedNode!=null}" for="admStrTree" style="width:240px" id="menuTree"  nodeType="default">
+
+				                    <p:menuitem id="addBefore" value="#{ui_labels['classif.newItemBefore']}" update="admStructForm:tabsEditZvenaSluj" actionListener="#{admStruct.actionSelectNew}" icon="fas fa-arrow-up"/>
+				                    <p:menuitem id="addAfter" value="#{ui_labels['classif.newItemAfter']}" update="admStructForm:tabsEditZvenaSluj" actionListener="#{admStruct.actionSelectNew}" icon="fas fa-arrow-down"/>
+				                    <p:menuitem id="addChild" value="#{ui_labels['classif.newItemChild']}" update="admStructForm:tabsEditZvenaSluj" actionListener="#{admStruct.actionSelectNew}" icon="fas fa-arrow-right"/>
+
+				               </p:contextMenu>
+			               </h:panelGroup>
+		               </p:tab>
+
+		               <p:tab title="#{labels['general.search']}" id="tabSearch" >
+
+			                <div class="ui-inputgroup" style="width: 100%">
+			                    <p:inputText id="searchTxt" value="#{admStruct.searchName}"/>
+			                    <p:commandButton action="#{admStruct.actionSearch}" update="admStructForm:tabsAdmStruct:searchRez admStructForm:tabsAdmStruct:searchTxt" styleClass="btn-search inputgroup-button" icon="fas fa-search" title="#{ui_labels['general.search']}"/>
+
+			                </div>
+			                <br/>
+			                <div>
+			                 	<h:panelGroup id="searchRez">
+				                	<p:dataView rendered="#{admStruct.searchList.rowCount>0}"  value="#{admStruct.searchList}" rowIndexVar="rowVar" lazy="true" var="row"  emptyMessage="#{ui_labels['general.norows']}"
+				                	 	paginator="true" rows="10" rowsPerPageTemplate="10,20,30" paginatorPosition="bottom"  paginatorAlwaysVisible="false"
+	                					paginatorTemplate="{FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+	                					gridIcon="fas fa-border-all" listIcon="fas fa-bars" layout="list"
+	                					>
+
+						        		<f:facet name="header">
+								          #{ui_labels['general.result']}
+								        </f:facet>
+
+								        <p:dataViewListItem>
+
+								        <p:commandLink    action="#{admStruct.selectForEdit(row)}" update="admStructForm:tabsEditZvenaSluj" ajax="true"
+								         title="#{systemData.decodeItemDopInfo(UriregConstants.CODE_CLASSIF_ADMIN_STR, row[0], admStruct.currentLang, admStruct.currentDate)}">
+
+								        	<h:panelGroup rendered="#{row[2] == UriregConstants.CODE_ZNACHENIE_REF_TYPE_EMPL}" styleClass="mr-2"><i class="fas fa-user"></i></h:panelGroup>
+								        	<h:panelGroup rendered="#{row[2] != UriregConstants.CODE_ZNACHENIE_REF_TYPE_EMPL}" styleClass="mr-2"><i class="fas fa-folder"></i></h:panelGroup>
+
+							      			<h:outputText  value="#{row[1]}"/>
+
+								       	</p:commandLink>
+										</p:dataViewListItem>
+								    </p:dataView>
+							    </h:panelGroup>
+			                </div>
+			            </p:tab>
+		        	</p:tabView>
+				</div>
+				<div class="col-12 md:col-8">
+
+					<p:tabView id="tabsEditZvenaSluj" binding="#{admStruct.tabView}" dynamic="true" cache="true">
+
+						<p:tab title="#{labels['users.zveno']}" id="tabZveno" rendered="#{admStruct.viewTab}">
+							<h:panelGroup id="panelZveno" layout="block">
+
+								<p:toolbar styleClass="margin-bottom" id="tbPanelTab1">
+									<f:facet name="left">
+										<p:commandButton icon="fas fa-save" action="#{admStruct.actionSaveZveno}" update="admStructForm"  value="#{ui_labels['general.save']}" styleClass="mr-2"/>
+										<p:commandButton rendered="#{admStruct.referent.id!=null}" update="admStructForm:panelMoveZveno" styleClass="ui-button-success mr-2"
+										 	value="#{labels['admStruct.move']}" action="#{admStruct.actionButtMoveZveno}" onclick="PF('dlgMoveZveno').show();"/>
+										<p:commandButton rendered="#{admStruct.referent.id!=null}" action="#{admStruct.actionButtCloseZveno}" value="#{labels['admStruct.remove']}"
+										 	update="admStructForm:panelCloseZveno" onclick="PF('dlgCloseZveno').show();"  styleClass="ui-button-secondary mr-2"/>
+										<p:commandButton icon="fas fa-info-circle" action="#{admStruct.searchHistoryZveno}" update="admStructForm:panelDataHistory" styleClass="ui-button-info mr-2"
+											onclick="PF('admHistoryDlg').show();" value="#{labels['admStruct.viewHistory']}" rendered="#{admStruct.referent.id!=null}" />
+									</f:facet>
+									<f:facet name="right">
+										<h:panelGroup id="pRegInfoZveno" rendered="#{admStruct.referent.id != null}" styleClass="mr-2">
+										<ibg:compObjAudit idObj="#{admStruct.referent.code}"
+													 	codeObj="#{UriregConstants.CODE_ZNACHENIE_JOURNAL_REFERENT}"
+													 	identInfo="#{admStruct.referent.refName}" />
+										</h:panelGroup>
+										<p:commandButton icon="fas fa-times"  action="#{admStruct.actionDeleteZveno}"  onclick="if(!confirm('#{labels['general.confirm']}'))return false;"
+											rendered="#{admStruct.referent.id!=null}" update="admStructForm" value="#{ui_labels['general.delete']}" styleClass="ui-button-danger" />
+									</f:facet>
+								</p:toolbar>
+
+								<h:panelGroup id="panelZvenoReg">
+
+									<div class="grid ui-fluid align-items-end">
+
+									<!-- Име на звено -->
+									<div class="col-12  md:col-5">
+										<h:outputText value="#{labels['admStruct.nameZveno']}" styleClass="form-label req" />
+										<p:inputText id="nameZveno" value="#{admStruct.referent.refName}" />
+									</div>
+
+									<!--ЕИК -->
+									<div class="col-12  md:col-2">
+										<h:outputText value="#{labels['admStruct.eik']}" styleClass="form-label" />
+										<p:inputText id="eik" value="#{admStruct.referent.nflEik}" />
+
+									</div>
+
+									<!-- Член на регистратура -->
+									<div class="col-12  md:col-5">
+										<h:outputText value="#{labels['users.registratura']}" styleClass="form-label req"/>
+
+										<ibg:selectOneModalA  codeClassif="#{UriregConstants.CODE_CLASSIF_REGISTRATURI}"
+											id="registratura"  dateClassif="#{admStruct.decodeDate}" filtered="false"
+											selectedCode="#{admStruct.referent.refRegistratura}" saveStateTree="true"
+											withBtnClear="false" compType="4" styleAutoComp="" />
+									</div>
+
+									<!-- Забележка -->
+									<div class="col-12">
+										<h:outputText value="#{labels['docu.note']}:" styleClass="form-label"/>
+										<p:inputTextarea rows="3" value="#{admStruct.referent.refInfo}" />
+									</div>
+
+								</div>
+
+								<div class="col-12">
+									<p:commandLink class="extended-search-toggle expanded"  onclick="toggleSection(this, '#contacts')">
+										<h:outputText value="#{labels['refCorr.contacts']}"/>
+										<i class="fas fa-caret-right"></i>
+									</p:commandLink>
+								</div>
+
+								<div class="grid ui-fluid align-items-end" id="contacts" >
+
+								<div class="col-6 md:col-4"  >
+
+									<h:outputText value="#{ui_labels['general.ekatte']}"  styleClass="form-label"/>
+
+										<ibg:selectOneModalA  id="mestoC"
+											update="admStructForm:tabsEditZvenaSluj:oblObsh"
+											codeClassif="#{UriregConstants.CODE_CLASSIF_EKATTE}"
+											styleAutoComp=""
+											selectedCode="#{admStruct.referent.address.ekatte}"
+											emptyMessage="#{labels['docu.mestoEmptyMsg']}"
+											saveStateTree="false" withBtnClear="true" compType="3" minQueryLength="3"
+											dopInfoAutoComp="true" dopInfoTitleAutoComp="#{ui_labels['general.ekatteObshObl']}"/>
+
+								</div>
+
+								<div class="col-6 md:col-4" >
+									<h:outputText value="#{ui_labels['general.ekatteObshObl']}" styleClass="form-label" />
+									<h:panelGroup id="oblObsh">
+										<p:inputText readonly="true" value="#{systemData.decodeItemDopInfo(UriregConstants.CODE_CLASSIF_EKATTE, admStruct.referent.address.ekatte,admStruct.currentLang, admStruct.currentDate)}" />
+									</h:panelGroup>
+								</div>
+
+
+								<div class="col-12 md:col-8" >
+									<h:outputText value="#{ui_labels['general.adres']}" styleClass="form-label"/>
+									<p:inputText  value="#{admStruct.referent.address.addrText}" id="adrTxt"/>
+
+								</div>
+
+								<div class="col-6 md:col-2"  >
+									<h:outputText value="#{ui_labels['general.adrPostCode']}" styleClass="form-label" />
+									<p:inputText value="#{admStruct.referent.address.postCode}" />
+								</div>
+
+								<div class="col-6 md:col-2"  >
+									<h:outputText value="#{ui_labels['general.adrPostBox']}" styleClass="form-label" />
+									<p:inputText  value="#{admStruct.referent.address.postBox}"  />
+								</div>
+
+								<div class="col-6 md:col-6" >
+									<h:outputText value="#{ui_labels['general.email']}" styleClass="form-label" />
+									<p:inputText id="emailZveno" value="#{admStruct.referent.contactEmail}"  />
+								</div>
+
+								<div class="col-6 md:col-6" >
+									<h:outputText value="#{ui_labels['general.phone']}" styleClass="form-label" />
+									<p:inputText  value="#{admStruct.referent.contactPhone}"  />
+								</div>
+							</div>
+						</h:panelGroup>
+					</h:panelGroup>
+				</p:tab>
+
+				<p:tab title="#{labels['admStruct.employees']}" id="tabSluj" rendered="#{admStruct.referent.id!=null}">
+
+								<!--Списък със служители-->
+
+								<h:panelGroup id="panelTable" >
+									<h:panelGroup layout="block" >
+
+
+										<div class="col-12" align="left">
+											<h:outputText value="#{systemData.decodeItem(UriregConstants.CODE_CLASSIF_REGISTRATURI,admStruct.referent.refRegistratura,admStruct.currentLang, admStruct.currentDate)}" />
+										</div>
+
+										<div class="col-12">
+											<p:commandLink class="extended-search-toggle expanded" onclick="toggleSection(this, '#slujiteliList')">
+												<h:outputText value="#{labels['admStruct.employees']}" />
+
+												<i class="fas fa-caret-right"></i>
+											</p:commandLink>
+										</div>
+
+
+										<div id="slujiteliList">
+											<div class="table-toolbar" >
+											    <h:panelGroup id="buttSelection">
+												    <h:panelGroup rendered="#{admStruct.selectedSlujAllM.size()>0}">
+														<p:commandButton value="#{labels['admStruct.move']}" styleClass="ui-button-success"  action="#{admStruct.actionButtMoveEmpl}" update="admStructForm:panelMoveEmpl"/>
+														<span class="ui-separator" style="padding-right: 5px;">
+															<span class="fas fa-ellipsis-v" />
+														</span>
+														<p:commandButton value="#{labels['admStruct.leaveSelected']}" styleClass="ui-button-secondary" action="#{admStruct.actionButtLeaveEmpl}" />
+														<span class="ui-separator" style="#{admStruct.selectedSlujAllM.size()>0?'padding-right: 5px;':'display:none'}" >
+															<span class="fas fa-ellipsis-v" />
+														</span>
+
+														<h:outputText value="#{labels['opis.brIzbr']}: #{admStruct.selectedSlujAllM.size()}" rendered="#{admStruct.selectedSlujAllM.size()>0}" styleClass="form-label" id="brSelSluj"/>
+
+													</h:panelGroup>
+												</h:panelGroup>
+											</div>
+
+											<p:dataTable id="tblSlujiteli" var="row" value="#{admStruct.slujiteliList}" lazy="true" rowIndexVar="idx" sortMode="single"
+												emptyMessage="#{ui_labels['general.norows']}" reflow="true" selection="#{admStruct.selectedSluj}" rowKey="#{row[0]}" selectionRowMode="none"
+												paginatorTemplate="{RowsPerPageDropdown} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {Exporters}"
+												rows="5" rowsPerPageTemplate="5,15,20,25" paginatorPosition="bottom" paginatorAlwaysVisible="true" paginator="true">
+
+												<p:ajax event="toggleSelect" process="@this" listener="#{admStruct.onRowSelectAll}"  update="admStructForm:tabsEditZvenaSluj:buttSelection"/>
+												<p:ajax event="rowSelectCheckbox" process="@this" listener="#{admStruct.onRowSelect}" update="admStructForm:tabsEditZvenaSluj:buttSelection" />
+												<p:ajax event="rowUnselectCheckbox" process="@this" listener="#{admStruct.onRowUnselect}" update="admStructForm:tabsEditZvenaSluj:buttSelection" />
+												<p:ajax event="page" listener="#{admStruct.onPageUpdateSelected}" />
+
+												<p:column width="50" style="text-align: center" exportable="false" headerText="#{ui_labels['general.No-symbol']}">
+													<h:outputText value="#{idx + 1}" />
+												</p:column>
+
+												<p:column  selectionBox="true" width="50" style="text-align: center"/>
+
+												<p:column width="50" style="text-align: center">
+													<p:commandButton icon="fas fa-edit"  action="#{admStruct.actionEditSluj(row[0])}" update="admStructForm:tabsEditZvenaSluj:panelSluj" ajax="true" title="#{ui_labels['general.edit']}" />
+												</p:column>
+
+												<p:column width="*" sortBy="#{row.a2}" headerText="#{labels['admStruct.names']}">
+													<h:outputText value="#{row[2]}" />
+												</p:column>
+
+												<p:column width="100" sortBy="#{row.a3}" headerText="#{labels['regGrSluj.position']}">
+													<h:outputText 	value="#{systemData.decodeItem(UriregConstants.CODE_CLASSIF_POSITION, row[3],admStruct.currentLang, admStruct.currentDate)}" />
+												</p:column>
+
+												<p:column width="150" sortBy="#{row.a4}" headerText="#{labels['admStruct.email']}">
+													<h:outputText value="#{row[4]}" />
+												</p:column>
+												<ui:remove>
+													<p:column width="60" sortBy="#{row.a5}" headerText="#{labels['refDeleg.dateFrom']}">
+														<h:outputText value="#{row[5]}" >
+															<f:convertDateTime pattern="dd.MM.yyyy"  timeZone="#{admStruct.timeZone}" />
+														</h:outputText>
+													</p:column>
+												</ui:remove>
+											</p:dataTable>
+										</div>
+									</h:panelGroup>
+								</h:panelGroup>
+
+								<!--Въвеждане на служители-->
+
+									<h:panelGroup id="panelSluj" layout="block" >
+
+
+
+										<div class="col-12">
+											<p:commandLink class="extended-search-toggle expanded" onclick="toggleSection(this, '#newSluj')">
+												<h:outputText value="#{labels['refDeleg.employee']}" />
+												<i class="fas fa-caret-right"></i>
+											</p:commandLink>
+										</div>
+
+										<div id="newSluj">
+
+										<p:toolbar styleClass="margin-bottom" >
+											<f:facet name="left">
+												<p:commandButton icon="fas fa-save" update="admStructForm:tabsEditZvenaSluj:panelTable admStructForm:tabsEditZvenaSluj:panelSluj" action="#{admStruct.actionSaveSluj}" value="#{ui_labels['general.save']}" />
+												<span class="fas fa-ellipsis-v SoftGray mx-2" />
+
+					                            <p:commandButton icon="fas fa-file" action="#{admStruct.actionNewEmpl}" update="admStructForm:tabsEditZvenaSluj:panelSluj"  value="#{labels['admStruct.newEmployee']}" styleClass="ui-button-success" />
+												<span class="fas fa-ellipsis-v SoftGray mx-2" />
+
+												<p:commandButton icon="fas fa-info-circle" styleClass="ui-button-info" action="#{admStruct.searchHistoryEmpl}" update="admStructForm:panelDataHistory"
+													onclick="PF('admHistoryDlg').show();" value="#{labels['admStruct.viewHistory']}" rendered="#{admStruct.referentSluj.id!=null}" />
+
+												<p:commandButton  action="#{admStruct.actionLoadLeft}" update="admStructForm:panelSelectEmpl"
+													onclick="PF('dlgSelectLeftEmpl').show();" value="#{labels['admStruct.selectFromleft']}" rendered="#{admStruct.referentSluj.id==null}" />
+
+
+											</f:facet>
+											<f:facet name="right">
+												<h:panelGroup id="pRegInfoSluj" rendered="#{admStruct.referentSluj.id!=null}" styleClass="mr-2">
+												<ibg:compObjAudit idObj="#{admStruct.referentSluj.code}"
+															 	codeObj="#{UriregConstants.CODE_ZNACHENIE_JOURNAL_REFERENT}"
+															 	identInfo="#{admStruct.referentSluj.refName}"/>
+												</h:panelGroup>
+												<h:panelGroup rendered="#{admStruct.referentSluj.id!=null}">
+													<p:commandButton value="#{labels['admStruct.move']}" styleClass="ui-button-success"
+													onclick="PF('dlgMoveEmpl').show();"  action="#{admStruct.actionMoveSingleEmpl}" update="admStructForm:panelMoveEmpl"/>
+
+													<span class="fas fa-ellipsis-v mx-2" />
+
+
+													<p:commandButton  value="#{labels['admStruct.leaveSelected']}" styleClass="ui-button-secondary"
+													action="#{admStruct.actionLeaveSingleEmpl}" onclick="PF('dlgLeaveEmpl').show();"/>
+
+													<span class="fas fa-ellipsis-v mx-2" />
+
+												</h:panelGroup>
+
+												<p:commandButton icon="fas fa-times"  action="#{admStruct.actionDeleteEmpl}"  onclick="if(!confirm('#{labels['general.confirm']}'))return false;"
+													rendered="#{admStruct.referentSluj.id!=null and admStruct.emplDeleteAllowed}" update="admStructForm:tabsEditZvenaSluj:panelTable admStructForm:tabsEditZvenaSluj:panelSluj" value="#{ui_labels['general.delete']}" styleClass="ui-button-danger" />
+											</f:facet>
+										</p:toolbar>
+
+										<div class="grid ui-fluid align-items-end">
+
+											<!-- Име на служител -->
+											<div class="col-12  md:col-6">
+												<h:outputText value="#{labels['admStruct.names']}" styleClass="form-label req" />
+												<p:inputText id="nameSluj" value="#{admStruct.referentSluj.refName}" />
+											</div>
+
+											<!--ЕГН -->
+											<ui:remove><!--
+											<div class="col-5  md:col-2">
+												<h:outputText value="#{labels['admStruct.egn']}" styleClass="form-label" />
+												<p:inputText id="egn" value="#{admStruct.referentSluj.fzlEgn}" />
+
+											</div>--></ui:remove>
+
+											<!-- Длъжност -->
+											<div class="col-7  md:col-4">
+												<h:outputText value="#{labels['regGrSluj.position']}" styleClass="form-label"/>
+
+												<ibg:selectOneModalA  codeClassif="#{UriregConstants.CODE_CLASSIF_POSITION}"
+													id="poss"  dateClassif="#{admStruct.decodeDate}" filtered="false"
+													selectedCode="#{admStruct.referentSluj.emplPosition}" saveStateTree="true"
+													withBtnClear="true" compType="4" styleAutoComp="" sortByName="true" />
+
+											</div>
+
+											<!--email -->
+											<div class="col-5  md:col-3">
+												<h:outputText value="#{labels['admStruct.email']}" styleClass="form-label" />
+												<p:inputText id="email" value="#{admStruct.referentSluj.contactEmail}" />
+
+											</div>
+
+											<!--Телефон -->
+											<div class="col-6  md:col-3">
+												<h:outputText value="#{labels['admStruct.telefon']}" styleClass="form-label" />
+												<p:inputText id="phone" value="#{admStruct.referentSluj.contactPhone}" />
+
+											</div>
+
+											<ui:remove><!-- Граждански договор
+											<div class="col-6 md:col-3">
+												<p:selectBooleanCheckbox value="#{admStruct.contract}" styleClass="form-label" itemLabel="#{labels['admStruct.grDogovor']}" />
+											</div>
+											--></ui:remove>
+										<!-- Забележка -->
+										<div class="col-12">
+											<h:outputText value="#{labels['docu.note']}:" styleClass="form-label"/>
+											<p:inputTextarea rows="3" value="#{admStruct.referentSluj.refInfo}" />
+										</div>
+
+									</div>
+								</div>
+							</h:panelGroup>
+						</p:tab>
+					</p:tabView>
+				</div>
+
+			</div>
+
+			<!-- Преместване на звено -->
+
+				<p:dialog header="#{labels['admStruct.moveZveno']}" appendTo="@form"  responsive="true" resizable="true"  widgetVar="dlgMoveZveno" modal="true" width="600" height="450">
+
+				    <p:messages id="messagesMoveZv" >
+				    	<p:autoUpdate />
+				    </p:messages>
+
+					<h:panelGroup id="panelMoveZveno" layout="block" styleClass="grid ui-fluid">
+
+					<div class="col-12">
+						<p:scrollPanel mode="native" style="width:100%; height:200px;">
+								<p:tree value="#{admStruct.rootNode}"  var="node" style="width:100%;border:none" id="treeMoveZveno" nodeVar="rowNode" selectionMode="single">
+								    <p:ajax event="select" update="admStructForm:diferentRegistr" listener="#{admStruct.changeRegMove}"/>
+								     <p:treeNode expandedIcon="fas fa-folder-open" collapsedIcon="fas fa-folder" icon="fas fa-folder" >
+								           <h:outputText value="#{node.tekst}" escape="false"/>
+								     </p:treeNode>
+
+								</p:tree>
+							</p:scrollPanel>
+						</div>
+
+				    	 <div class="col-12 align-items-end" style="display:flex">
+				    		<h:outputText value="#{labels['admStruct.move']}:" />
+							<p:selectOneRadio id="radioPossition" value="#{admStruct.radioPossition}"   columns="2">
+								<f:selectItem itemLabel="#{ui_labels['general.before']}"    itemValue="1" />
+						        <f:selectItem itemLabel="#{ui_labels['general.after']}"  itemValue="2"/>
+								<f:selectItem itemLabel="#{ui_labels['general.child']}"  itemValue="3"/>
+								<p:ajax event="change"  update="admStructForm:diferentRegistr"
+						 	        process="@this " listener="#{admStruct.changeMoveZvenoRadio}"/>
+							</p:selectOneRadio>
+						</div>
+
+						 <div class="col-12">
+							<p:selectBooleanCheckbox value="#{admStruct.onlyChildren}" itemLabel="#{labels['admStruct.onlyChild']}" />
+
+					 	 </div>
+					 	  <h:panelGroup id="diferentRegistr">
+						 	  <h:panelGroup rendered="#{admStruct.visibleRadioSaveRegistr}">
+							 	 <div class="col-12">
+								 	  	<h:outputText value="#{labels['admStruct.selectedRegIs']}: "/>
+								 	  	<h:outputText value="#{systemData.decodeItem(UriregConstants.CODE_CLASSIF_REGISTRATURI, admStruct.registrParent,admStruct.currentLang, admStruct.currentDate)}" />
+
+							 	 </div>
+							 	 <div class="col-12">
+									<p:selectOneRadio id="radioReg" value="#{admStruct.radioSaveRegistr}" columns="2">
+										<f:selectItem itemLabel="#{labels['admStruct.saveReg']}"    itemValue="1" />
+								        <f:selectItem itemLabel="#{labels['admStruct.moveNewReg']}"  itemValue="2"/>
+									</p:selectOneRadio>
+								</div>
+							</h:panelGroup>
+						</h:panelGroup>
+
+							<!-- Забележка -->
+							<div class="col-12">
+								<h:outputText value="#{labels['docu.note']}:" styleClass="form-label"/>
+								<p:inputTextarea rows="3" value="#{admStruct.refInfoMoveZveno}" />
+							</div>
+
+						</h:panelGroup>
+
+					<f:facet name="footer">
+
+			          	<div class="grid grid-nogutter">
+				       		<div class="col-6" align="left">
+						       	 	<p:commandButton id="bntClose"  icon="fas fa-times"
+						       	 	styleClass="ui-button-secondary" value="#{labels['register.cancel']}" oncomplete="PF('dlgMoveZveno').hide();" />
+						 	</div>
+				       		<div class="col-6" align="right">
+						       	 	<p:commandButton id="btnConf"  action="#{admStruct.actionMoveZveno}" update="admStructForm:tabsAdmStruct:admStrTree"
+						       	 	value="#{ui_labels['general.comfirmation']}"  onclick="if(!confirm('#{labels['general.confirm']}'))return false;"/>
+						 	</div>
+				       	</div>
+			       	</f:facet>
+				</p:dialog>
+
+				<!-- Преместване на служители -->
+
+				<p:dialog header="#{labels['admStruct.moveEmpl']}" appendTo="@form"  responsive="true" resizable="true"  widgetVar="dlgMoveEmpl" modal="true" width="600" height="450">
+
+				    <p:messages id="messagesMoveEmp" >
+				    	<p:autoUpdate />
+				    </p:messages>
+
+					<h:panelGroup id="panelMoveEmpl" layout="block">
+					    	<div class="grid ui-fluid align-items-end col-12" >
+					    	<div class="col-12 sm:col-12 md:col-12 lg:col-12 " >
+					    	<h:outputText value="#{labels['admStruct.moveEmplInfo']}" />
+					    	</div>
+					    	 <div class="col-12 sm:col-12 md:col-12 lg:col-12 " >
+					    		<h:outputText value="#{labels['admStruct.moveIn']}:" />
+
+							<p:scrollPanel mode="native" style="width:100%; height:250px; padding: 0;">
+								<p:tree value="#{admStruct.rootNode}"  var="node" style="width:100%;border:none" id="treeMoveEmpl" nodeVar="rowNode" selectionMode="single">
+								    <p:ajax event="select"  listener="#{admStruct.changeRegMove}"/>
+								     <p:treeNode expandedIcon="fas fa-folder-open" collapsedIcon="fas fa-folder" icon="fas fa-folder">
+								           <h:outputText value="#{node.tekst}" escape="false"/>
+								     </p:treeNode>
+
+								</p:tree>
+							</p:scrollPanel>
+
+					        </div>
+
+							<!-- Забележка -->
+							<div class="col-12">
+								<h:outputText value="#{labels['docu.note']}:" styleClass="form-label"/>
+								<p:inputTextarea rows="3" value="#{admStruct.emplMoveNote}" />
+							</div>
+
+							</div>
+
+						</h:panelGroup>
+
+					<f:facet name="footer">
+
+			          	<div class="grid grid-nogutter">
+				       		<div class="col-6" align="left">
+						       	 	<p:commandButton id="bntCloseEmpl"  icon="fas fa-times"
+						       	 	styleClass="ui-button-secondary" value="#{labels['register.cancel']}" oncomplete="PF('dlgMoveEmpl').hide();" />
+						 	</div>
+				       		<div class="col-6" align="right">
+						       	 	<p:commandButton id="bntConfEmpl"  action="#{admStruct.actionMoveEmpl}"
+						       	 	value="#{ui_labels['general.comfirmation']}" update="admStructForm:tabsEditZvenaSluj:panelTable admStructForm:tabsEditZvenaSluj:panelSluj" />
+						 	</div>
+				       	</div>
+			       	</f:facet>
+			</p:dialog>
+
+			<!-- Закриване на звено -->
+
+			<p:dialog header="#{labels['admStruct.closeZveno']}" appendTo="@form"  responsive="true" resizable="true"  widgetVar="dlgCloseZveno" modal="true" width="600" height="120">
+
+
+					<h:panelGroup id="panelCloseZveno" layout="block">
+					    	<div class="grid ui-fluid col-12" >
+
+								<!-- Забележка -->
+								<div class="col-12">
+									<h:outputText value="#{labels['docu.note']}:" styleClass="form-label"/>
+									<p:inputTextarea rows="3" value="#{admStruct.refInfoCloseZveno}" />
+								</div>
+
+							</div>
+
+					</h:panelGroup>
+
+					<f:facet name="footer">
+
+			          	<div class="grid grid-nogutter">
+				       		<div class="col-6" align="left">
+						       	 	<p:commandButton id="bntCloseZv"  icon="fas fa-times"
+						       	 	styleClass="ui-button-secondary" value="#{labels['register.cancel']}" oncomplete="PF('dlgCloseZveno').hide();" />
+						 	</div>
+				       		<div class="col-6" align="right">
+						       	 	<p:commandButton id="bntConfCloseZveno" action="#{admStruct.actionCloseZveno}" onclick="if(!confirm('#{labels['general.confirm']}'))return false;"
+						       	 	value="#{ui_labels['general.comfirmation']}" update="admStructForm"  />
+						 	</div>
+				       	</div>
+			       	</f:facet>
+			</p:dialog>
+
+			<!-- Напускане на служители -->
+
+			<p:dialog header="#{labels['admStruct.leaveEmpl']}" appendTo="@form"  responsive="true" resizable="true"  widgetVar="dlgLeaveEmpl" modal="true" width="600" height="120">
+
+					<h:panelGroup id="panelLeaveEmpl" layout="block">
+					    	<div class="grid ui-fluid col-12" >
+
+								<!-- Забележка -->
+								<div class="col-12">
+									<h:outputText value="#{labels['docu.note']}:" styleClass="form-label"/>
+									<p:inputTextarea rows="3" value="#{admStruct.emplMoveNote}" />
+								</div>
+
+							</div>
+
+					</h:panelGroup>
+
+					<f:facet name="footer">
+
+			          	<div class="grid grid-nogutter">
+				       		<div class="col-6" align="left">
+						       	 	<p:commandButton id="bntCloseLeaveEmpl"  icon="fas fa-times"
+						       	 	styleClass="ui-button-secondary" value="#{labels['register.cancel']}" oncomplete="PF('dlgLeaveEmpl').hide();" />
+						 	</div>
+				       		<div class="col-6" align="right">
+						       	 	<p:commandButton id="bntConfLeaveEmpl" action="#{admStruct.actionLeaveEmpl}"
+						       	 	value="#{ui_labels['general.comfirmation']}" update="admStructForm:tabsEditZvenaSluj:panelTable admStructForm:tabsEditZvenaSluj:panelSluj"  />
+						 	</div>
+				       	</div>
+			       	</f:facet>
+			</p:dialog>
+
+			<!-- История -->
+
+				<p:dialog header="#{labels['admStruct.viewHistory']}" appendTo="@form"  responsive="true" resizable="true" closeOnEscape="true" widgetVar="admHistoryDlg" modal="true" height="300">
+
+
+				    <div class="container #{guestPreferences.containerPosition}">
+					    <h:panelGroup id="panelDataHistory">
+
+							<h:panelGroup id="panelTableHistory" layout="block" styleClass="margin-top">
+
+								<div id="historyList" class="card">
+
+									<p:dataTable id="tblHistory" var="row" value="#{admStruct.admHistoryList}" lazy="true" rowIndexVar="idx" sortMode="single" reflow="true"
+										emptyMessage="#{ui_labels['general.norows']}"
+										paginatorTemplate="{RowsPerPageDropdown} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {Exporters}"
+										rows="10" rowsPerPageTemplate="5,15,20,25" paginatorPosition="bottom" paginatorAlwaysVisible="true" paginator="true">
+
+										<p:column width="15" exportable="false" headerText="#{ui_labels['general.No-symbol']}">
+											<h:outputText value="#{idx + 1}" />
+										</p:column>
+
+										<p:column width="90" sortBy="#{row.a1}" headerText="#{admStruct.zveno? labels['admStruct.nameZveno']:labels['admStruct.names']}">
+											<h:outputText value="#{row[1]}" title="#{labels['admStruct.itemBefore']}: #{row[8]}"/>
+										</p:column>
+
+										<p:column width="90" sortBy="#{row.a2}" headerText="#{admStruct.zveno? labels['admStruct.parentName']:labels['users.zveno']}">
+											<h:outputText value="#{row[2]}" />
+										</p:column>
+
+										<p:column width="90" sortBy="#{row.a3}" headerText="#{admStruct.zveno?labels['users.chlenRegistratura']:labels['regGrSluj.position']}" >
+											<h:outputText rendered="#{admStruct.zveno}" value="#{systemData.decodeItem(UriregConstants.CODE_CLASSIF_REGISTRATURI, row[3], admStruct.currentLang, admStruct.currentDate)}" />
+											<h:outputText rendered="#{!admStruct.zveno}" value="#{systemData.decodeItem(UriregConstants.CODE_CLASSIF_POSITION, row[3], admStruct.currentLang, admStruct.currentDate)}" />
+										</p:column>
+
+										<p:column width="50" sortBy="#{row.a4}" headerText="#{admStruct.zveno?labels['admStruct.eik']:labels['admStruct.egn']}">
+											<h:outputText value="#{row[4]}" />
+
+										</p:column>
+
+										<p:column width="60" sortBy="#{row.a5}" headerText="#{labels['docu.note']}">
+											<h:outputText value="#{row[5]}" />
+
+										</p:column>
+
+										<p:column width="50" sortBy="#{row.a6}" headerText="#{labels['refDeleg.dateFrom']}">
+											<h:outputText value="#{row[6]}" >
+												<f:convertDateTime pattern="dd.MM.yyyy"  timeZone="#{admStruct.timeZone}" />
+											</h:outputText>
+										</p:column>
+
+										<p:column width="50" sortBy="#{row.a7}" headerText="#{labels['refDeleg.dateTo']}">
+											<h:outputText value="#{row[7]}" >
+												<f:convertDateTime pattern="dd.MM.yyyy"  timeZone="#{admStruct.timeZone}" />
+											</h:outputText>
+										</p:column>
+
+									</p:dataTable>
+								</div>
+							</h:panelGroup>
+						</h:panelGroup>
+					</div>
+				</p:dialog>
+
+				<!-- Напуснали служители-->
+
+				<p:dialog header="#{labels['admStruct.leftEmpl']}" appendTo="@form"  responsive="true" resizable="true"  widgetVar="dlgSelectLeftEmpl" modal="true" width="650" height="200">
+				    <p:messages id="messagesRestoreEmp" >
+				    	<p:autoUpdate />
+				    </p:messages>
+
+					<h:panelGroup id="panelSelectEmpl" layout="block">
+					    	<div class="grid ui-fluid col-12" >
+
+								<!--Служител-->
+								<div  class="col-12  ui-fluid">
+									<h:outputText value="#{labels['procDefList.sluj']}" styleClass="form-label"/>
+
+
+									<p:selectOneMenu id="leftEmpl" value="#{admStruct.selectedEmpl}" height="250" filter="true" >
+									     <f:selectItem value="#{null}" itemValue="#{null}"/>
+									     <f:selectItems  value="#{admStruct.leftEmpl}"
+									         var="left" itemLabel="#{left.tekst}" itemValue="#{left.code}" />
+									     <p:ajax event="change" update="panelSelectEmpl" />
+								    </p:selectOneMenu>
+								 </div>
+								 <div  class="col-12  ui-fluid">
+								 <h:outputText value="#{labels['admStruct.lastAppIn']}: " rendered="#{admStruct.selectedEmpl ne null}"/>
+
+								    <h:outputText id="dopInfoEmpl" value="#{systemData.decodeItemDopInfo(UriregConstants.CODE_CLASSIF_ADMIN_STR_REPORTS, admStruct.selectedEmpl, admStruct.currentLang, admStruct.currentDate)}" />
+								</div>
+
+							</div>
+
+					</h:panelGroup>
+
+					<f:facet name="footer">
+
+			          	<div class="grid grid-nogutter">
+				       		<div class="col-6" align="left">
+						       	 	<p:commandButton id="bntCloseLeftEmpl"  icon="fas fa-times"
+						       	 	styleClass="ui-button-secondary" value="#{labels['register.cancel']}"  oncomplete="PF('dlgSelectLeftEmpl').hide();" />
+						 	</div>
+				       		<div class="col-6" align="right">
+						       	 	<p:commandButton id="bntSaveLeftEmpl" action="#{admStruct.actionSaveLeftEmpl}"
+						       	 	value="#{ui_labels['general.save']}" update="admStructForm:tabsAdmStruct admStructForm:tabsEditZvenaSluj"  />
+						 	</div>
+				       	</div>
+			       	</f:facet>
+			</p:dialog>
+
+
+		</h:panelGroup>
+		</h:form>
+	</ui:define>
+</ui:composition>

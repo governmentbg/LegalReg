@@ -1,0 +1,234 @@
+<ui:composition
+        xmlns="http://www.w3.org/1999/xhtml"
+        xmlns:h="jakarta.faces.html"
+        xmlns:ui="jakarta.faces.facelets"
+        xmlns:p="http://primefaces.org/ui"
+        xmlns:f="jakarta.faces.core"
+        xmlns:jsf="jakarta.faces"
+        xmlns:ibg="jakarta.faces.composite/components">
+
+    <p:remoteCommand name="rcActionShowDlg" action="#{messagesDialogBean.actionShowDlg}" update=" mdlMessages msgCompPnl" />
+    <p:remoteCommand name="rcActionHideDlg" action="#{messagesDialogBean.actionClearDlg}" update="mdlMessages msgCompPnl" />
+
+    <p:dialog id="msgDialog"
+              widgetVar="addMessagesVar"
+              header="#{labels['messagesFilterList.addTitle']}"
+              onShow="rcActionShowDlg();"
+              onHide="rcActionHideDlg();"
+              dynamic="false"
+              modal="true"
+              position="top"
+              width="80%">
+
+        <p:messages showDetail="true" id="mdlMessages" />
+
+        <h:panelGroup id="msgCompPnl">
+
+            <p:toolbar id="tlbButton">
+                <f:facet name="left">
+                    <p:commandButton icon="fas fa-save"
+                                     value="#{ui_labels['general.save']}"
+                                     id="btnSave"
+                                     update="mdlMessages msgCompPnl"
+                                     partialSubmit="true"
+                                     process="msgCompPnl"
+                                     action="#{messagesDialogBean.actionSave}" />
+                </f:facet>
+
+                <f:facet name="right">
+
+                    <ibg:compObjAudit id="his" idObj="#{messagesDialogBean.message.id}"
+                                      rendered="#{messagesDialogBean.message.id ne null}"
+                                      codeObj="#{UriregConstants.CODE_ZNACHENIE_JOURNAL_MESSAGE}"
+                                      identInfo="#{messagesDialogBean.message.identInfo}"/>
+
+                    <span class="mx-2" jsf:rendered="#{messagesDialogBean.message.id ne null}" >
+			                   	<span class="fas fa-ellipsis-v SoftGray"/>
+                    </span>
+
+                    <p:commandButton icon="fas fa-trash" id="btnDelete"
+                                     value="#{ui_labels['general.delete']}"
+                                     partialSubmit="true" process="@this"
+                                     styleClass="ui-button-danger"
+                                     update="@form" rendered="#{messagesDialogBean.message.id ne null}"
+                                     action="#{messagesDialogBean.actionDelete}"  >
+                        <p:confirm header="#{ui_labels['general.comfirmation']}"
+                                   escape="false"
+                                   message="#{ui_labels['general.confirmationMessage']}"
+                                   icon="fas fa-exclamation-triangle"/>
+                    </p:commandButton>
+                </f:facet>
+            </p:toolbar>
+
+
+            <!-- ПАНЕЛ ОСНОВНИ ДАННИ -->
+            <div class="title-group mt-3">
+                <p:commandLink class="extended-search-toggle expanded"
+                               onclick="toggleSection(this, '#{cc.clientId}:basicCompPnl')">
+                    <h:outputText value="#{labels['compMessages.data']}" />
+                    <i class="fas fa-caret-right"></i>
+                </p:commandLink>
+            </div>
+
+            <div jsf:id="basicCompPnl">
+
+                <div class="grid ui-fluid">
+                    <div class="col-12 sm:col-12 md:col-6 lg:col-3 xl:col-3 ui-fluid">
+                        <h:outputText value="#{labels['messagesFilterList.vid']}" styleClass="form-label req"/>
+                        <p:selectOneMenu id="vidDlg" value="#{messagesDialogBean.message.messageVid}">
+                            <f:selectItem value="#{null}" itemValue="#{null}"/>
+                            <f:selectItems value="#{systemData.getSysClassification(UriregConstants.CODE_CLASSIF_MESSAGE_VID, null, messagesDialogBean.currentLang)}"
+                                           var="item" itemLabel="#{item.tekst}" itemValue="#{item.code}" />
+                        </p:selectOneMenu>
+                    </div>
+
+                    <div class="col-12 sm:col-6 md:col-3 lg:col-2 xl:col-2 ui-fluid">
+                        <h:outputText value="#{ui_labels['general.dataOt']}" styleClass="form-label req"/>
+                        <p:datePicker id="dataOtDlg" value="#{messagesDialogBean.message.dateFrom}" pattern="dd.MM.yyyy"
+                                      mask="true" locale="bg" showIcon="true" />
+                    </div>
+
+                    <div class="col-12 sm:col-6 md:col-3 lg:col-2 xl:col-2 ui-fluid">
+                        <h:outputText value="#{ui_labels['general.dataDo']}" styleClass="form-label"/>
+                        <p:datePicker id="dataDoDlg" value="#{messagesDialogBean.message.dateTo}" pattern="dd.MM.yyyy"
+                                      mask="true" showOn="button" locale="bg" showIcon="true" />
+                    </div>
+
+                    <div class="col-12 sm:col-12 md:col-6 lg:col-3 xl:col-3 ui-fluid">
+                        <h:outputText value="#{labels['messagesFilterList.status']}" styleClass="form-label req"/>
+                        <p:selectOneMenu id="statusDlg" value="#{messagesDialogBean.message.status}">
+                            <f:selectItem value="#{null}" itemValue="#{null}"/>
+                            <f:selectItems value="#{systemData.getSysClassification(UriregConstants.CODE_CLASSIF_MESSAGE_STATUS, null, messagesDialogBean.currentLang)}"
+                                           var="item" itemLabel="#{item.tekst}" itemValue="#{item.code}" />
+                        </p:selectOneMenu>
+                    </div>
+
+                    <div class="col-12 ui-fluid">
+                        <h:outputText value="#{labels['messagesFilterList.title']}" styleClass="form-label"/>
+                        <p:inputText id="titleDlg" value="#{messagesDialogBean.messageTitle}" />
+                    </div>
+
+                    <div class="col-12 ui-fluid">
+                        <h:outputText value="#{labels['messagesFilterList.text']}" styleClass="form-label"/>
+                        <p:textEditor widgetVar="textDlgEditor" value="#{messagesDialogBean.messageText}" height="150px" />
+
+                    </div>
+                </div>
+            </div>
+
+            <!-- ПАНЕЛ ФАЙЛОВЕ -->
+            <div class="title-group mt-3">
+                <p:commandLink class="extended-search-toggle expanded"
+                               onclick="toggleSection(this, '#{cc.clientId}:filesPnl')">
+                    <h:outputText value="#{labels['compMessages.files']}" />
+                    <i class="fas fa-caret-right"></i>
+                </p:commandLink>
+
+                <p:fileUpload id="fileUploadDlg"
+                              listener="#{messagesDialogBean.uploadFileListener}"
+                              dragDropSupport="true"
+                              styleClass="ui-button-success"
+                              mode="advanced"
+                              multiple="true"
+                              auto="true"
+                              label="#{ui_labels['general.add']}"
+                              update="mdlMessages listDataFile"
+                              oncomplete="openLastUploadedFileForEdit('filesTblWidget')"/>
+            </div>
+
+            <div jsf:id="filesPnlDlg" class="grid ui-fluid">
+                <h:panelGroup id="filesListDlg" styleClass="mt-1">
+                    <div jsf:id="fileDataDlg">
+                        <div class="col-12 ui-fluid">
+                            <p:dataTable id="listDataFile" var="file" rowIndexVar="idx"
+                                         value="#{messagesDialogBean.filesList}"
+                                         size="small"
+                                         emptyMessage="#{labels['compMessages.noFiles']}"
+                                         paginator="true"
+                                         paginatorAlwaysVisible="false"
+                                         showGridlines="false"
+                                         editable="true"
+                                         editMode="row"
+                                         widgetVar="filesTblWidget"
+                                         rows="10" rowsPerPageTemplate="10,15,20,25"
+                                         paginatorTemplate="{RowsPerPageDropdown} {PageLinks} {Exporters}"
+                                         paginatorPosition="bottom">
+
+                                <p:ajax event="rowEdit" listener="#{messagesDialogBean.onRowEdit}" />
+                                <p:ajax event="rowEditCancel" listener="#{messagesDialogBean.onRowEdit}" />
+
+                                <p:column width="25" headerText="#{ui_labels['general.No-symbol']}">
+                                    <h:outputText value="#{idx + 1}" />
+                                </p:column>
+
+                                <p:column width="35">
+                                    <p:commandButton icon="fas fa-download" ajax="false"
+                                                     title="#{ui_labels['general.download']}"
+                                                     ignoreAutoUpdate="true"
+                                                     action="#{messagesDialogBean.downloadFile(file)}"
+                                                     partialSubmit="true" process="@this"/>
+                                </p:column>
+
+
+                                <p:column headerText="#{labels['compMessages.fileName']}">
+                                    <h:outputText value="#{file.filename}" />
+                                </p:column>
+
+                                <p:column headerText="#{labels['compMessages.fileInfo']}">
+                                    <p:cellEditor>
+                                        <f:facet name="output">
+                                            <h:outputText value="#{file.fileInfo}" />
+                                        </f:facet>
+                                        <f:facet name="input">
+                                            <p:inputTextarea value="#{file.fileInfo}" style="width:100%" rows="2" />
+                                        </f:facet>
+                                    </p:cellEditor>
+                                </p:column>
+
+                                <p:column width="75">
+                                    <p:rowEditor saveTitle="#{labels['compMessages.saveInfo']}"
+                                                 cancelTitle="#{labels['compMessages.cancelInfo']}"
+                                                 editTitle="#{labels['compMessages.editInfo']}" />
+                                </p:column>
+
+                                <p:column width="35">
+                                    <p:commandButton icon="fas fa-times"
+                                                     title="#{ui_labels['general.delete']}"
+                                                     update="listDataFile"
+                                                     process="@this listDataFile" partialSubmit="true"
+                                                     styleClass="ui-button-danger"
+                                                     action="#{messagesDialogBean.deleteFile(file)}">
+                                        <p:confirm header="#{ui_labels['general.comfirmation']}"
+                                                   escape="false"
+                                                   message="#{ui_labels['general.confirmationMessage']}"
+                                                   icon="fas fa-exclamation-triangle"/>
+                                    </p:commandButton>
+                                </p:column>
+                            </p:dataTable>
+                        </div>
+                    </div>
+                </h:panelGroup>
+            </div>
+        </h:panelGroup>
+
+    </p:dialog>
+
+    <!-- JS за автоматично редактиране на последния файл -->
+    <script type="text/javascript">
+        function openLastUploadedFileForEdit(widgetVarName) {
+            setTimeout(function() {
+                var table = PF(widgetVarName);
+                if (!table) return;
+                var rows = $(table.jqId).find('tbody').children();
+                if (!rows.length) return;
+                var lastRow = rows.last();
+                var pencil = lastRow.find('.ui-row-editor .ui-row-editor-pencil, .ui-icon-pencil');
+                if (pencil.length) {
+                    pencil.eq(0).trigger('click');
+                } else if (typeof table.startRowEdit === 'function') {
+                    table.startRowEdit(rows.length - 1);
+                }
+            }, 400);
+        }
+    </script>
+</ui:composition>

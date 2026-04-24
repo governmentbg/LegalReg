@@ -1,0 +1,35 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:ui="jakarta.faces.facelets"
+      xmlns:h="jakarta.faces.html"
+      xmlns:f="jakarta.faces.core"
+      xmlns:c="http://java.sun.com/jstl/core"
+      xmlns:p="http://primefaces.org/ui"
+      template="/template/template.xhtml">
+
+	<ui:define name="metadata">
+	    <f:metadata>
+	        <f:viewAction action="#{userData.checkPageAccess(12)}" onPostback="false"/>
+	        <f:importConstants type="com.ib.indexui.system.Constants"/>
+	    </f:metadata>
+    </ui:define>
+
+	<ui:param name="pageTitle"
+		value="#{uReport.statResult == true ? navTexts['/pages/statisticsList.xhtml'] : navTexts['/pages/uReport.xhtml']}" />
+	<ui:define name="title">#{pageTitle}</ui:define>
+
+	<ui:define name="viewname">
+        <li>
+        	<p:commandLink title="#{ui_labels['general.back']}" action="#{navigation.goBack()}">
+				<i class="fas fa-caret-left" />
+			</p:commandLink>
+		</li>
+		<li>
+			<h:outputText value="#{uReport.statResult == true ? navTexts['/pages/statisticsList.xhtml'] : navTexts['/pages/uReport.xhtml']}"/>
+		</li>
+    </ui:define>
+
+    <ui:define name="content">
+        <ui:include src="/pages/uReportSys.xhtml"/>
+    </ui:define>
+
+</ui:composition>

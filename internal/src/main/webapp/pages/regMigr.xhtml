@@ -1,0 +1,194 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="jakarta.faces.html"
+                xmlns:f="jakarta.faces.core"
+                xmlns:ui="jakarta.faces.facelets"
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:ibg="jakarta.faces.composite/components"
+                template="/template/template.xhtml">
+
+    <ui:define name="metadata">
+        <f:metadata>
+            <f:importConstants type="com.ib.urireg.system.UriregConstants"/>
+            <f:viewAction action="#{userData.checkReloadPage}" onPostback="false"/>
+        </f:metadata>
+    </ui:define>
+    <ui:define name="title">#{labels['regMigr.title']}</ui:define>
+
+    <ui:define name="head">
+        <style>
+            .visited-btn {
+                background-color: #1f4b99 !important;
+                border-color: #163b73 !important;
+                color: #ffffff !important;
+            }
+        </style>
+    </ui:define>
+
+    <ui:define name="viewname">
+
+        <li>
+            <p:commandLink title="#{ui_labels['general.back']}" action="#{navigation.goBack()}"
+                           rendered="#{navigation.navPath.size()>1}">
+                <i class="fas fa-caret-left"/>
+            </p:commandLink>
+        </li>
+        <li>#{labels['regMigr.title']}</li>
+    </ui:define>
+
+    <ui:define name="content">
+        <h:form>
+            <p:defaultCommand target="searchBtn"/>
+            <div class="container">
+                <h:panelGroup id="panelFilter">
+                    <div class="card">
+                        <div class="grid">
+                            <div class="col-12 sm:col-12 md:col-4 lg:col-4 xl:col-4 ui-fluid">
+                            <p:selectBooleanCheckbox value="#{regMigr.emptyAddrEkatteBean}" itemLabel="#{labels['regMigr.bezNasM']}" styleClass="form-label"/>
+                            </div>
+                            <div class="col-12 sm:col-12 md:col-4 lg:col-4 xl:col-4  mr-1">
+                            <p:selectBooleanCheckbox value="#{regMigr.emptyAddrTextBean}" itemLabel="#{labels['regMigr.bezAddr']}" styleClass="form-label"/>
+                            </div>
+                            <div class="col-12 sm:col-12 md:col-4 lg:col-4 xl:col-4 ui-fluid">
+                            <p:selectBooleanCheckbox value="#{regMigr.emptyUniversitetBean}" itemLabel="#{labels['regMigr.bezUni']}" styleClass="form-label"/>
+                            </div>
+                            <div class="col-12 sm:col-12 md:col-4 lg:col-4 xl:col-4 ui-fluid">
+                            <p:selectBooleanCheckbox value="#{regMigr.emptyBirthPlaceBean}" itemLabel="#{labels['regMigr.bezBPlace']}" styleClass="form-label"/>
+                            </div>
+
+                        </div>
+
+                        <div class="filter-buttons">
+                            <p:commandButton id="searchBtn" icon="fas fa-search"
+                                             value="#{ui_labels['general.search']}"
+                                             title="#{ui_labels['general.titleSearch']}"
+                                             action="#{regMigr.actionSearch()}"
+                                             update="resultTable"
+                                             styleClass="mr-3"/>
+
+
+                            <p:commandButton icon="fas fa-eraser" value="#{ui_labels['general.clear']}"
+                                             title="#{ui_labels['general.titleClear']}"
+                                             actionListener="#{regMigr.actionClear()}" partialSubmit="true"
+                                             update="@this resultTable panelFilter"
+                                             styleClass="ui-button-warning"/>
+
+
+                        </div>
+
+                    </div>
+                </h:panelGroup>
+            </div>
+
+            <h:panelGroup id="resultTable" layout="block" styleClass="margin-top">
+                <h:panelGroup layout="block" styleClass="card">
+
+                    <div class="table-toolbar">
+                        <h:outputText
+                                value="#{ui_labels['general.reportResult']} #{regMigr.dossierList.rowCount}"
+                                styleClass="form-label"/>
+                    </div>
+
+                    <p:dataTable id="table" value="#{regMigr.dossierList}"
+                                 var="row" rowIndexVar="idx" emptyMessage="#{ui_labels['general.norows']}"
+                                 lazy="true" sortMode="single" reflow="true" allowUnsorting="true"
+                                 rows="15" rowsPerPageTemplate="5,15,20,25" paginatorPosition="bottom" paginator="true"
+                                 paginatorTemplate="{RowsPerPageDropdown} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {Exporters}"
+                                 scrollable="true" scrollWidth="inherit" responsiveLayout="scroll">
+
+                        <f:facet name="{Exporters}">
+                            <div style="float:left">
+                                <h:commandLink  rendered="#{regMigr.dossierList.rowCount > 0}"
+                                                update="table" process="table" partialSubmit="true">
+                                    <h:graphicImage library="images" name="excel2.png"/>
+                                    <p:dataExporter type="xlsx" target="table" fileName="Справка_върху_данни_от_миграцията_#{regMigr.getDocDateFormatted(regMigr.getCurrentDate())}"
+                                                    postProcessor="#{regMigr.postProcessXLSX}"/>
+                                </h:commandLink>
+                            </div>
+                        </f:facet>
+
+                        <p:columnGroup type="header" id="headerGroup">
+                            <p:row>
+                                <p:column rowspan="2" width="30"
+                                          headerText="#{ui_labels['general.No-symbol']}" styleClass="text-center"/>
+                                <p:column rowspan="2" width="40" exportable="false"/>
+                                <p:column rowspan="2" width="90" sortBy="#{row.a1}"
+                                          headerText="#{labels['dossier.egnLnch']}"/>
+                                <p:column colspan="3" width="300" headerText="#{labels['dossier.imena']}"
+                                          style="text-align: center"/>
+                                <p:column rowspan="2" width="180" sortBy="#{row.a10}"
+                                          headerText="#{labels['dossier.razpSud']}"/>
+                                <p:column colspan="2" width="160" headerText="#{labels['dossier.ud']}"
+                                          style="text-align: center"/>
+                                <p:column rowspan="2" width="130" sortBy="#{row.a17}"
+                                          headerText="#{labels['dossier.status']}"/>
+                            </p:row>
+
+                            <p:row>
+                                <p:column headerText="#{labels['dossier.ime']}" sortBy="#{row.a18}" style="width:70px"/>
+                                <p:column headerText="#{labels['dossier.prezime']}" sortBy="#{row.a19}"
+                                          style="width:70px"/>
+                                <p:column headerText="#{labels['dossier.familiya']}" sortBy="#{row.a20}"
+                                          style="width:70px"/>
+
+                                <!--                                Удостоверение-->
+                                <p:column headerText="#{labels['dossier.nomer']}" sortBy="#{row.a15}"/>
+                                <p:column headerText="#{labels['dossier.data']}" sortBy="#{row.a16}"/>
+                            </p:row>
+                        </p:columnGroup>
+
+
+                        <p:column>
+                            <h:outputText value="#{idx + 1}"/>
+                        </p:column>
+
+                        <p:column exportable="false">
+                            <p:commandButton icon="fas fa-edit"
+                                             action="#{regMigr.actionGoto(row[0])}"
+                                             styleClass="#{regMigr.isVisited(row[0]) ? 'visited-btn' : ''}"
+                                             ajax="false"
+                                             title="#{ui_labels['general.edit']}"/>
+
+                        </p:column>
+
+                        <p:column>
+                            &#160;<h:outputText value="#{not empty row[1] ? row[1] : (not empty row[2] ? row[2] : '')}"/>
+                        </p:column>
+
+                        <p:column>
+                            <h:outputText value="#{row[18]}"/>
+                        </p:column>
+
+                        <p:column>
+                            <h:outputText value="#{row[19]}"/>
+                        </p:column>
+
+                        <p:column>
+                            <h:outputText value="#{row[20]}"/>
+                        </p:column>
+
+                        <p:column>
+                            <h:outputText
+                                    value="#{systemData.decodeItem(UriregConstants.CODE_CLASSIF_INSTITUTION, row[10], regMigr.currentLang, regMigr.currentDate )}"/>
+                        </p:column>
+
+                        <p:column>
+                            <h:outputText value="#{row[15]}"/>
+                        </p:column>
+
+                        <p:column>
+                            <h:outputText value="#{row[16]}">
+                                <f:convertDateTime pattern="dd.MM.yyyy" timeZone="#{regMigr.timeZone}"/>
+                            </h:outputText>
+                        </p:column>
+
+                        <p:column>
+                            <h:outputText
+                                    value="#{systemData.decodeItem(UriregConstants.CODE_CLASSIF_LICE_STATUS, row[17], regMigr.currentLang, regMigr.currentDate)}"/>
+                        </p:column>
+
+                    </p:dataTable>
+                </h:panelGroup>
+            </h:panelGroup>
+        </h:form>
+    </ui:define>
+</ui:composition>

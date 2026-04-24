@@ -1,0 +1,179 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="jakarta.faces.html"
+                xmlns:f="jakarta.faces.core"
+                xmlns:ui="jakarta.faces.facelets"
+                xmlns:p="http://primefaces.org/ui"
+                template="/template/template.xhtml">
+
+
+
+    <ui:define name="metadata">
+        <f:metadata>
+            <f:importConstants type="com.ib.urireg.system.UriregConstants" />
+            <f:viewAction action="#{userData.checkReloadPage}" onPostback="false" />
+        </f:metadata>
+    </ui:define>
+
+    <ui:define name="title">#{navTexts['/pages/trainOrderList.xhtml']}</ui:define>
+
+    <ui:define name="viewname">
+        <li>#{navTexts['/pages/trainOrderList.xhtml']}</li>
+    </ui:define>
+
+    <ui:define name="head">
+        <style>
+            .visited-btn {
+                background-color: #1f4b99 !important;
+                border-color: #163b73 !important;
+                color: #ffffff !important;
+            }
+        </style>
+    </ui:define>
+
+    <ui:define name="content">
+        <h:form id="zapovedForm">
+            <div class="container #{guestPreferences.containerPosition}">
+                <h:panelGroup id="panelFilter">
+                    <div class="card">
+
+                        <div class="grid">
+
+                            <!-- Номер на заповед -->
+                            <div class="col-12 sm:col-12 md:col-12 lg:col-2 xl:col-2 ui-fluid">
+                                <h:outputText value="#{labels['zapovedList.nomerZapoved']}" styleClass="form-label" />
+                                <div class="ui-inputgroup">
+                                    <p:inputText value="#{trainOrderList.docSearch.rnZap}" id="nomerZapoved"/>
+                                    <p:focus id="focusNomerZap" for="nomerZapoved" />
+                                    <p:selectBooleanButton id="rndEq" value="#{trainOrderList.docSearch.rnZapEQ}"
+                                                           onLabel="#{ui_labels['general.yes']}"
+                                                           offLabel="#{ui_labels['general.no']}"
+                                                           title="#{labels['trainOrderList.nomerZapEq']}"
+                                                           onIcon="fas fa-toggle-on"
+                                                           offIcon="fas fa-toggle-off"
+                                                           styleClass="inputgroup-button" >
+                                        <p:ajax update="@this nomerZapoved" partialSubmit="true"	process="@this nomerZapoved"/>
+                                    </p:selectBooleanButton>
+                                </div>
+                            </div>
+
+                            <!-- Дата на заповед- период -->
+                            <div  class="col-12 sm:col-12 md:col-6 lg:col-3 xl:col-3  ui-fluid">
+                                <h:outputText value="#{labels['zapovedList.periodDataZapoved']}" styleClass="form-label"/>
+                                <p:selectOneMenu id ="periodZapoved" value="#{trainOrderList.periodZapoved}">
+                                    <f:selectItem value="#{null}" itemValue="#{null}"/>
+                                    <f:selectItems  value="#{userContext.periodNoFuture}" />
+                                    <p:ajax event="change" update="periodZapoved zapovedDataOt zapovedDataDo" listener="#{trainOrderList.changePeriodZap}"/>
+                                </p:selectOneMenu>
+                            </div>
+
+                            <div  class="col-12 sm:col-6 md:col-3 lg:col-2 xl:col-3  ui-fluid">
+                                <h:outputText value="#{ui_labels['general.dataOt']}" styleClass="form-label"/>
+                                <p:datePicker id="zapovedDataOt" value="#{trainOrderList.docSearch.zapDateFrom}" pattern="dd.MM.yyyy" mask="true" showOn="button" locale="bg">
+                                    <p:ajax event="change" update="periodZapoved" listener="#{trainOrderList.changeDateZap}"/>
+                                    <p:ajax event="dateSelect" update="periodZapoved" listener="#{trainOrderList.changeDateZap}"/>
+                                </p:datePicker>
+                            </div>
+
+                            <div class="col-12 sm:col-6 md:col-3 lg:col-2  xl:col-3  ui-fluid">
+                                <h:outputText value="#{ui_labels['general.dataDo']}" styleClass="form-label"/>
+                                <p:datePicker id="zapovedDataDo" value="#{trainOrderList.docSearch.zapDateTo}" pattern="dd.MM.yyyy" mask="true" showOn="button" locale="bg">
+                                    <p:ajax event="change" update="periodZapoved" listener="#{trainOrderList.changeDateZap}"/>
+                                    <p:ajax event="dateSelect" update="periodZapoved" listener="#{trainOrderList.changeDateZap}"/>
+                                </p:datePicker>
+                            </div>
+
+                            <!-- Вид заповед-->
+                            <div  class="col-12 sm:col-12 md:col-6 lg:col-5 xl:col-5  ui-fluid">
+                                <h:outputText value="#{labels['examOrder.vidZapoved']}" styleClass="form-label"/>
+                                <p:selectOneMenu id ="vidZapoved" value="#{trainOrderList.docSearch.zapDocVid}">
+                                    <f:selectItem value="#{null}" itemValue="#{null}"/>
+                                    <f:selectItems  value="#{trainOrderList.vidDocList}" />
+                                </p:selectOneMenu>
+                            </div>
+
+                        </div>
+                        <div class="filter-buttons">
+                            <p:commandButton icon="fas fa-search" value="#{ui_labels['general.search']}" actionListener="#{trainOrderList.actionSearch}"
+                                             partialSubmit="true" process="@this panelFilter "
+                                             title="#{ui_labels['general.titleSearch']}" update="resultTable" styleClass="mr-3"/>
+
+                            <p:commandButton icon="fas fa-eraser"  value="#{ui_labels['general.clear']}" actionListener="#{trainOrderList.actionClear}"
+                                             partialSubmit="true" process="@this panelFilter resultTable"
+                                             title="#{ui_labels['general.titleClear']}" update="panelFilter resultTable" styleClass="ui-button-warning" />
+                        </div>
+
+                    </div>
+                </h:panelGroup>
+            </div>
+
+            <h:panelGroup id="resultTable" layout="block" styleClass="margin-top">
+                <h:panelGroup layout="block" styleClass="card">
+
+                    <div class="table-toolbar">
+
+                        <div class="table-toolbar">
+                            <h:outputText value="#{ui_labels['general.reportResult']} #{trainOrderList.zapovedList.rowCount}" styleClass="form-label mr-2"/>
+                        </div>
+
+                    </div>
+
+                    <p:dataTable id="tableZapoved" value="#{trainOrderList.zapovedList}" lazy="true"  sortMode="single" reflow="true" emptyMessage="#{ui_labels['general.norows']}"
+                                 var="row" rowIndexVar="idx"	rows="15" rowsPerPageTemplate="5,15,20,25" paginatorPosition="bottom" paginator="true"
+                                 paginatorTemplate="{RowsPerPageDropdown} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {Exporters}">
+
+                        <f:facet name="{Exporters}">
+                            <div style="float:left">
+                                <p:commandLink id="excel"  rendered="#{trainOrderList.zapovedList.rowCount le UriregConstants.ROW_LIMITS_REPORTS}"
+                                               update="tableZapoved" process="tableZapoved" partialSubmit="true">
+                                    <h:graphicImage library="images" name="excel2.png" />
+                                    <p:dataExporter type="xlsx" target="tableZapoved" fileName="#{trainOrderList.reportFileName}" postProcessor="#{trainOrderList.postProcessXLSX}"  />
+                                </p:commandLink>
+                        <ui:remove>
+                                <p:commandLink id="pdf"  rendered="#{trainOrderList.zapovedList.rowCount le UriregConstants.ROW_LIMITS_REPORTS}"
+                                               update="tableZapoved" process="tableZapoved" partialSubmit="true">
+                                    <h:graphicImage library="images" name="pdf.png" />
+                                    <p:dataExporter type="pdf" target="tableZapoved" fileName="zapovedList"	 encoding="windows-1251"
+                                                    preProcessor="#{trainOrderList.preProcessPDF}" options="#{trainOrderList.pdfOptions()}"/>
+                                </p:commandLink>
+                        </ui:remove>
+                            </div>
+                        </f:facet>
+
+                        <p:column width="30" headerText="#{ui_labels['general.No-symbol']}">
+                            <h:outputText value="#{idx + 1}" />
+                        </p:column>
+
+                        <p:column  width="30" exportable="false">
+                            <p:commandButton   icon="fas fa-edit" action="#{trainOrderList.actionGoto(row)}" styleClass="#{trainOrderList.isVisited(row[0]) ? 'visited-btn' : ''}" ajax="false" title="#{ui_labels['general.edit']}" />
+                        </p:column>
+
+                        <p:column width="150" sortBy="#{row.a1}" headerText="#{labels['zapovedList.nomerZapoved']}">
+                            <h:outputText value="#{row[1]}"  />
+                        </p:column>
+
+                        <p:column width="140" sortBy="#{row.a2}" headerText="#{labels['zapovedList.dataZapoved']}">
+                            <h:outputText value="#{row[2]}">
+                                <f:convertDateTime pattern="dd.MM.yyyy" timeZone="#{trainOrderList.timeZone}"/>
+                            </h:outputText>
+                        </p:column>
+                <ui:remove>
+                        <p:column width="300" sortBy="#{row.a4}" headerText="#{labels['traineeshipOrder.izgotvil']}">
+                            <h:outputText value="#{row[4]}"  />
+                        </p:column>
+                </ui:remove>
+                        <p:column width="300" sortBy="#{row.a3}" headerText="#{labels['examOrder.vidZapoved']}">
+                            <h:outputText value="#{systemData.decodeItem(UriregConstants.CODE_CLASSIF_DOC_VID, row[3], trainOrderList.currentLang, null)}"/>
+                        </p:column>
+
+                        <p:column sortBy="#{row.a5}" headerText="#{labels['traineeshipOrder.dopInfo']}">
+                            <h:outputText value="#{row[5]}"  />
+                        </p:column>
+
+                    </p:dataTable>
+                </h:panelGroup>
+            </h:panelGroup>
+
+        </h:form>
+    </ui:define>
+
+</ui:composition>

@@ -1,0 +1,1434 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:ui="jakarta.faces.facelets"
+                xmlns:f="jakarta.faces.core"
+                xmlns:jsf="jakarta.faces"
+                xmlns:h="jakarta.faces.html"
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:ibg="jakarta.faces.composite/components"
+                template="/template/template.xhtml">
+
+    <ui:define name="metadata">
+        <f:metadata>
+            <f:viewAction action="#{userData.checkReloadPage}" onPostback="false" />
+            <f:viewAction action="#{userData.checkPageAccess(208)}" onPostback="false"/>
+            <f:importConstants type="com.ib.urireg.system.UriregConstants"/>
+        </f:metadata>
+    </ui:define>
+
+    <ui:define name="title">#{navTexts['/pages/examinationOrder.xhtml']}</ui:define>
+
+    <ui:define name="viewname">
+
+        <li><p:commandLink title="#{ui_labels['general.back']}" action="#{navigation.goBack()}" rendered="#{navigation.navPath.size()>1}">
+            <i class="fas fa-caret-left"/>
+        </p:commandLink>
+        </li>
+
+        <li>#{navTexts['/pages/examinationOrder.xhtml']}</li>
+    </ui:define>
+
+    <ui:define name="content">
+
+        <h:form id="formExamOrder" enctype="multipart/form-data">
+
+            <div class="#{guestPreferences.containerPosition}" jsf:rendered="#{examOrderEdit.exam ne null}">
+
+                <div class="card">
+
+                    <p:toolbar id="tlbButton">
+
+                        <f:facet name="left">
+                            <p:commandButton icon="fas fa-save" value="#{ui_labels['general.save']}" id="btnSave" action="#{examOrderEdit.actionSave}"
+                                             update="formExamOrder" process="@form">
+                            </p:commandButton>
+
+                            <span class="fas fa-ellipsis-v SoftGray mx-2" jsf:rendered="#{examOrderEdit.protCase.id eq null and examOrderEdit.viewBtnCase and !examOrderEdit.do2019}"/>
+
+                            <p:commandButton icon="fas fa-tasks" value="#{labels['examOrder.protocolCase']}" id="caseProtocol" action="#{examOrderEdit.actionViewPanelCase}"
+                                             update="formExamOrder" partialSubmit="true" process="formExamOrder @this"
+                                             rendered="#{examOrderEdit.protCase.id eq null and examOrderEdit.viewBtnCase and !examOrderEdit.do2019}">
+                            </p:commandButton>
+                        </f:facet>
+
+                        <f:facet name="right">
+                            <p:commandButton icon="fas fa-times" id="btnDelete" action="#{examOrderEdit.actionDelete}"
+                                             value="#{ui_labels['general.delete']}" update="formExamOrder"
+                                             partialSubmit="true" process="formExamOrder @this" styleClass="ui-button-danger  ml-2"
+                                            rendered="#{examOrderEdit.orderExam.id ne null}" disabled="#{examOrderEdit.countEnteredTestResult > 0 and examOrderEdit.notViewBtnDelOrderExam}">
+                                <p:confirm header="#{ui_labels['general.comfirmation']}" message="#{beanMessages['general.confirmDeleteMsg']}" icon="fas fa-exclamation-triangle" />
+                            </p:commandButton>
+                        </f:facet>
+
+                    </p:toolbar>
+
+                    <br />
+
+                    <p:panel toggleable="true" toggleSpeed="500" widgetVar="examOrder">
+
+                        <f:facet name="header">
+
+                            <h:outputText value="#{labels['examOrder.examinationOrder']}" styleClass="form-label"/>
+
+                            <span class="fas fa-ellipsis-v SoftGray mx-2" jsf:rendered="#{examOrderEdit.orderExam.id ne null}"/>
+
+                            <p:commandButton icon="fas fa-file-alt" value="#{labels['examOrder.generateOrder']}"
+                                    id="generateOrder" actionListener="#{examOrderEdit.actionGenerateOrder()}" update="formExamOrder compUdostDoc"
+                                    partialSubmit="true" styleClass="ui-button-success" process="formExamOrder @this"
+                                    rendered="#{examOrderEdit.orderExam.id ne null}"/>
+
+                            <span class="fas fa-ellipsis-v SoftGray mx-2" jsf:rendered="#{examOrderEdit.orderExam.id ne null}"/>
+
+                            <p:commandButton icon="fas fa-users" value="#{labels['examOrder.examPersons']}" id="examPersons" action="#"
+                                    update="formExamOrder compUdostDoc" partialSubmit="true" process="formExamOrder @this" styleClass="ui-button-success"
+                                    rendered="#{examOrderEdit.orderExam.id ne null}"
+                                    actionListener="#{examOrderEdit.actionGeneratePersonList()}"/>
+
+                            <h:panelGroup id="pRegInfoOrderExam" rendered="#{examOrderEdit.orderExam.id ne null}">
+                                <ibg:compObjAudit idObj="#{examOrderEdit.orderExam.id}"
+                                                  codeObj="#{UriregConstants.CODE_ZNACHENIE_JOURNAL_DOC}"
+                                                  identInfo="#{examOrderEdit.orderExam.identInfo}"/>
+                            </h:panelGroup>
+
+                        </f:facet>
+
+                        <ibg:compUdostDokument id="compUdostDoc"
+                                headerTitle="#{systemData.decodeItem(UriregConstants.CODE_CLASSIF_SHABLONI, examOrderEdit.vidUdostDok, examOrderEdit.currentLang, null)}"
+                                binding="#{examOrderEdit.bindCompUdostDoc}" isEditable="true"
+                                docId="#{examOrderEdit.orderExam.id}" parentObjectId="#{examOrderEdit.orderExam.id}"
+                                vidDok="#{examOrderEdit.vidUdostDok}"
+                                actionAfterGenerate="#{examOrderEdit.actionViewFile()}" update="formExamOrder:filesList"/>
+
+                        <div jsf:id="examOrder" class="flex align-items-stretch">
+
+                            <div class="col-8 md:col-8 lg:col-8 xl:col-8">
+
+                                <div class="grid align-items-end">
+
+                                    <div class="title-group">
+
+                                        <p:commandLink class="extended-search-toggle expanded" onclick="toggleSection(this, '#basicData')" >
+                                            <h:outputText value="#{labels['examOrder.basicData']}"/>
+                                            <i class="fas fa-caret-right"></i>
+                                        </p:commandLink>
+
+                                    </div>
+
+                                    <div id="basicData" class="grid ui-fluid">
+
+                                        <div class="col-12 md:col-12 lg:col-12 xl:col-12">
+                                            <p:selectBooleanCheckbox value="#{examOrderEdit.do2019}" itemLabel="#{labels['examOrder.do2019']}" styleClass="form-label" disabled="#{examOrderEdit.orderExam.id ne null}">
+                                                <p:ajax event="change" update="formExamOrder:dateAndHourExamTest formExamOrder:dTimeTest formExamOrder:locationTest formExamOrder:dateAndHourExamCase formExamOrder:caseLocationExam formExamOrder:panelPersonsInProt"
+                                                        listener="#{examOrderEdit.actionChangeDo2019}" />
+                                            </p:selectBooleanCheckbox>
+                                        </div>
+
+                                        <!-- Заявления до дата  -->
+                                        <div class="col-12 md:col-6 lg:col-2 xl:col-2">
+                                            <h:outputText value="#{labels['examOrder.zaiavDate']}" styleClass="form-label req" style="white-space: nowrap;"/>
+                                            <p:datePicker id="zaiavDate" value="#{examOrderEdit.orderExam.zaiavDate}" mask="true" pattern="dd.MM.yyyy" locale="bg"
+                                                          showIcon="true" disabled="#{examOrderEdit.orderExam.id ne null}">
+                                                <p:ajax event="change" update="formExamOrder:panelPersonsInProt formExamOrder:dateAndHourExam formExamOrder:dateAndHourCase formExamOrder:dateOrder" listener="#{examOrderEdit.actionViewLicaInProt}"/>
+                                                <p:ajax event="select" update="formExamOrder:panelPersonsInProt formExamOrder:dateAndHourExam formExamOrder:dateAndHourCase formExamOrder:dateOrder" listener="#{examOrderEdit.actionViewLicaInProt}"/>
+                                                <p:ajax event="input" update="formExamOrder:panelPersonsInProt formExamOrder:dateAndHourExam formExamOrder:dateAndHourCase formExamOrder:dateOrder" listener="#{examOrderEdit.actionViewLicaInProt}"/>
+                                            </p:datePicker>
+                                        </div>
+
+                                        <!-- Номер на заповед -->
+                                        <div class="col-12 md:col-6 lg:col-2 xl:col-2">
+
+                                            <h:outputText value="#{labels['examOrder.nomOrder']}" styleClass="form-label"/>
+
+                                            <div class="ui-inputgroup">
+                                                <p:inputText value="#{examOrderEdit.orderExam.rnDoc}" id="nomOrder" />
+                                                <p:commandButton icon="pi pi-copy" styleClass="ui-button" action="#{examOrderEdit.actionSetPrefixToRnDoc}"
+                                                                 update="@this nomOrder" title="#{labels['traineeshipOrder.prefix']}"
+                                                                 rendered="#{empty examOrderEdit.orderExam.rnDoc and not examOrderEdit.prefix}"/>
+                                            </div>
+
+                                        </div>
+
+                                        <!-- Дата на заповед  -->
+                                        <div class="col-12 md:col-6 lg:col-2 xl:col-2">
+                                            <h:outputText value="#{labels['examOrder.dateOrder']}" styleClass="form-label"/>
+                                            <p:datePicker id="dateOrder" value="#{examOrderEdit.orderExam.docDate}" mask="true" pattern="dd.MM.yyyy" locale="bg"
+                                                          showIcon="true" mindate="#{examOrderEdit.orderExam.zaiavDate}"/>
+                                        </div>
+
+                                        <div class="col-12 md:col-6 lg:col-6 xl:col-6"></div>
+
+                                        <!-- Дата  - тест -->
+                                        <div class="col-6 md:col-6 lg:col-2 xl:col-2" jsf:id="dateAndHourExamTest">
+                                            <div jsf:rendered="#{!examOrderEdit.do2019}">
+                                                <h:outputText value="#{labels['examOrder.dateExamTest']}" styleClass="form-label req"/>
+                                                <p:datePicker id="dateAndHourExam" value="#{examOrderEdit.exam.testDate}" mask="true" pattern="dd.MM.yyyy" locale="bg" mindate="#{examOrderEdit.orderExam.zaiavDate}"
+                                                              showIcon="true"  disabled="#{examOrderEdit.orderExam.id ne null and examOrderEdit.orderExam.rnDoc ne null and examOrderEdit.orderExam.rnDoc ne ''}">
+                                                    <p:ajax event="change" update="formExamOrder:dateProtIzpit" listener="#{examOrderEdit.actionChangeDateTest}"/>
+                                                    <p:ajax event="select" update="formExamOrder:dateProtIzpit" listener="#{examOrderEdit.actionChangeDateTest}"/>
+                                                    <p:ajax event="input" update="formExamOrder:dateProtIzpit" listener="#{examOrderEdit.actionChangeDateTest}"/>
+                                                </p:datePicker>
+                                            </div>
+                                        </div>
+                                        <!--   час - тест -->
+                                        <div class="col-6 md:col-6 lg:col-2 xl:col-2" jsf:id="dTimeTest">
+                                            <div jsf:rendered="#{!examOrderEdit.do2019}">
+                                                <h:outputText value="#{labels['examOrder.hourExam']}" styleClass="form-label req"/>
+                                                <p:datePicker id="timeExamTest" value="#{examOrderEdit.timeTest}"  timeOnly="true" mask="true" pattern="HH:mm" locale="bg" timeInput="true"
+                                                                disabled="#{examOrderEdit.orderExam.id ne null and examOrderEdit.orderExam.rnDoc ne null and examOrderEdit.orderExam.rnDoc ne ''}">
+                                                </p:datePicker>
+                                            </div>
+                                        </div>
+
+                                        <!-- Място на провеждане на тест -->
+                                        <div class="col-12 md:col-12 lg:col-8 xl:col-8" jsf:id="locationTest">
+                                            <div jsf:rendered="#{!examOrderEdit.do2019}">
+                                                <h:outputText value="#{labels['examOrder.placeExamTest']}" styleClass="form-label req"/>
+                                                <p:inputText value="#{examOrderEdit.exam.testLocation}" id="testLocation" disabled="#{examOrderEdit.orderExam.id ne null and examOrderEdit.orderExam.rnDoc ne null and examOrderEdit.orderExam.rnDoc ne ''}"/>
+                                            </div>
+                                        </div>
+
+                                        <!-- Дата и час - казус -->
+                                        <div class="col-6 md:col-6 lg:col-2 xl:col-2" jsf:id="dateAndHourExamCase">
+                                            <h:outputText value="#{examOrderEdit.do2019 ? labels['examOrder.dateExam'] : labels['examOrder.dateExamCase']}" styleClass="form-label req"/>
+                                            <p:datePicker id="dateAndHourCase" value="#{examOrderEdit.exam.caseDate}" mask="true" pattern="dd.MM.yyyy " locale="bg" mindate="#{examOrderEdit.orderExam.zaiavDate}"
+                                                              showIcon="true"  disabled="#{examOrderEdit.orderExam.id ne null and examOrderEdit.orderExam.rnDoc ne null and examOrderEdit.orderExam.rnDoc ne ''}">
+                                                <p:ajax event="change" update="formExamOrder:dateProtCase" listener="#{examOrderEdit.actionChangeDateCase}"/>
+                                                <p:ajax event="select" update="formExamOrder:dateProtCase" listener="#{examOrderEdit.actionChangeDateCase}"/>
+                                                <p:ajax event="input" update="formExamOrder:dateProtCase" listener="#{examOrderEdit.actionChangeDateCase}"/>
+                                            </p:datePicker>
+                                        </div>
+                                        <!--   час - казус -->
+                                        <div class="col-6 md:col-6 lg:col-2 xl:col-2" jsf:id="dTimeCase">
+                                            <h:outputText value="#{labels['examOrder.hourExam']}" styleClass="form-label req"/>
+                                            <p:datePicker id="timeExamCase" value="#{examOrderEdit.timeCase}"  timeOnly="true" mask="true" pattern="HH:mm" locale="bg" timeInput="true"
+                                                          disabled="#{examOrderEdit.orderExam.id ne null and examOrderEdit.orderExam.rnDoc ne null and examOrderEdit.orderExam.rnDoc ne ''}">
+                                            </p:datePicker>
+                                        </div>
+                                        <!-- Място на провеждане на казус -->
+                                        <div class="col-12 md:col-12 lg:col-8 xl:col-8" jsf:id="caseLocationExam">
+                                            <h:outputText value="#{examOrderEdit.do2019 ? labels['examOrder.placeExam'] : labels['examOrder.placeExamCase']}" styleClass="form-label req"/>
+                                            <p:inputText value="#{examOrderEdit.exam.caseLocation}" id="caseLocation" disabled="#{examOrderEdit.orderExam.id ne null and examOrderEdit.orderExam.rnDoc ne null and examOrderEdit.orderExam.rnDoc ne ''}"/>
+                                        </div>
+
+                                        <!-- Изготвил  -->
+                                        <div class="col-12 md:col-6 lg:col-4 xl:col-4">
+                                            <h:outputText value="#{labels['examOrder.izgotvil']}" styleClass="form-label"/>
+                                            <ibg:selectOneModalA id="izgotvil" header="#{labels['examOrder.izgotvil']}"
+                                                                 codeClassif="#{UriregConstants.CODE_CLASSIF_ADMIN_STR}"
+                                                                 selectedCode="#{examOrderEdit.orderExam.codeIzgotvil}"
+                                                                 dateClassif="#{examOrderEdit.decodeDate}"
+                                                                 saveStateTree="true" filtered="false"
+                                                                 styleAutoComp="width:99%;"
+                                                                 compType="2" minQueryLength="3"
+                                                                 withBtnClear="true"  isSelectNode="false"
+                                                                 dopInfoAutoComp="false" itemtipAtPosition="center bottom"/>
+                                        </div>
+
+                                        <!-- Съгласували  -->
+                                        <div class="col-12 md:col-6 lg:col-8 xl:col-8">
+                                            <h:outputText value="#{labels['examOrder.saglasuvali'] }" styleClass="form-label"/>
+                                            <ibg:selectManyModalA id="saglasuvali" compType="2" maxResults="50"
+                                                                  codeClassif="#{UriregConstants.CODE_CLASSIF_ADMIN_STR}"
+                                                                  selectedCodes="#{examOrderEdit.orderExam.codeSaglList}"
+                                                                  selectedClassifs="#{examOrderEdit.codeSaglClassif}"
+                                                                  dateClassif="#{examOrderEdit.decodeDate}"
+                                                                  showRadioBtn="false"
+                                                                  styleAutoComp="width:100%;"
+                                                                  withBtnClear="true"
+                                                                  itemtipAtPosition="center bottom"
+                                                                  header="#{labels['examOrder.saglasuvali']}"
+                                                                  isSelectNode="false"
+                                                                  modalPosition="top"
+                                                                  percentAutoComp="true"/>
+                                        </div>
+
+                                        <!-- Подписал  -->
+                                        <div class="col-12 md:col-6 lg:col-4 xl:col-4">
+                                            <h:outputText value="#{labels['examOrder.podpisal']}" styleClass="form-label"/>
+                                            <ibg:selectOneModalA id="podpisal" header="#{labels['examOrder.podpisal']}"
+                                                                 codeClassif="#{UriregConstants.CODE_CLASSIF_ADMIN_STR}"
+                                                                 selectedCode="#{examOrderEdit.orderExam.codePodpisal}"
+                                                                 dateClassif="#{examOrderEdit.decodeDate}"
+                                                                 saveStateTree="true" filtered="false"
+                                                                 styleAutoComp="width:99%;"
+                                                                 compType="2" minQueryLength="3"
+                                                                 withBtnClear="true"  isSelectNode="false"
+                                                                 dopInfoAutoComp="false" itemtipAtPosition="center bottom"/>
+                                        </div>
+
+                                        <!-- Доп. информация -->
+                                        <div class="col-12 md:col-6 lg:col-8 xl:col-8">
+                                            <h:outputText value="#{labels['examOrder.dopInfo']}" styleClass="form-label"/>
+                                            <p:inputTextarea id="dopInfo" value="#{examOrderEdit.orderExam.docInfo}" rows="2" />
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                           <p:divider layout="vertical" />
+
+                            <div class="col-4 md:col-4 lg:col-4 xl:col-4">
+
+                                <div class="grid">
+
+                                    <div class="col-12 ui-fluid">
+
+                                        <div class="title-group">
+
+                                            <p:commandLink class="extended-search-toggle expanded" onclick="toggleSection(this, '#uploadFile')" >
+                                                <h:outputText value="#{labels['examOrder.files']}"/>
+                                                <i class="fas fa-caret-right"></i>
+                                            </p:commandLink>
+
+                                            <p:fileUpload id="fileUpload" listener="#{examOrderEdit.uploadFileListener}"
+                                                          dragDropSupport="true" mode="advanced" multiple="true" auto="true"
+                                                          styleClass="ui-button-success ml-3"
+                                                          label="#{labels['examOrder.files']}" update="formExamOrder:filesList">
+                                            </p:fileUpload>
+
+                                        </div>
+
+                                        <div id="uploadFile" class="grid ui-fluid">
+
+                                            <h:panelGroup id="filesList" layout="block" class="col-12 grid-nogutter">
+
+                                                <div class="list-container">
+
+                                                    <p:dataTable var="row" value="#{examOrderEdit.filesList}" size="small" styleClass="myTable" id="fileList"
+                                                                 rowIndexVar="idx" rendered="#{examOrderEdit.filesList.size() > 0}" style="width: 99%" >
+
+                                                        <p:column style="width:30px" headerText="#{ui_labels['general.No-symbol']}">
+                                                            <h:outputText value="#{idx + 1}" />
+                                                        </p:column>
+
+                                                        <p:column style="width:40px; text-align: center">
+                                                            <p:commandButton icon="pi pi-download" ignoreAutoUpdate="true" ajax="false"
+                                                                             action="#{examOrderEdit.download(row)}" title="#{ui_labels['general.download']}"/>
+                                                        </p:column>
+
+                                                        <p:column headerText="#{ui_labels['general.filename']}">
+                                                            <h:outputText value="#{row.filename}" />
+                                                        </p:column>
+
+                                                        <p:column style="width:40px; text-align: center">
+                                                            <p:commandButton icon="fas fa-times" update="formExamOrder:filesList" styleClass="ui-button-danger"
+                                                                             partialSubmit="true" process="formExamOrder:filesList @this"
+                                                                             action="#{examOrderEdit.actionRemoveFile(row)}" title="#{ui_labels['general.remove']}"/>
+                                                        </p:column>
+
+                                                    </p:dataTable>
+
+                                                </div>
+
+                                            </h:panelGroup>
+
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                        <!-- Таблица на лицата в протокола да се видят преди да има запис -->
+                        <h:panelGroup id="panelPersonsInProt">
+
+                            <h:panelGroup rendered="#{examOrderEdit.orderExam.id eq null and examOrderEdit.orderExam.zaiavDate ne null}">
+
+                                <div class="title-group">
+                                    <p:commandLink class="extended-search-toggle expanded" onclick="toggleSection(this, '#personsInProtNew')">
+                                        <h:outputText value="#{labels['examOrder.personsInProt']}"/>
+                                        <i class="fas fa-caret-right"></i>
+                                    </p:commandLink>
+                                </div>
+
+                                <div id="personsInProtNew" class="grid">
+
+                                <div class="table-toolbar">
+                                    <h:outputText value="#{labels['examOrder.totalNumber']}: #{examOrderEdit.licaListForProtTest.size()}" styleClass="form-label mr-2" rendered="#{!examOrderEdit.do2019}"/>
+                                    <h:outputText value="#{labels['examOrder.totalNumber']}: #{examOrderEdit.licaListForProtCase.size()}" styleClass="form-label mr-2" rendered="#{examOrderEdit.do2019}"/>
+                                </div>
+
+                                <p:dataTable id="personsTestListTbl" value="#{examOrderEdit.licaListForProtTest}" var="row"
+                                             rowIndexVar="idx" emptyMessage="#{ui_labels['general.norows']}" rendered="#{!examOrderEdit.do2019}"
+                                             sortMode="single" reflow="true" scrollable="true" style="width: 99.9%;"
+                                             paginatorTemplate="{RowsPerPageDropdown} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {Exporters}"
+                                             rows="10" rowsPerPageTemplate="5,10, 15, 20,25" paginatorPosition="bottom" paginatorAlwaysVisible="true" paginator="true">
+
+                                    <p:column width="30" headerText="#{ui_labels['general.No-symbol']}">
+                                        <h:outputText value="#{idx + 1}" />
+                                    </p:column>
+
+                                    <p:column width="35" exportable="false">
+                                        <p:button icon="fas fa-eye" title="#{labels['traineeshipOrder.dosie']}" target="_blank"
+                                                  outcome="dossierPersonView.xhtml" ajax="false" styleClass="ui-button">
+                                            <f:param  name="idLice" value="#{row[0]}"/>
+                                        </p:button>
+                                    </p:column>
+
+                                    <p:column width="150" sortBy="#{row[3]}" headerText="#{labels['examOrder.firstName']}"
+                                              filterBy="#{row[3]}" filterMatchMode="contains" filterPlaceholder="#{labels['examOrder.filterFirstName']}">
+                                        <h:outputText value="#{row[3]}"  />
+                                    </p:column>
+
+                                    <p:column width="150" sortBy="#{row[4]}" headerText="#{labels['examOrder.prezime']}"
+                                              filterBy="#{row[4]}" filterMatchMode="contains" filterPlaceholder="#{labels['examOrder.filterPrezime']}">
+                                        <h:outputText value="#{row[4]}"  />
+                                    </p:column>
+
+                                    <p:column width="150" sortBy="#{row[5]}" headerText="#{labels['examOrder.lastName']}"
+                                              filterBy="#{row[5]}" filterMatchMode="contains" filterPlaceholder="#{labels['examOrder.filterLastName']}">
+                                        <h:outputText value="#{row[5]}"  />
+                                    </p:column>
+
+                                    <p:column width="110" sortBy="#{row[1]}" headerText="#{labels['examOrder.egn']}"
+                                              filterBy="#{row[1] ne null ? row[1] : row[2]}" filterMatchMode="contains" filterPlaceholder="#{labels['examOrder.filterEgn']}">
+                                        &#160;<h:outputText value="#{row[1]}"  />
+                                        <h:outputText value="#{row[2]}" rendered="#{row[2] ne null}"/>
+                                    </p:column>
+
+                                    <p:column width="200" sortBy="#{row[8]}" headerText="#{labels['examOrder.examApplication']}">
+                                        <h:outputText value="#{row[8]}"  /> /
+                                        <h:outputText value="#{row[9]}">
+                                            <f:convertDateTime pattern="dd.MM.yyyy" timeZone="#{examOrderEdit.timeZone}"/>
+                                        </h:outputText>
+                                    </p:column>
+
+                                    <p:column width="120" sortBy="#{row[12]}" headerText="#{labels['examOrder.numPaperWork']}" rendered="#{!examOrderEdit.do2019}">
+                                        <h:outputText value="#{row[12]}"  />
+                                    </p:column>
+
+                                    <p:column width="120" sortBy="#{row[13]}" headerText="#{labels['examOrder.numCorrectAns']}" rendered="#{!examOrderEdit.do2019}">
+                                        <h:outputText value="#{row[13]}"  />
+                                    </p:column>
+
+                                    <p:column width="120" sortBy="#{row[14]}" headerText="#{examOrderEdit.do2019 ? labels['examOrder.ratingExam'] : labels['examOrder.ratingFirstPart']}">
+                                        <h:outputText value="#{row[14]}"  />
+                                    </p:column>
+
+                                    <p:column width="180" sortBy="#{row[15]}" headerText="#{labels['examOrder.note']}">
+                                        <h:outputText value="#{row[15]}"  />
+                                    </p:column>
+
+                                </p:dataTable>
+
+                                <p:dataTable id="personsCaseListTbl" value="#{examOrderEdit.licaListForProtCase}" var="row"
+                                             rowIndexVar="idx" emptyMessage="#{ui_labels['general.norows']}" rendered="#{examOrderEdit.do2019}"
+                                             sortMode="single" reflow="true" scrollable="true" style="width: 99.9%;"
+                                             paginatorTemplate="{RowsPerPageDropdown} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {Exporters}"
+                                             rows="10" rowsPerPageTemplate="5,10, 15, 20,25" paginatorPosition="bottom" paginatorAlwaysVisible="true" paginator="true" >
+
+                                    <p:column width="30" headerText="#{ui_labels['general.No-symbol']}">
+                                        <h:outputText value="#{idx + 1}" />
+                                    </p:column>
+
+                                    <p:column width="35" exportable="false">
+                                        <p:button icon="fas fa-eye" title="#{labels['traineeshipOrder.dosie']}" target="_blank"
+                                                  outcome="dossierPersonView.xhtml" ajax="false" styleClass="ui-button">
+                                            <f:param  name="idLice" value="#{row[0]}"/>
+                                        </p:button>
+                                    </p:column>
+
+                                    <p:column width="150" sortBy="#{row[3]}" headerText="#{labels['examOrder.firstName']}"
+                                              filterBy="#{row[3]}" filterMatchMode="contains" filterPlaceholder="#{labels['examOrder.filterFirstName']}">
+                                        <h:outputText value="#{row[3]}"  />
+                                    </p:column>
+
+                                    <p:column width="150" sortBy="#{row[4]}" headerText="#{labels['examOrder.prezime']}"
+                                              filterBy="#{row[4]}" filterMatchMode="contains" filterPlaceholder="#{labels['examOrder.filterPrezime']}">
+                                        <h:outputText value="#{row[4]}"  />
+                                    </p:column>
+
+                                    <p:column width="150" sortBy="#{row[5]}" headerText="#{labels['examOrder.lastName']}"
+                                              filterBy="#{row[5]}" filterMatchMode="contains" filterPlaceholder="#{labels['examOrder.filterLastName']}">
+                                        <h:outputText value="#{row[5]}"  />
+                                    </p:column>
+
+                                    <p:column width="110" sortBy="#{row[1]}" headerText="#{labels['examOrder.egn']}"
+                                              filterBy="#{row[1] ne null ? row[1] : row[2]}" filterMatchMode="contains" filterPlaceholder="#{labels['examOrder.filterEgn']}">
+                                        &#160;<h:outputText value="#{row[1]}"  />
+                                        <h:outputText value="#{row[2]}" rendered="#{row[2] ne null}"/>
+                                    </p:column>
+
+                                    <p:column width="200" sortBy="#{row[8]}" headerText="#{labels['examOrder.examApplication']}">
+                                        <h:outputText value="#{row[8]}"  />/
+                                        <h:outputText value="#{row[9]}">
+                                            <f:convertDateTime pattern="dd.MM.yyyy" timeZone="#{examOrderEdit.timeZone}"/>
+                                        </h:outputText>
+                                    </p:column>
+
+                                    <p:column width="120" sortBy="#{row[16]}" headerText="#{labels['examOrder.numPaperWork']}">
+                                        <h:outputText value="#{row[16]}"  />
+                                    </p:column>
+
+                                    <p:column width="120" sortBy="#{row[17]}" headerText="#{labels['examOrder.ratingExam']}">
+                                        <h:outputText value="#{row[17]}"  />
+                                    </p:column>
+
+                                    <p:column width="180" sortBy="#{row[18]}" headerText="#{labels['examOrder.note']}">
+                                        <h:outputText value="#{row[18]}"  />
+                                    </p:column>
+
+                                </p:dataTable>
+
+                                </div>
+
+                            </h:panelGroup>
+
+                        </h:panelGroup>
+
+                    </p:panel>
+
+                    <br/>
+
+                    <p:panel toggleable="true" toggleSpeed="500" widgetVar="protTest" rendered="#{examOrderEdit.protTest.id ne null}" id="panelTest">
+
+                        <f:facet name="header">
+
+                            <h:outputText value="#{labels['examOrder.protocolTest']}" styleClass="form-label"/>
+
+                            <h:panelGroup id="personsInProtTestGroup">
+                                <h:panelGroup rendered="#{!examOrderEdit.notViewBtnAddLica}">
+
+                                    <span class="fas fa-ellipsis-v SoftGray mx-2" />
+
+                                    <p:commandButton icon="fas fa-users" value="#{labels['examOrder.personsInProt']}" id="btnPersonsInProtTest" action="#{examOrderEdit.actionViewPersonsInProtTest}"
+                                                     update="formExamOrder:personsProtTest" partialSubmit="true" process="formExamOrder:personsProtTest @this" >
+                                    </p:commandButton>
+
+                                </h:panelGroup>
+                            </h:panelGroup>
+
+                            <span class="fas fa-ellipsis-v SoftGray mx-2" jsf:rendered="#{examOrderEdit.viewBtnInsertResultTest}"/>
+
+                            <p:commandButton icon="fas fa-user-edit" value="#{examOrderEdit.protCase.id eq null ? labels['examOrder.insertResults'] : labels['examOrder.personsInProt']}" id="btnInsertResultsTest" action="#{examOrderEdit.actionInsertResultsInTest}"
+                                             update="formExamOrder:personsProtTest formExamOrder:personsInProtTest" partialSubmit="true" process="formExamOrder:personsInProtTest formExamOrder:btnPersonsInProtTest @this"
+                                             rendered="#{examOrderEdit.viewBtnInsertResultTest}" >
+                            </p:commandButton>
+
+                            <h:panelGroup id="pRegInfoProtTest" rendered="#{examOrderEdit.protTest.id ne null}">
+                                <ibg:compObjAudit idObj="#{examOrderEdit.protTest.id}"
+                                                  codeObj="#{UriregConstants.CODE_ZNACHENIE_JOURNAL_DOC}"
+                                                  identInfo="#{examOrderEdit.protTest.identInfo}"/>
+                            </h:panelGroup>
+
+                        </f:facet>
+
+                        <div jsf:id="protocolTest" class="grid ui-fluid">
+
+                            <!-- Дата на протокол -->
+                            <div class="col-12 md:col-12 lg:col-2 xl:col-2">
+                                <h:outputText value="#{labels['examOrder.dateProtTest']}" styleClass="form-label req"/>
+                                <p:datePicker id="dateProtIzpit" value="#{examOrderEdit.protTest.docDate}" mask="true" pattern="dd.MM.yyyy" locale="bg"
+											  showIcon="true" disabled="#{examOrderEdit.protCase.id ne null}"/>
+                            </div>
+
+                            <!-- Комисия – председател -->
+                            <div class="col-12 md:col-12 lg:col-4 xl:col-4">
+                                <h:outputText value="#{labels['examOrder.predsedatelKom']}" styleClass="form-label"/>
+                                <p:inputTextarea value="#{examOrderEdit.protTest.predsedatel}" id="predsedatelTest" rows="1" disabled="#{examOrderEdit.protCase.id ne null}"/>
+                            </div>
+
+                            <!-- Членове на комисия -->
+                            <div class="col-12 md:col-12 lg:col-12 xl:col-12">
+                                <h:outputText value="#{labels['examOrder.chlenoveKom']}" styleClass="form-label"/>
+                                <p:inputTextarea value="#{examOrderEdit.protTest.members}" id="membersTest" rows="2" disabled="#{examOrderEdit.protCase.id ne null}"/>
+                            </div>
+
+                        </div>
+
+                        <div jsf:id="personsProtTest">
+
+                        <div jsf:rendered="#{examOrderEdit.viewPersonsInProtTest}">
+
+                            <div class="title-group">
+                                <p:commandLink class="extended-search-toggle expanded" onclick="toggleSection(this, '#personsInProtTest')">
+                                    <h:outputText value="#{labels['examOrder.personsInProt']}"/>
+                                    <i class="fas fa-caret-right"></i>
+                                </p:commandLink>
+
+                                <p:commandButton icon="fas fa-user-plus" value="#{labels['traineeshipOrder.dobaviLice']}" id="addLiceTest"
+                                                 styleClass="ui-button-success" update="@this formExamOrder:licaForProt formExamOrder:panelTblToolbar"
+                                                 onclick="PF('modalAddLice').show();" disabled="#{examOrderEdit.notViewBtnAddLica or examOrderEdit.countEnteredTestResult > 0}"
+                                                 partialSubmit="true" process="@this formExamOrder:licaForProt formExamOrder:panelTblToolbar" >
+                                </p:commandButton>
+
+                            </div>
+
+                            <div id="personsInProtTest" class="grid">
+
+                            <h:panelGroup id="panelTblToolbar">
+
+                                <div class="table-toolbar">
+
+                                    <p:commandButton icon="fas fa-times" id="btnDeleteLicaInTest" value="#{ui_labels['general.remove']}" action="#{examOrderEdit.actionRemoveLicaFromProtocol(examOrderEdit.protTest.id, examOrderEdit.licaSelectedTestAll)}"
+                                                     update="formExamOrder:tblPersonsTestList formExamOrder:panelTblToolbar" partialSubmit="true" process="formExamOrder:tblPersonsTestList formExamOrder:panelTblToolbar @this"
+                                                     styleClass="ui-button-danger" rendered="#{examOrderEdit.licaSelectedTestAll.size() > 0}" disabled="#{examOrderEdit.notViewBtnAddLica or examOrderEdit.countEnteredTestResult > 0}">
+                                        <p:confirm header="#{ui_labels['general.comfirmation']}" message="#{beanMessages['examOrderEdit.confirmRemoved']}" icon="fas fa-exclamation-triangle"/>
+                                    </p:commandButton>
+
+                                    <span class="mr-2" style="#{examOrderEdit.licaSelectedTestAll.size()>0?'':'display:none'}" >
+                                        <span class="fas fa-ellipsis-v" />
+                                    </span>
+
+                                    <h:outputText value="#{labels['opis.brIzbr']}: #{examOrderEdit.licaSelectedTestAll.size()}" rendered="#{examOrderEdit.licaSelectedTestAll.size()>0}" styleClass="form-label mr-2" id="brSel"/>
+
+                                    <span class="mr-2" style="#{examOrderEdit.licaSelectedTestAll.size()>0?'':'display:none'}" >
+                                        <span class="fas fa-ellipsis-v" />
+                                    </span>
+
+                                    <h:outputText value="#{labels['examOrder.totalNumber']}: #{examOrderEdit.licaListForProtTest.size()}" styleClass="form-label mr-2" rendered="#{examOrderEdit.licaSelectedTestAll.size() > 0}"/>
+
+                                </div>
+
+                            </h:panelGroup>
+
+                            <h:panelGroup id="panelBrResult">
+                                <h:panelGroup rendered="#{examOrderEdit.licaSelectedTestAll.size() == 0}">
+                                    <div class="table-toolbar">
+                                        <h:outputText value="#{labels['examOrder.totalNumber']}: #{examOrderEdit.licaListForProtTest.size()}" styleClass="form-label mr-2" />
+                                    </div>
+                                </h:panelGroup>
+                            </h:panelGroup>
+
+                                <p:dataTable id="tblPersonsTestList" value="#{examOrderEdit.licaListForProtTest}" var="row"
+                                             rowIndexVar="idx" emptyMessage="#{ui_labels['general.norows']}"
+                                             sortMode="single" reflow="true" scrollable="true" style="width: 99.9%;"
+                                             paginatorTemplate="{RowsPerPageDropdown} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {Exporters}"
+                                             rows="10" rowsPerPageTemplate="5,10, 15, 20,25" paginatorPosition="bottom" paginatorAlwaysVisible="true" paginator="true"
+                                             selectionRowMode="none" selection="#{examOrderEdit.licaSelectedTest}" selectionPageOnly="false" rowKey="#{row[0]}" >
+
+                                    <p:ajax event="toggleSelect" listener="#{examOrderEdit.onRowSelectAllTest}" process="@this" update="formExamOrder:panelTblToolbar formExamOrder:panelBrResult"/>
+                                    <p:ajax event="rowSelectCheckbox" listener="#{examOrderEdit.onRowSelectTest}"   process="@this"  update="formExamOrder:panelTblToolbar formExamOrder:panelBrResult"/>
+                                    <p:ajax event="rowUnselectCheckbox" listener="#{examOrderEdit.onRowUnselectTest}" process="@this"  update="formExamOrder:panelTblToolbar formExamOrder:panelBrResult"/>
+                                    <p:ajax event="page" listener="#{examOrderEdit.onPageUpdateSelectedTest}" />
+
+                                    <p:column selectionBox="true" style="width:30px;text-align:center;" rendered="#{!examOrderEdit.notViewBtnAddLica or examOrderEdit.countEnteredTestResult > 0}" exportable="false"/>
+
+                                    <f:facet name="{Exporters}">
+
+                                        <div style="float: left">
+
+                                            <p:commandLink id="excel" update="tblPersonsTestList" process="tblPersonsTestList" partialSubmit="true" title="#{labels['examOrder.generateProtocol']}">
+                                                <h:graphicImage library="images" name="excel2.png" />
+                                                <p:dataExporter type="xlsx" target="tblPersonsTestList" fileName="Протокол_Тест_#{examOrderEdit.getDocDateFormatted(examOrderEdit.protTest.getDocDate())}" postProcessor="#{examOrderEdit.postProcessXLSXPersonsExamListTest}" />
+                                            </p:commandLink>
+
+                                        </div>
+
+                                    </f:facet>
+
+                                    <p:column width="30" headerText="#{ui_labels['general.No-symbol']}">
+                                        <h:outputText value="#{idx + 1}" />
+                                    </p:column>
+
+                                    <p:column width="35" exportable="false">
+                                        <p:button icon="fas fa-eye" title="#{labels['traineeshipOrder.dosie']}" target="_blank"
+                                                  outcome="dossierPersonView.xhtml" ajax="false" styleClass="ui-button">
+                                            <f:param name="idLice" value="#{row[0]}"/>
+                                        </p:button>
+                                    </p:column>
+
+                                    <p:column width="150" sortBy="#{row[3]}" headerText="#{labels['examOrder.firstName']}"
+                                              filterBy="#{row[3]}" filterMatchMode="contains" filterPlaceholder="#{labels['examOrder.filterFirstName']}">
+                                        <h:outputText value="#{row[3]}"  />
+                                    </p:column>
+
+                                    <p:column width="150" sortBy="#{row[4]}" headerText="#{labels['examOrder.prezime']}"
+                                              filterBy="#{row[4]}" filterMatchMode="contains" filterPlaceholder="#{labels['examOrder.filterPrezime']}">
+                                        <h:outputText value="#{row[4]}"  />
+                                    </p:column>
+
+                                    <p:column width="150" sortBy="#{row[5]}" headerText="#{labels['examOrder.lastName']}"
+                                              filterBy="#{row[5]}" filterMatchMode="contains" filterPlaceholder="#{labels['examOrder.filterLastName']}">
+                                        <h:outputText value="#{row[5]}"  />
+                                    </p:column>
+
+                                    <p:column width="110" sortBy="#{row[1]}" headerText="#{labels['examOrder.egn']}"
+                                              filterBy="#{row[1] ne null ? row[1] : row[2]}" filterMatchMode="contains" filterPlaceholder="#{labels['examOrder.filterEgn']}">
+                                        &#160;<h:outputText value="#{row[1]}"  />
+                                        <h:outputText value="#{row[2]}" rendered="#{row[2] ne null}"/>
+                                    </p:column>
+
+                                    <p:column width="200" sortBy="#{row[8]}" headerText="#{labels['examOrder.examApplication']}">
+                                        <h:outputText value="#{row[8]}"  />/
+                                        <h:outputText value="#{row[9]}">
+                                            <f:convertDateTime pattern="dd.MM.yyyy" timeZone="#{examOrderEdit.timeZone}"/>
+                                        </h:outputText>
+                                    </p:column>
+
+
+                                    <p:column width="120" sortBy="#{row[12]}" headerText="#{labels['examOrder.numPaperWork']}" rendered="#{!examOrderEdit.do2019}">
+                                        <h:outputText value="#{row[12]}"  />
+                                    </p:column>
+
+                                    <p:column width="120" sortBy="#{row[13]}" headerText="#{labels['examOrder.numCorrectAns']}" rendered="#{!examOrderEdit.do2019}">
+                                        <h:outputText value="#{row[13]}"  />
+                                    </p:column>
+
+                                    <p:column width="120" sortBy="#{row[14]}" headerText="#{examOrderEdit.do2019 ? labels['examOrder.ratingExam'] : labels['examOrder.ratingFirstPart']}">
+                                        <h:outputText value="#{row[14]}"  />
+                                    </p:column>
+
+                                    <p:column width="180" sortBy="#{row[15]}" headerText="#{labels['examOrder.note']}">
+                                        <h:outputText value="#{row[15]}"  />
+                                    </p:column>
+
+                                </p:dataTable>
+
+                            </div>
+
+                        </div>
+
+                        <div jsf:rendered="#{examOrderEdit.viewInsertResultTest}">
+
+                            <div class="title-group">
+                                <p:commandLink class="extended-search-toggle expanded" onclick="toggleSection(this, '#enteredResultInProtTest')" id="labelComLinkTest">
+                                    <h:outputText value="#{examOrderEdit.protCase.id eq null ? labels['examOrder.insertResults'] : labels['examOrder.personsInProt']}"/>
+                                    <i class="fas fa-caret-right"></i>
+                                </p:commandLink>
+                            </div>
+
+                            <div id="enteredResultInProtTest" class="grid col-12 ui-fluid">
+
+                                <div class="grid col-12 ui-fluid">
+                                    <p:outputPanel layout="block">
+                                        <!-- Таблица за въвеждане на резултати от изпит-тест-->
+
+                                        <div class="table-toolbar">
+                                            <h:panelGroup rendered="#{examOrderEdit.listResIzpitTest != null}" >
+                                                <h:outputText value="#{labels['examOrder.totalNumber']}: #{examOrderEdit.listResIzpitTest.size()} " styleClass="form-label mr-2"/>
+                                                <h:panelGroup id="cuontResTestGroup">
+                                                    <h:outputText value="#{labels['examOrder.passed']}: #{examOrderEdit.countResIzpitTest[1]} " styleClass="form-label mr-2" rendered="#{examOrderEdit.countResIzpitTest[0] eq 0}"/>
+                                                    <h:outputText value="#{labels['examOrder.failed']}: #{examOrderEdit.countResIzpitTest[2]} " styleClass="form-label mr-2" rendered="#{examOrderEdit.countResIzpitTest[0] eq 0}"/>
+                                                    <h:outputText value="#{labels['examOrder.notShowUp']}: #{examOrderEdit.countResIzpitTest[3]} " styleClass="form-label mr-2" rendered="#{examOrderEdit.countResIzpitTest[0] eq 0}"/>
+                                                </h:panelGroup>
+                                                <span class="fas fa-ellipsis-v  mx-2" />
+                                            </h:panelGroup>
+                                            <h:panelGroup id="fileUploadGroup" >
+                                                <p:fileUpload label="#{labels['examOrder.loadResults']}" rendered="#{examOrderEdit.protCase.id eq null and !examOrderEdit.existResultInProtTest}"
+                                                              uploadButtonTitle="#{labels['examOrder.loadResults']}" allowTypes="/(\.|\/)(xls|xlsx)$/"
+                                                              update="formExamOrder:fileUploadGroup formExamOrder:testResultsTable formExamOrder:includePanel formExamOrder:personsInProtTestGroup formExamOrder:labelComLinkTest :formExamOrder:tlbButton formExamOrder:filesList formExamOrder:cuontResTestGroup"
+                                                              multiple="false"  sequential="true" auto="true" listener="#{examOrderEdit.uploadFileResult}">
+                                                    <f:attribute name="vidIzpit" value="1" />
+                                                </p:fileUpload>
+                                            </h:panelGroup>
+                                        </div>
+
+                                        <p:dataTable id="testResultsTable" var="row" rowKey="#{row.id}" value="#{examOrderEdit.listResIzpitTest}" scrollable="true"
+                                                     rowIndexVar="idx" editable="true" editMode="row" style="width: 99.9%;"
+                                                     widgetVar="testResultsTableWV" emptyMessage="#{ui_labels['general.norows']}"
+                                                     paginatorTemplate="{RowsPerPageDropdown} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {Exporters}"
+                                                     rows="15" rowsPerPageTemplate="5,10,15,20,25" paginatorPosition="bottom" paginatorAlwaysVisible="true" paginator="true" >
+
+                                            <p:ajax event="rowEdit" listener="#{examOrderEdit.actionSaveResult}" update="formExamOrder:cuontResTestGroup formExamOrder:fileUploadGroup formExamOrder:includePanel formExamOrder:personsInProtTestGroup formExamOrder:labelComLinkTest :formExamOrder:tlbButton" />
+
+                                            <f:facet name="{Exporters}">
+                                                <div style="float:left">
+                                                    <p:commandLink id="excelTest"  rendered="#{examOrderEdit.listResIzpitTest.size() le UriregConstants.ROW_LIMITS_REPORTS}"
+                                                                   update="testResultsTable" process="testResultsTable" partialSubmit="true">
+                                                        <h:graphicImage library="images" name="excel2.png" />
+                                                        <p:dataExporter type="xlsx" target="testResultsTable" fileName="Протокол_Тест_#{examOrderEdit.getDocDateFormatted(examOrderEdit.protTest.getDocDate())}#{examOrderEdit.exportForSiteT ? '_site' : ''}" postProcessor="#{examOrderEdit.postProcessXLSXPersonsExamListTest}"  />
+                                                    </p:commandLink>
+                                                    <p:selectBooleanCheckbox value="#{examOrderEdit.exportForSiteT}"  id="expS1" itemLabel="Генериране на протокол за сайта" styleClass="ml-2" style="bottom: 10px" >
+                                                        <p:ajax event="change" partialSubmit="true" update="@this enteredResultInProtTest" process="@this"/>
+                                                    </p:selectBooleanCheckbox>
+                                                </div>
+                                            </f:facet>
+
+                                            <p:column width="20" headerText="#{ui_labels['general.No-symbol']}">
+                                                <h:outputText value="#{idx + 1}" />
+                                            </p:column>
+
+                                            <p:column width="35" exportable="false">
+                                                <p:button icon="fas fa-eye" title="#{labels['traineeshipOrder.dosie']}" target="_blank"
+                                                          outcome="dossierPersonView.xhtml" ajax="false" styleClass="ui-button">
+                                                    <f:param name="idLice" value="#{row[0]}"/>
+                                                </p:button>
+                                            </p:column>
+
+                                            <p:column width="140" headerText="#{labels['examOrder.firstName']}" sortBy="#{row[1]}" filterBy="#{row[1]}" filterMatchMode="contains" filterPlaceholder="#{labels['examOrder.filterFirstName']}">
+                                                <h:outputText value="#{row[1]}"/>
+                                            </p:column>
+
+                                            <p:column width="140" headerText="#{labels['examOrder.prezime']}" sortBy="#{row[2]}"  exportable="#{!examOrderEdit.exportForSiteT}" filterBy="#{row[2]}" filterMatchMode="contains" filterPlaceholder="#{labels['examOrder.filterPrezime']}">
+                                                <h:outputText value="#{row[2]}" />
+                                            </p:column>
+
+                                            <p:column width="140" headerText="#{labels['examOrder.lastName']}" sortBy="#{row[3]}" filterBy="#{row[3]}" filterMatchMode="contains" filterPlaceholder="#{labels['examOrder.filterLastName']}">
+                                                <h:outputText value="#{row[3]}"/>
+                                            </p:column>
+
+                                            <p:column width="100" headerText="#{labels['insertTestResults.egnLnch']}" sortBy="#{empty row[11] ? row[12] : row[11]}" exportable="#{!examOrderEdit.exportForSiteT}"
+                                                      filterBy="#{row[11] ne null ? row[11] : row[12]}" filterMatchMode="contains" filterPlaceholder="#{labels['examOrder.filterEgn']}">
+                                                &#160;<h:outputText value="#{empty row[11] ? row[12] : row[11]}" />
+                                            </p:column>
+
+                                            <p:column width="200" headerText="#{labels['examOrder.examApplication']}" sortBy="#{row[7]}">
+                                               <h:outputText value="#{row[7]}" /> /
+                                               <h:outputText value="#{row[8]}" >
+                                                    <f:convertDateTime pattern="dd.MM.yyyy" timeZone="#{examOrderEdit.timeZone}"/>
+                                               </h:outputText>
+                                            </p:column>
+
+                                            <p:column width="170" headerText="#{labels['examOrder.numPaperWork']}" sortBy="#{row[10].testPismenaNom}">
+                                                <p:cellEditor>
+                                                    <f:facet name="output">
+                                                        <h:outputText value="#{row[10].testPismenaNom}" />
+                                                    </f:facet>
+                                                    <f:facet name="input">
+                                                        <p:inputNumber  modifyValueOnWheel="false" title="#{labels['examOrder.numPaperWork']}"
+                                                                        value="#{examOrderEdit.getIzpitResultFromRow(row).testPismenaNom}"
+                                                                        minValue="0" decimalPlaces="0">
+                                                        </p:inputNumber>
+                                                    </f:facet>
+                                                </p:cellEditor>
+                                            </p:column>
+
+                                            <p:column width="170" headerText="#{labels['examOrder.numCorrectAns']}" sortBy="#{row[10].testCorrectAnswers}">
+                                                <p:cellEditor>
+                                                    <f:facet name="output">
+                                                        <h:outputText value="#{row[10].testCorrectAnswers}" />
+                                                    </f:facet>
+                                                    <f:facet name="input">
+                                                        <p:inputText value="#{examOrderEdit.getIzpitResultFromRow(row).testCorrectAnswers}" style="width:96%" label="#{labels['examOrder.numCorrectAns']}"/>
+                                                    </f:facet>
+                                                </p:cellEditor>
+                                            </p:column>
+
+                                            <p:column width="150" headerText="#{labels['insertTestResults.result']}" sortBy="#{row[10].testResult}">
+                                                <p:cellEditor>
+                                                    <f:facet name="output">
+                                                        <h:outputText value="#{systemData.decodeItem(UriregConstants.CODE_CLASSIF_IZPIT_RESULT, row[10].testResult, examOrderList.currentLang, null)}" />
+                                                    </f:facet>
+                                                    <f:facet name="input">
+                                                        <p:selectOneMenu id="competence" value="#{examOrderEdit.getIzpitResultFromRow(row).testResult}" style="width:96%">
+                                                            <f:selectItem itemValue="" />
+                                                            <f:selectItems value="#{systemData.getSysClassification(UriregConstants.CODE_CLASSIF_IZPIT_RESULT, examOrderEdit.currentDate, examOrderEdit.currentLang)}"
+                                                                           var="itemSc" itemLabel="#{itemSc.tekst}" itemValue="#{itemSc.code}" />
+
+                                                        </p:selectOneMenu>
+                                                    </f:facet>
+                                                </p:cellEditor>
+                                            </p:column>
+
+                                            <p:column width="100" headerText="#{labels['examOrder.note']}" sortBy="#{row[10].testRemark}">
+                                                <p:cellEditor>
+                                                    <f:facet name="output">
+                                                        <h:outputText value="#{row[10].testRemark}" />
+                                                    </f:facet>
+                                                    <f:facet name="input">
+                                                        <p:inputText value="#{examOrderEdit.getIzpitResultFromRow(row).testRemark}" style="width:96%" label="#{labels['examOrder.note']}"/>
+                                                    </f:facet>
+                                                </p:cellEditor>
+                                            </p:column>
+
+                                            <p:column width="30" exportable="false">
+                                                <p:rowEditor editTitle="#{labels['examOrder.manualInput']}" cancelTitle="#{labels['general.otkaz']}" saveTitle="#{labels['general.zapis']}"
+                                                             rendered="#{examOrderEdit.protCase.id eq null}" />
+                                            </p:column>
+
+                                            <p:column width="350" exportable="false"  headerText="#{labels['lice.universitet']}" sortBy="#{row[16]}">
+                                                <h:outputText
+                                                        value="#{systemData.decodeItem(UriregConstants.CODE_CLASSIF_UNIVERSITETI, row[16], examOrderEdit.currentLang, examOrderEdit.currentDate )}"/>
+                                            </p:column>
+                                        </p:dataTable>
+
+                                    </p:outputPanel>
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                        </div>
+
+                    </p:panel>
+
+                    <br/>
+
+                    <p:panel toggleable="true" toggleSpeed="500" widgetVar="protCase" rendered="#{examOrderEdit.viewPanelProtCase or examOrderEdit.protCase.id ne null}" id="panelProtCase">
+
+                        <f:facet name="header">
+
+                        	 <h:outputText value="#{examOrderEdit.do2019 ? labels['examOrder.protocol'] : labels['examOrder.protocolCase']}" styleClass="form-label"/>
+
+                            <h:panelGroup id="personsInProtCaseGroup">
+                                <h:panelGroup rendered="#{!examOrderEdit.viewBtnInsertResultCase}">
+
+                                    <span class="fas fa-ellipsis-v SoftGray mx-2"/>
+
+                                    <p:commandButton icon="fas fa-users" value="#{labels['examOrder.personsInProt']}" id="btnPersonsInPrCase" action="#{examOrderEdit.actionViewPersonsInProtCase}"
+                                             update="formExamOrder:personsProtCase" partialSubmit="true" process="formExamOrder:personsProtCase @this">
+                                    </p:commandButton>
+
+                                </h:panelGroup>
+                            </h:panelGroup>
+
+                            <h:panelGroup id="btnForInsertLicaCase">
+                                <h:panelGroup rendered="#{examOrderEdit.viewBtnInsertResultCase}">
+
+                                <span class="fas fa-ellipsis-v SoftGray mx-2" />
+
+                                <p:commandButton icon="fas fa-user-edit" id="btnInsertResultsCase" action="#{examOrderEdit.actionInsertResultsInCase}"
+                                                 value="#{examOrderEdit.countEnteredCaseResult == examOrderEdit.listResIzpitCase.size() ? labels['examOrder.personsInProt'] : labels['examOrder.insertResults']}"
+                                                 update="formExamOrder:personsProtCase" partialSubmit="true" process="formExamOrder:personsProtCase @this">
+                                </p:commandButton>
+
+                                </h:panelGroup>
+                            </h:panelGroup>
+
+                            <p:spacer id="spacerDelCase" />
+
+                            <p:commandButton icon="fas fa-times" id="btnDeleteProtCase" value="#{ui_labels['general.delete']}"
+                                             update="formExamOrder" partialSubmit="true" process="formExamOrder @this" style="float:right"
+                                             action="#{examOrderEdit.actionDeleteProtCase}" styleClass="ui-button-danger ml-2"
+                                             rendered="#{examOrderEdit.protCase.id ne null and !examOrderEdit.do2019}"
+                                             disabled="#{examOrderEdit.countEnteredCaseResult > 0 or examOrderEdit.notViewBtnDelProtCase}">
+                                <p:confirm header="#{ui_labels['general.comfirmation']}" message="#{beanMessages['general.confirmDeleteMsg']}" icon="fas fa-exclamation-triangle" />
+                            </p:commandButton>
+
+                            <h:panelGroup id="pRegInfoProtCase" rendered="#{examOrderEdit.protCase.id ne null}">
+                                <ibg:compObjAudit idObj="#{examOrderEdit.protCase.id}"
+                                                  codeObj="#{UriregConstants.CODE_ZNACHENIE_JOURNAL_DOC}"
+                                                  identInfo="#{examOrderEdit.protCase.identInfo}"/>
+                            </h:panelGroup>
+
+
+                        </f:facet>
+
+                        <div id="protocolCase" class="grid ui-fluid">
+
+                            <!-- Дата на протокол-казус -->
+                            <div class="col-12 md:col-12 lg:col-2 xl:col-2">
+                                <h:outputText value="#{examOrderEdit.do2019 ? labels['zapovedList.dataProtokol'] : labels['examOrder.dateProtCase']}" styleClass="form-label req"/>
+                                <p:datePicker id="dateProtCase" value="#{examOrderEdit.protCase.docDate}" mask="true" pattern="dd.MM.yyyy" locale="bg"
+											  showIcon="true" />
+                            </div>
+
+                            <!-- Комисия – председател -->
+                            <div class="col-12 md:col-12 lg:col-4 xl:col-4">
+                                <h:outputText value="#{labels['examOrder.predsedatelKom']}" styleClass="form-label"/>
+                                <p:inputTextarea value="#{examOrderEdit.protCase.predsedatel}" id="predsedatelCase" rows="1"/>
+                            </div>
+
+                            <!-- Членове на комисия -->
+                            <div class="col-12 md:col-12 lg:col-12 xl:col-12">
+                                <h:outputText value="#{labels['examOrder.chlenoveKom']}" styleClass="form-label"/>
+                                <p:inputTextarea value="#{examOrderEdit.protCase.members}" id="membersCase" rows="2"/>
+                            </div>
+
+                        </div>
+
+                        <div jsf:id="personsProtCase">
+
+                        <div jsf:rendered="#{examOrderEdit.viewPersonsInProtCase}">
+
+                            <div class="title-group">
+                                <p:commandLink class="extended-search-toggle expanded" onclick="toggleSection(this, '#personsInProtCase')">
+                                    <h:outputText value="#{labels['examOrder.personsInProt']}"/>
+                                    <i class="fas fa-caret-right"></i>
+                                </p:commandLink>
+
+                                <p:commandButton icon="fas fa-user-plus" value="#{labels['traineeshipOrder.dobaviLice']}" id="addLiceCase"
+                                                 styleClass="ui-button-success" update="@this formExamOrder:licaFor formExamOrder:panelTblToolbarCase"
+                                                 onclick="PF('modalAddLice').show();" disabled="#{examOrderEdit.notViewBtnDelProtCase or examOrderEdit.countEnteredCaseResult > 0}"
+                                                 partialSubmit="true" process="@this formExamOrder:licaForProt formExamOrder:panelTblToolbarCase" rendered="#{examOrderEdit.do2019}">
+                                </p:commandButton>
+                            </div>
+
+                            <div jsf:id="personsInProtCase" class="grid">
+
+                                <h:panelGroup id="panelTblToolbarCase">
+
+                                    <h:panelGroup rendered="#{examOrderEdit.protTest.id eq null}">
+
+                                        <div class="table-toolbar">
+
+                                            <p:commandButton icon="fas fa-times" id="btnDeleteLicaInCase" value="#{ui_labels['general.remove']}" action="#{examOrderEdit.actionRemoveLicaFromProtocol(examOrderEdit.protCase.id, examOrderEdit.licaSelectedCaseAll)}"
+                                                             update="formExamOrder:tblPersonsCaseListSel formExamOrder:panelTblToolbarCase" partialSubmit="true" process="formExamOrder:tblPersonsCaseListSel formExamOrder:panelTblToolbarCase @this"
+                                                             styleClass="ui-button-danger" rendered="#{examOrderEdit.licaSelectedCaseAll.size()>0}" disabled="#{examOrderEdit.notViewBtnDelProtCase or examOrderEdit.countEnteredCaseResult > 0}">
+                                                <p:confirm header="#{ui_labels['general.comfirmation']}" message="#{beanMessages['examOrderEdit.confirmRemoved']}" icon="fas fa-exclamation-triangle"/>
+                                            </p:commandButton>
+
+                                            <span class="mr-2" style="#{examOrderEdit.licaSelectedCaseAll.size()>0?'':'display:none'}" >
+                                                <span class="fas fa-ellipsis-v" />
+                                            </span>
+
+                                            <h:outputText value="#{labels['opis.brIzbr']}: #{examOrderEdit.licaSelectedCaseAll.size()}" rendered="#{examOrderEdit.licaSelectedCaseAll.size()>0}" styleClass="form-label mr-2" id="brSelCase"/>
+
+                                            <span class="mr-2" style="#{examOrderEdit.licaSelectedCaseAll.size()>0?'':'display:none'}" >
+                                                <span class="fas fa-ellipsis-v" />
+                                            </span>
+
+                                            <h:outputText value="#{labels['examOrder.totalNumber']}: #{examOrderEdit.licaListForProtCase.size()}" rendered="#{examOrderEdit.licaSelectedCaseAll.size()>0}" styleClass="form-label mr-2" />
+
+                                        </div>
+
+                                    </h:panelGroup>
+
+                                </h:panelGroup>
+
+                                <h:panelGroup id="panelBrResultCase">
+                                    <h:panelGroup rendered="#{examOrderEdit.licaSelectedCaseAll.size() == 0}">
+                                        <div class="table-toolbar">
+                                            <h:outputText value="#{labels['examOrder.totalNumber']}: #{examOrderEdit.licaListForProtCase.size()}" styleClass="form-label mr-2" />
+                                        </div>
+                                    </h:panelGroup>
+                                </h:panelGroup>
+                                <ui:remove><!-- проткол за лица до 2019--></ui:remove>
+                                <p:dataTable id="tblPersonsCaseListSel" value="#{examOrderEdit.licaListForProtCase}" var="row"
+                                             rowIndexVar="idx" emptyMessage="#{ui_labels['general.norows']}" rendered="#{examOrderEdit.protTest.id eq null}"
+                                             sortMode="single" reflow="true" scrollable="true" style="width: 99.9%;"
+                                             paginatorTemplate="{RowsPerPageDropdown} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {Exporters}"
+                                             rows="10" rowsPerPageTemplate="5,10, 15, 20,25" paginatorPosition="bottom" paginatorAlwaysVisible="true" paginator="true"
+                                             selectionRowMode="none" selection="#{examOrderEdit.licaSelectedCase}" selectionPageOnly="false" rowKey="#{row[0]}" >
+
+                                    <p:ajax event="toggleSelect" listener="#{examOrderEdit.onRowSelectAllCase}" process="@this" update="formExamOrder:panelTblToolbarCase formExamOrder:panelBrResultCase"/>
+                                    <p:ajax event="rowSelectCheckbox" listener="#{examOrderEdit.onRowSelectCase}"   process="@this"  update="formExamOrder:panelTblToolbarCase formExamOrder:panelBrResultCase"/>
+                                    <p:ajax event="rowUnselectCheckbox" listener="#{examOrderEdit.onRowUnselectCase}" process="@this"  update="formExamOrder:panelTblToolbarCase formExamOrder:panelBrResultCase"/>
+                                    <p:ajax event="page" listener="#{examOrderEdit.onPageUpdateSelectedCase}" />
+
+                                    <p:column selectionBox="true" style="width:30px;text-align:center;" exportable="false"/>
+
+                                    <f:facet name="{Exporters}">
+
+                                        <div style="float: left">
+
+                                            <p:commandLink id="excel" update="tblPersonsCaseListSel" process="tblPersonsCaseListSel" partialSubmit="true" title="#{labels['examOrder.generateProtocol']}">
+                                                <h:graphicImage library="images" name="excel2.png" />
+                                                <p:dataExporter type="xlsx" target="tblPersonsCaseListSel" fileName="Протокол_изпит_#{examOrderEdit.getDocDateFormatted(examOrderEdit.protCase.getDocDate())}" postProcessor="#{examOrderEdit.postProcessXLSXPersonsExamListCase}" />
+                                            </p:commandLink>
+
+                                        </div>
+
+                                    </f:facet>
+
+                                    <p:column width="30" headerText="#{ui_labels['general.No-symbol']}">
+                                        <h:outputText value="#{idx + 1}" />
+                                    </p:column>
+
+                                    <p:column width="35" exportable="false">
+                                        <p:button icon="fas fa-eye" title="#{labels['traineeshipOrder.dosie']}" target="_blank"
+                                                  outcome="dossierPersonView.xhtml" ajax="false" styleClass="ui-button">
+                                            <f:param  name="idLice" value="#{row[0]}"/>
+                                        </p:button>
+                                    </p:column>
+
+                                    <p:column width="150" sortBy="#{row[3]}" headerText="#{labels['examOrder.firstName']}"
+                                              filterBy="#{row[3]}" filterMatchMode="contains" filterPlaceholder="#{labels['examOrder.filterFirstName']}">
+                                        <h:outputText value="#{row[3]}"  />
+                                    </p:column>
+
+                                    <p:column width="150" sortBy="#{row[4]}" headerText="#{labels['examOrder.prezime']}"
+                                              filterBy="#{row[4]}" filterMatchMode="contains" filterPlaceholder="#{labels['examOrder.filterPrezime']}">
+                                        <h:outputText value="#{row[4]}"  />
+                                    </p:column>
+
+                                    <p:column width="150" sortBy="#{row[5]}" headerText="#{labels['examOrder.lastName']}"
+                                              filterBy="#{row[5]}" filterMatchMode="contains" filterPlaceholder="#{labels['examOrder.filterLastName']}">
+                                        <h:outputText value="#{row[5]}"  />
+                                    </p:column>
+
+                                    <p:column width="110" sortBy="#{row[1]}" headerText="#{labels['examOrder.egn']}"
+                                              filterBy="#{row[1] ne null ? row[1] : row[2]}" filterMatchMode="contains" filterPlaceholder="#{labels['examOrder.filterEgn']}">
+                                        &#160;<h:outputText value="#{row[1]}"  />
+                                        <h:outputText value="#{row[2]}" rendered="#{row[2] ne null}"/>
+                                    </p:column>
+
+                                    <p:column width="200" sortBy="#{row[8]}" headerText="#{labels['examOrder.examApplication']}">
+                                        <h:outputText value="#{row[8]}"  />/
+                                        <h:outputText value="#{row[9]}">
+                                            <f:convertDateTime pattern="dd.MM.yyyy" timeZone="#{examOrderEdit.timeZone}"/>
+                                        </h:outputText>
+                                    </p:column>
+
+                                    <p:column width="120" sortBy="#{row[12]}" headerText="#{labels['examOrder.numPaperWork']}" rendered="#{!examOrderEdit.do2019}">
+                                        <h:outputText value="#{row[12]}"  />
+                                    </p:column>
+
+                                    <p:column width="120" sortBy="#{row[13]}" headerText="#{labels['examOrder.numCorrectAns']}" rendered="#{!examOrderEdit.do2019}">
+                                        <h:outputText value="#{row[13]}"  />
+                                    </p:column>
+
+                                    <p:column width="120" sortBy="#{row[14]}" headerText="#{examOrderEdit.do2019 ? labels['examOrder.ratingExam'] : labels['examOrder.ratingFirstPart']}">
+                                        <h:outputText value="#{row[14]}"  />
+                                    </p:column>
+
+                                    <p:column width="180" sortBy="#{row[15]}" headerText="#{labels['examOrder.note']}">
+                                        <h:outputText value="#{row[15]}"  />
+                                    </p:column>
+
+                                </p:dataTable>
+                                <ui:remove><!-- проткол за лица след 2019--></ui:remove>
+                                <p:dataTable id="tblPersonsCaseList" value="#{examOrderEdit.licaListForProtCase}" var="row"
+                                             rowIndexVar="idx" emptyMessage="#{ui_labels['general.norows']}" rendered="#{examOrderEdit.protTest.id ne null}"
+                                             sortMode="single" reflow="true" scrollable="true" style="width: 99.9%;"
+                                             paginatorTemplate="{RowsPerPageDropdown} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {Exporters}"
+                                             rows="10" rowsPerPageTemplate="5,10, 15, 20,25" paginatorPosition="bottom" paginatorAlwaysVisible="true" paginator="true" >
+
+                                    <f:facet name="{Exporters}">
+
+                                        <div style="float: left">
+
+                                            <p:commandLink id="excel" update="tblPersonsCaseList" process="tblPersonsCaseList" partialSubmit="true" title="#{labels['examOrder.generateProtocol']}">
+                                                <h:graphicImage library="images" name="excel2.png" />
+                                                <p:dataExporter type="xlsx" target="tblPersonsCaseList" fileName="Протокол_Казус_#{examOrderEdit.getDocDateFormatted(examOrderEdit.protCase.getDocDate())}" postProcessor="#{examOrderEdit.postProcessXLSXPersonsExamListCase}" />
+                                            </p:commandLink>
+
+                                        </div>
+
+                                    </f:facet>
+
+                                    <p:column width="30" headerText="#{ui_labels['general.No-symbol']}">
+                                        <h:outputText value="#{idx + 1}" />
+                                    </p:column>
+
+                                    <p:column width="35" exportable="false">
+                                        <p:button icon="fas fa-eye" title="#{labels['traineeshipOrder.dosie']}" target="_blank"
+                                                  outcome="dossierPersonView.xhtml" ajax="false" styleClass="ui-button">
+                                            <f:param  name="idLice" value="#{row[0]}"/>
+                                        </p:button>
+                                    </p:column>
+
+                                    <p:column width="100" sortBy="#{row[3]}" headerText="#{labels['examOrder.firstName']}"
+                                              filterBy="#{row[3]}" filterMatchMode="contains" filterPlaceholder="#{labels['examOrder.filterFirstName']}">
+                                        <h:outputText value="#{row[3]}"  />
+                                    </p:column>
+
+                                    <p:column width="100" sortBy="#{row[4]}" headerText="#{labels['examOrder.prezime']}"
+                                              filterBy="#{row[4]}" filterMatchMode="contains" filterPlaceholder="#{labels['examOrder.filterPrezime']}">
+                                        <h:outputText value="#{row[4]}"  />
+                                    </p:column>
+
+                                    <p:column width="100" sortBy="#{row[5]}" headerText="#{labels['examOrder.lastName']}"
+                                              filterBy="#{row[5]}" filterMatchMode="contains" filterPlaceholder="#{labels['examOrder.filterLastName']}">
+                                        <h:outputText value="#{row[5]}"  />
+                                    </p:column>
+
+                                    <p:column width="80" sortBy="#{row[1]}" headerText="#{labels['examOrder.egn']}"
+                                              filterBy="#{row[1] ne null ? row[1] : row[2]}" filterMatchMode="contains" filterPlaceholder="#{labels['examOrder.filterEgn']}">
+                                        &#160;<h:outputText value="#{row[1]}"  />
+                                        <h:outputText value="#{row[2]}" rendered="#{row[2] ne null}"/>
+                                    </p:column>
+
+                                    <p:column width="250" sortBy="#{row[8]}" headerText="#{labels['examOrder.examApplication']}">
+                                        <h:outputText value="#{row[8]}"  />/
+                                        <h:outputText value="#{row[9]}">
+                                            <f:convertDateTime pattern="dd.MM.yyyy" timeZone="#{examOrderEdit.timeZone}"/>
+                                        </h:outputText>
+                                    </p:column>
+
+                                    <p:column width="150" sortBy="#{row[16]}" headerText="#{labels['examOrder.numPaperWork']}">
+                                        <h:outputText value="#{row[16]}"  />
+                                    </p:column>
+
+                                    <p:column width="150" sortBy="#{row[17]}" headerText="#{labels['examOrder.ratingExam']}">
+                                        <h:outputText value="#{row[17]}"  />
+                                    </p:column>
+
+                                    <p:column width="200" sortBy="#{row[18]}" headerText="#{labels['examOrder.note']}">
+                                        <h:outputText value="#{row[18]}"  />
+                                    </p:column>
+
+                                </p:dataTable>
+
+                            </div>
+
+                        </div>
+
+                        <div jsf:rendered="#{examOrderEdit.viewInsertResultCase}">
+
+                            <div class="title-group">
+                                <p:commandLink class="extended-search-toggle expanded" onclick="toggleSection(this, '#enteredResultInProtCase')" id="labelComLink">
+                                    <h:outputText value="#{examOrderEdit.countEnteredCaseResult == examOrderEdit.listResIzpitCase.size() ? labels['examOrder.personsInProt'] : labels['examOrder.insertResults']}"/>
+                                    <i class="fas fa-caret-right"></i>
+                                </p:commandLink>
+                            </div>
+
+                            <div id="enteredResultInProtCase" class="grid col-12 ui-fluid">
+
+                                <div class="grid col-12 ui-fluid" jsf:id="dCaseRes">
+
+                                    <div class="table-toolbar">
+
+                                        <h:panelGroup rendered="#{examOrderEdit.listResIzpitCase != null}" >
+                                            <h:outputText value="#{labels['examOrder.totalNumber']}: #{examOrderEdit.listResIzpitCase.size()}" styleClass="form-label mr-2"/>
+                                            <h:panelGroup id="caseResGroup">
+                                                <h:outputText value="#{labels['examOrder.passed']}: #{examOrderEdit.countResIzpitCase[1]} " styleClass="form-label mr-2" rendered="#{examOrderEdit.countResIzpitCase[0] eq 0}"/>
+                                                <h:outputText value="#{labels['examOrder.failed']}: #{examOrderEdit.countResIzpitCase[2]} " styleClass="form-label mr-2" rendered="#{examOrderEdit.countResIzpitCase[0] eq 0}"/>
+                                                <h:outputText value="#{labels['examOrder.notShowUp']}: #{examOrderEdit.countResIzpitCase[3]} " styleClass="form-label mr-2" rendered="#{examOrderEdit.countResIzpitCase[0] eq 0}"/>
+                                            </h:panelGroup>
+                                            <span class="fas fa-ellipsis-v  mx-2" />
+                                        </h:panelGroup>
+                                        <h:panelGroup id="fileUploadCaseGroup" rendered="#{examOrderEdit.listResIzpitCase != null}">
+                                            <p:fileUpload label="#{labels['examOrder.loadResults']}" rendered="#{examOrderEdit.showInsertCaseRes}"
+                                                          uploadButtonTitle="#{labels['examOrder.loadResults']}" allowTypes="/(\.|\/)(xls|xlsx)$/"
+                                                          update="formExamOrder:caseResGroup formExamOrder:filesList formExamOrder:fileUploadCaseGroup formExamOrder:includePanelCase formExamOrder:personsInProtCaseGroup formExamOrder:labelComLink formExamOrder:btnForInsertLicaCase formExamOrder:panelBtnCreateUP formExamOrder:spacerDelCase formExamOrder:btnDeleteProtCase formExamOrder:dCaseRes"
+                                                          multiple="false"  sequential="true" auto="true" listener="#{examOrderEdit.uploadFileResult}">
+                                                <f:attribute name="vidIzpit" value="2" />
+                                            </p:fileUpload>
+                                        </h:panelGroup>
+
+                                        <h:panelGroup id="panelBtnCreateUP" >
+                                            <h:panelGroup rendered="#{examOrderEdit.countEnteredCaseResult == examOrderEdit.listResIzpitCase.size()}">
+
+
+                                                    <p:commandButton icon="fas fa-file-alt" id="btnCreateUP" value="#{labels['examOrder.createUP']}" action="#{examOrderEdit.actionCreateUp}"
+                                                                     title="#{labels['examOrder.createUPtitle']}" style="width: 180px"
+                                                                     update="formExamOrder:caseResultsTable formExamOrder:panelBtnCreateUP" partialSubmit="true" process="formExamOrder:caseResultsTable @this"
+                                                                     rendered="#{examOrderEdit.showInsertCaseRes}" styleClass="ui-button-success" >
+                                                        <p:confirm header="#{ui_labels['general.comfirmation']}"
+                                                                   escape="false"
+                                                                   message="#{labels['examOrder.createUPMsg']}"
+                                                                   icon="fas fa-exclamation-triangle"/>
+
+                                                    </p:commandButton>
+
+                                            </h:panelGroup>
+                                        </h:panelGroup>
+                                    </div>
+
+
+
+                                        <ibg:compUdostDokument id="compUdostDocUp"
+                                                headerTitle="#{systemData.decodeItem(UriregConstants.CODE_CLASSIF_SHABLONI, UriregConstants.CODE_ZNACHENIE_SHABLON_UDOST_PRAVOSP, examOrderEdit.currentLang, null)}"
+                                                binding="#{examOrderEdit.bindCompUdostDocUp}" isEditable="true"
+                                                docId="#{examOrderEdit.liceUp[13]}" deletePrevFile="true"
+                                                vidDok="#{UriregConstants.CODE_ZNACHENIE_SHABLON_UDOST_PRAVOSP}"
+                                                parentObjectId="#{examOrderEdit.liceUp[13]}" isDublikat="#{false}"
+                                                liceId="#{examOrderEdit.liceUp[0]}" update="formExamOrder:caseResultsTable"
+                                                actionAfterGenerate="#{examOrderEdit.afterGenerateLiceUp()}"/>
+
+                                        <!-- Таблица за въвеждане на резултати от изпит-казус-->
+                                        <p:dataTable id="caseResultsTable" var="row" rowKey="#{row.id}" value="#{examOrderEdit.listResIzpitCase}" scrollable="true"
+                                                     rowIndexVar="idx" editable="true" editMode="row" style="width: 99.9%;"
+                                                     widgetVar="caseResultsTableWV" emptyMessage="#{ui_labels['general.norows']}"
+                                                     paginatorTemplate="{RowsPerPageDropdown} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {Exporters}"
+                                                     rows="15" rowsPerPageTemplate="5,10,15,20,25" paginatorPosition="bottom" paginatorAlwaysVisible="true" paginator="true" >
+
+                                            <p:ajax event="rowEdit" listener="#{examOrderEdit.actionSaveResult}"
+                                                    update="formExamOrder:caseResGroup formExamOrder:includePanelCase formExamOrder:personsInProtCaseGroup formExamOrder:labelComLink formExamOrder:btnForInsertLicaCase formExamOrder:panelBtnCreateUP formExamOrder:spacerDelCase formExamOrder:btnDeleteProtCase"/>
+
+                                            <f:facet name="{Exporters}">
+                                                <div style="float:left">
+                                                    <p:commandLink id="excelCase"  rendered="#{examOrderEdit.listResIzpitCase.size() le UriregConstants.ROW_LIMITS_REPORTS}"
+                                                                   update="caseResultsTable" process="caseResultsTable" partialSubmit="true" title="#{labels['examOrder.generateProtocol']}">
+                                                        <h:graphicImage library="images" name="excel2.png" />
+                                                        <p:dataExporter type="xlsx" target="caseResultsTable" fileName="Протокол_изпит_#{examOrderEdit.getDocDateFormatted(examOrderEdit.protCase.getDocDate())}#{examOrderEdit.exportForSiteC ? '_site' : ''}" postProcessor="#{examOrderEdit.postProcessXLSXPersonsExamListCase}"  />
+                                                    </p:commandLink>
+                                                    <p:selectBooleanCheckbox value="#{examOrderEdit.exportForSiteC}"  id="expS2" itemLabel="Генериране на протокол за сайта" styleClass="ml-2" style="bottom: 10px" >
+                                                        <p:ajax event="change" partialSubmit="true" update="@this enteredResultInProtCase" process="@this"/>
+                                                    </p:selectBooleanCheckbox>
+                                                </div>
+                                            </f:facet>
+
+                                            <p:column width="20" headerText="#{ui_labels['general.No-symbol']}">
+                                                <h:outputText value="#{idx + 1}" />
+                                            </p:column>
+
+                                            <p:column width="35" exportable="false">
+                                                <p:button icon="fas fa-eye" title="#{labels['traineeshipOrder.dosie']}" target="_blank"
+                                                          outcome="dossierPersonView.xhtml" ajax="false" styleClass="ui-button">
+                                                    <f:param  name="idLice" value="#{row[0]}"/>
+                                                </p:button>
+                                            </p:column>
+
+                                            <p:column width="50" rendered="#{!examOrderEdit.showInsertCaseRes}" exportable="false">
+                                                <p:commandButton rendered="#{row[13] ne null}" icon="fas fa-file-alt"
+                                                    styleClass="ui-button-success" partialSubmit="true" process="@this"
+                                                    update="formExamOrder:compUdostDocUp" title="#{labels['dossier.generateUd']}"
+                                                    actionListener="#{examOrderEdit.actionGenerateLiceUp(row)}"/>
+                                            </p:column>
+
+                                            <p:column width="50" rendered="#{!examOrderEdit.showInsertCaseRes}" exportable="false">
+                                                <ibg:compFiles idObj="#{row[13]}" singleFile="false" showFilePurpse="true" codeObj="#{UriregConstants.CODE_ZNACHENIE_JOURNAL_DOC}" rendered="#{row[13] ne null and examOrderEdit.checkForFile(row[13])}"/>
+                                            </p:column>
+
+                                            <p:column width="120" headerText="#{labels['publicRegister.nomerUP']}"  sortBy="#{row[14]}" rendered="#{!examOrderEdit.showInsertCaseRes}" exportable="#{!examOrderEdit.exportForSiteC}">
+                                                <h:outputText value="#{row[14]}" />
+                                            </p:column>
+
+                                            <p:column width="120" headerText="#{labels['publicRegister.dataUP']}" sortBy="#{row[15]}" rendered="#{!examOrderEdit.showInsertCaseRes}" exportable="#{!examOrderEdit.exportForSiteC}">
+                                                <h:outputText value="#{row[15]}" >
+                                                    <f:convertDateTime pattern="dd.MM.yyyy" timeZone="#{examOrderEdit.timeZone}"/>
+                                                </h:outputText>
+                                            </p:column>
+
+                                            <p:column width="140" headerText="#{labels['examOrder.firstName']}" sortBy="#{row[1]}"  filterBy="#{row[1]}" filterMatchMode="contains" filterPlaceholder="#{labels['examOrder.filterFirstName']}">
+                                                <h:outputText value="#{row[1]}" />
+                                            </p:column>
+                                            <p:column width="140" headerText="#{labels['examOrder.prezime']}" sortBy="#{row[2]}"  exportable="#{!examOrderEdit.exportForSiteC}" filterBy="#{row[2]}" filterMatchMode="contains" filterPlaceholder="#{labels['examOrder.filterPrezime']}">
+                                                <h:outputText value="#{row[2]}" />
+                                            </p:column>
+                                            <p:column width="140" headerText="#{labels['examOrder.lastName']}" sortBy="#{row[3]}"  filterBy="#{row[3]}" filterMatchMode="contains" filterPlaceholder="#{labels['examOrder.filterLastName']}">
+                                                <h:outputText value="#{row[3]}" />
+                                            </p:column>
+
+                                            <p:column width="100" headerText="#{labels['insertTestResults.egnLnch']}" sortBy="#{empty row[11] ? row[12] : row[11]}"  exportable="#{!examOrderEdit.exportForSiteC}"
+                                                      filterBy="#{row[11] ne null ? row[11] : row[12]}" filterMatchMode="contains" filterPlaceholder="#{labels['examOrder.filterEgn']}">
+                                                &#160;<h:outputText value="#{empty row[11] ? row[12] : row[11]}" />
+                                            </p:column>
+
+                                            <p:column width="160" headerText="#{labels['examOrder.examApplication']}" sortBy="#{row[7]}">
+                                                <h:outputText value="#{row[7]}" /> /
+                                                <h:outputText value="#{row[8]}" >
+                                                    <f:convertDateTime pattern="dd.MM.yyyy" timeZone="#{examOrderEdit.timeZone}"/>
+                                                </h:outputText>
+                                            </p:column>
+
+                                            <p:column width="160" headerText="#{labels['examOrder.numPaperWork']}" sortBy="#{row[10].casePismenaNom}" rendered="#{!examOrderEdit.do2019}">
+                                                <p:cellEditor>
+                                                    <f:facet name="output">
+                                                        <h:outputText value="#{row[10].casePismenaNom}"  />
+                                                    </f:facet>
+                                                    <f:facet name="input">
+                                                        <p:inputNumber  modifyValueOnWheel="false" title="#{labels['examOrder.numPaperWork']}"
+                                                                       value="#{examOrderEdit.getIzpitResultFromRow(row).casePismenaNom}"
+                                                                       minValue="0" decimalPlaces="0">
+                                                        </p:inputNumber>
+                                                    </f:facet>
+                                                </p:cellEditor>
+                                            </p:column>
+
+                                            <p:column width="150" headerText="#{labels['insertTestResults.result']}" sortBy="#{row[10].caseResult}">
+                                                <p:cellEditor>
+                                                    <f:facet name="output">
+                                                        <h:outputText value="#{systemData.decodeItem(UriregConstants.CODE_CLASSIF_IZPIT_RESULT, row[10].caseResult, examOrderEdit.currentLang, null)}" />
+                                                    </f:facet>
+                                                    <f:facet name="input">
+                                                        <p:selectOneMenu id="competence" value="#{examOrderEdit.getIzpitResultFromRow(row).caseResult}" style="width:96%">
+                                                            <f:selectItem itemValue="" />
+                                                            <f:selectItems value="#{systemData.getSysClassification(UriregConstants.CODE_CLASSIF_IZPIT_RESULT, examOrderEdit.currentDate, examOrderEdit.currentLang)}"
+                                                                           var="itemSc" itemLabel="#{itemSc.tekst}" itemValue="#{itemSc.code}" />
+                                                        </p:selectOneMenu>
+                                                    </f:facet>
+                                                </p:cellEditor>
+                                            </p:column>
+
+                                            <p:column width="100"  headerText="#{labels['examOrder.note']}" sortBy="#{row[10].caseRemark}">
+                                                <p:cellEditor>
+                                                    <f:facet name="output">
+                                                        <h:outputText value="#{examOrderEdit.getIzpitResultFromRow(row).caseRemark}" />
+                                                    </f:facet>
+                                                    <f:facet name="input">
+                                                        <p:inputText value="#{examOrderEdit.getIzpitResultFromRow(row).caseRemark}" style="width:96%" label="#{labels['examOrder.note']}"/>
+                                                    </f:facet>
+                                                </p:cellEditor>
+                                            </p:column>
+
+                                            <p:column width="30" exportable="false" rendered="#{examOrderEdit.showInsertCaseRes}">
+                                                <p:rowEditor editTitle="#{labels['examOrder.manualInput']}" cancelTitle="#{labels['general.otkaz']}" saveTitle="#{labels['general.zapis']}"/>
+                                            </p:column>
+
+
+                                            <p:column width="350" exportable="false"  headerText="#{labels['lice.universitet']}" sortBy="#{row[16]}">
+                                                <h:outputText
+                                                        value="#{systemData.decodeItem(UriregConstants.CODE_CLASSIF_UNIVERSITETI, row[16], examOrderEdit.currentLang, examOrderEdit.currentDate )}"/>
+                                            </p:column>
+
+                                        </p:dataTable>
+
+                                </div>
+
+                            </div>
+
+                            </div>
+
+                        </div>
+
+                    </p:panel>
+
+                </div>
+
+            </div>
+
+            <p:dialog appendTo="@form" header="Избор на лице за добавяне в протокола" widgetVar="modalAddLice"
+                      dynamic="true" modal="true" position="top" closeOnEscape="true" width="50%"
+                      responsive="true" fitViewport="true" resizable="true" >
+
+            <p:messages>
+                <p:autoUpdate />
+            </p:messages>
+
+            <p:defaultCommand target="searchBtn" />
+
+            <p:outputPanel id="panelAddLice">
+
+                    <h:panelGroup id="panelFilter">
+
+                        <div class="grid col-12 sm:col-12 md:col-3 lg:col-3 xl:col-3 ui-fluid">
+                            <h:outputText value="#{labels['dossier.egnLnch']}" styleClass="form-label"/>
+                            <p:inputText id="egnLnch" value="#{examOrderEdit.egnLnch}"/>
+                        </div>
+
+                        <div class="filter-buttons">
+                            <p:commandButton id="searchBtn" icon="fas fa-search"
+                                             value="#{ui_labels['general.search']}"
+                                             action="#{examOrderEdit.actionSearchLicaForAddToProtocol}"
+                                             update="formExamOrder:resultTable formExamOrder:panelFilter"
+                                             styleClass="mr-3"/>
+
+                            <p:commandButton icon="fas fa-eraser" value="#{ui_labels['general.clear']}"
+                                             actionListener="#{examOrderEdit.actionClearLicaForAddToProtocol}" partialSubmit="true"
+                                             update="@this formExamOrder:resultTable formExamOrder:panelFilter"
+                                             styleClass="ui-button-warning"/>
+                        </div>
+
+                </h:panelGroup>
+
+                <br />
+
+                <h:panelGroup id="resultTable" layout="block" >
+
+                        <p:dataTable id="licaForProt" var="row" value="#{examOrderEdit.licaForAdd}" rowIndexVar="idx"
+                                     emptyMessage="#{ui_labels['general.norows']}"
+                                     paginatorTemplate="{RowsPerPageDropdown} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink}"
+                                     rows="10" rowsPerPageTemplate="10,15,20,25" paginatorPosition="bottom" paginatorAlwaysVisible="false"
+                                     paginator="true" >
+
+                            <p:column width="5px" headerText="#{ui_labels['general.No-symbol']}">
+                                <h:outputText value="#{idx + 1}" />
+                            </p:column>
+
+                            <p:column style="text-align: center" width="20px" exportable="false">
+
+                                <p:commandButton id="btnChLice" title="#{ui_labels['general.choise']}"
+                                                 action="#{examOrderEdit.actionAddLiceForProtocol}"
+                                                 partialSubmit="true"
+                                                 process="formExamOrder:tblPersonsTestList formExamOrder:tblPersonsCaseListSel @this"
+                                                 update="formExamOrder:tblPersonsTestList formExamOrder:tblPersonsCaseListSel"
+                                                 icon="fas fa-hand-point-down" styleClass="btn-normal"/>
+                            </p:column>
+
+                            <p:column headerText="#{labels['dossier.imena']}" width="150px">
+                                <h:outputText value="#{row[2]}"  />
+                            </p:column>
+
+                            <p:column headerText="Заявление за изпит" width="100px">
+                                <h:outputText value="#{row[4]}"  />
+                            </p:column>
+
+                            <p:column headerText="Дата на заявление" width="100px">
+                                <h:outputText value="#{row[5]}">
+                                    <f:convertDateTime pattern="dd.MM.yyyy" timeZone="#{examOrderEdit.timeZone}"/>
+                                </h:outputText>
+                            </p:column>
+
+                        </p:dataTable>
+
+                </h:panelGroup>
+
+            </p:outputPanel>
+
+            </p:dialog>
+
+        </h:form>
+
+    </ui:define>
+
+</ui:composition>

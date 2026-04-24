@@ -1,0 +1,28 @@
+{
+  "resourceClasses": [
+    "com.ib.urireg.rest.PublicReg",
+    "com.ib.urireg.rest.MessagesRest",
+    "com.ib.urireg.rest.RegixServices"
+  ],
+  "scannerClass": "io.swagger.v3.jaxrs2.integration.JaxrsAnnotationScanner",
+
+  "openAPI": {
+    "info": {
+      "version": "1.0",
+      "title": "UriReg Services App",
+      "description": "This is a KrasiG Experiments with Swagger.",
+      "termsOfService": "http://bulshits.org/",
+      "contact": {
+        "email": "null@armenianpop.io"
+      },
+      "license": {
+        "name": "Apache 2.0",
+        "url": "http://www.apache.org/licenses/LICENSE-2.0.html"
+      }
+    },
+    "servers": [{
+      "url": "/urireg",
+      "description": "Local server"
+    }]
+  }
+}

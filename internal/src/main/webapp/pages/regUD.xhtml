@@ -1,0 +1,204 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="jakarta.faces.html"
+                xmlns:f="jakarta.faces.core"
+                xmlns:ui="jakarta.faces.facelets"
+                xmlns:p="http://primefaces.org/ui"
+                template="/template/template.xhtml">
+
+    <ui:define name="metadata">
+        <f:metadata>
+            <f:importConstants type="com.ib.urireg.system.UriregConstants"/>
+        </f:metadata>
+    </ui:define>
+
+    <ui:define name="title">#{labels['regUP.title']}</ui:define>
+
+    <ui:define name="viewname">
+        <li>#{labels["regUP.title"]}</li>
+    </ui:define>
+
+    <ui:define name="content">
+        <h:form>
+            <div class="container #{guestPreferences.containerPosition}">
+                <h:panelGroup id="panelFilter">
+                    <div class="card">
+
+                        <div class="grid">
+                            <div class="col-12 sm:col-12 md:col-3 lg:col-3 xl:col-3 ui-fluid">
+                                <h:outputText value="#{labels['dossier.egn']}" styleClass="form-label"/>
+                                <p:inputText id="egn" value="#{regUD.udSearch.egn}"/>
+                            </div>
+
+                            <div class="col-12 sm:col-12 md:col-3 lg:col-3 xl:col-3  ui-fluid">
+                                <h:outputText value="#{labels['dossier.imena']}" styleClass="form-label"/>
+                                <p:inputText id="imena" value="#{regUD.udSearch.names}"/>
+                            </div>
+                        </div>
+
+                        <div class="grid">
+                            <div class="col-12 sm:col-6 md:col-3 lg:col-3  xl:col-3  ui-fluid">
+                                <h:outputText value="#{labels['dossier.period']}" styleClass="form-label"/>
+                                <p:selectOneMenu id="periodUd" value="#{regUD.periodUD}">
+                                    <f:selectItem value="#{null}" itemValue="#{null}"/>
+                                    <f:selectItems
+                                            value="#{systemData.getSysClassification(UriregConstants.CODE_CLASSIF_PERIOD_NOFUTURE, null, regUD.currentLang)}"
+                                            var="perUD" itemLabel="#{perUD.tekst}"
+                                            itemValue="#{perUD.code}"/>
+                                    <p:ajax event="change" update="periodUd udDataOt udDataDo"
+                                            listener="#{regUD.changePeriod()}"/>
+                                </p:selectOneMenu>
+                            </div>
+                            <!--                    Дати от до-->
+                            <div class="col-12 sm:col-6 md:col-3 lg:col-2 xl:col-2  ui-fluid">
+                                <h:outputText value="#{ui_labels['general.dataOt']}" styleClass="form-label"/>
+                                <p:datePicker id="udDataOt" value="#{regUD.udSearch.udDateFrom}"
+                                              pattern="dd.MM.yyyy" mask="true" showOn="button"
+                                              locale="bg" showIcon="true" monthNavigator="true" yearNavigator="true">
+                                    <p:ajax event="change" update="periodUd" listener="#{regUD.actionClearPeriod()}"/>
+                                    <p:ajax event="dateSelect" update="periodUd"
+                                            listener="#{regUD.actionClearPeriod()}"/>
+                                </p:datePicker>
+                            </div>
+
+                            <div class="col-12 sm:col-6 md:col-3 lg:col-2 xl:col-2  ui-fluid">
+                                <h:outputText value="#{ui_labels['general.dataDo']}" styleClass="form-label"/>
+                                <p:datePicker id="udDataDo" value="#{regUD.udSearch.udDateTo}"
+                                              pattern="dd.MM.yyyy" mask="true" showOn="button"
+                                              locale="bg" showIcon="true" monthNavigator="true" yearNavigator="true">
+                                    <p:ajax event="change" update="periodUd" listener="#{regUD.actionClearPeriod()}"/>
+                                    <p:ajax event="dateSelect" update="periodUd"
+                                            listener="#{regUD.actionClearPeriod()}"/>
+                                </p:datePicker>
+                            </div>
+
+                        </div>
+
+                        <div class="filter-buttons">
+                            <p:commandButton icon="fas fa-search" value="#{ui_labels['general.search']}"
+                                             title="#{ui_labels['general.titleSearch']}" update="messages resultTable"
+                                             action="#{regUD.actionSearch()}"
+                                             styleClass="mr-3"/>
+
+
+                            <p:commandButton icon="fas fa-eraser" value="#{ui_labels['general.clear']}"
+                                             title="#{ui_labels['general.titleClear']}"
+                                             update="@this resultTable panelFilter"
+                                             actionListener="#{regUD.actionClear()}" partialSubmit="true"
+                                             styleClass="ui-button-warning"/>
+
+                        </div>
+                    </div>
+                </h:panelGroup>
+            </div>
+
+            <h:panelGroup id="resultTable" layout="block" styleClass="margin-top">
+                <h:panelGroup layout="block" styleClass="card">
+
+                    <div class="table-toolbar">
+                        <h:outputText value="#{ui_labels['general.reportResult']} #{regUD.udList.rowCount}"
+                                      styleClass="form-label"/>
+                    </div>
+
+                    <p:dataTable id="table" value="#{regUD.udList}"
+                                 var="row" rowIndexVar="idx" rows="15" rowsPerPageTemplate="5,15,20,25"
+                                 rendered="true"
+                                 emptyMessage="#{ui_labels['general.norows']}"
+                                 paginatorPosition="bottom" paginator="true"
+                                 lazy="true" sortMode="single" reflow="true" allowUnsorting="true"
+                                 paginatorTemplate="{RowsPerPageDropdown} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {Exporters}">
+
+                        <f:facet name="{Exporters}">
+                            <div style="float:left">
+                                <h:commandLink rendered="#{regUD.udList.rowCount > 0}">
+                                    <h:graphicImage library="images" name="excel2.png"/>
+                                    <p:dataExporter type="xlsx" target="table" fileName="Регистър_на_издадените_удостоверения_#{regUD.getDocDateFormatted(regUD.getCurrentDate())}"
+                                                    postProcessor="#{regUD.postProcessXLSX}"/>
+                                </h:commandLink>
+                            </div>
+                        </f:facet>
+
+                        <p:column headerText="#{ui_labels['general.No-symbol']}" width="35">
+                            <h:outputText value="#{idx + 1}"/>
+                        </p:column>
+
+                        <p:column headerText="#{labels['regUP.upNom']}" width="100"
+                                  sortBy="#{row.a13}">
+                            <h:outputText value="#{row[13]}"/>
+                        </p:column>
+
+                        <p:column headerText="#{labels['regUP.upDate']}" width="90"
+                                  sortBy="#{row.a14}">
+                            <h:outputText value="#{row[14]}">
+                                <f:convertDateTime pattern="dd.MM.yyyy" timeZone="#{regUD.timeZone}"/>
+                            </h:outputText>
+                        </p:column>
+
+                        <p:column headerText="#{labels['regUP.ime']}" sortBy="#{row.a3}"
+                                  width="80">
+                            <h:outputText value="#{row[3]}"/>
+                        </p:column>
+
+                        <p:column headerText="#{labels['regUP.prezime']}" sortBy="#{row.a4}"
+                                  width="90">
+                            <h:outputText value="#{row[4]}"/>
+                        </p:column>
+
+                        <p:column headerText="#{labels['regUP.familia']}" width="100"
+                                  sortBy="#{row.a5}">
+                            <h:outputText value="#{row[5]}"/>
+                        </p:column>
+
+                        <p:column headerText="#{labels['regUP.egn']}" width="90"
+                                  sortBy="#{row.a1}">
+                            &#160;<h:outputText value="#{row[1]}"/>
+                        </p:column>
+
+                        <p:column headerText="#{labels['regUP.birthDate']}" width="140"
+                                  sortBy="#{row.a6}">
+                            <h:outputText value="#{row[6]}">
+                                <f:convertDateTime pattern="dd.MM.yyyy" timeZone="#{regUD.timeZone}"/>
+                            </h:outputText>
+                        </p:column>
+
+                        <p:column headerText="#{labels['regUP.birthPlace']}" width="150"
+                                  sortBy="#{row.a7}">
+                            <h:outputText value="#{row[7]}"/>
+                        </p:column>
+
+                        <p:column headerText="#{labels['regUP.razpStaj']}" width="170"
+                                  sortBy="#{row.a9}">
+                            <h:outputText
+                                    value="#{systemData.decodeItem(UriregConstants.CODE_CLASSIF_INSTITUTION, row[9], regUD.currentLang,regUD.currentDate)}"/>
+                        </p:column>
+
+                        <p:column headerText="#{labels['regUP.krajStaj']}" width="120"
+                                  sortBy="#{row.a10}">
+                            <h:outputText value="#{row[10]}">
+                                <f:convertDateTime pattern="dd.MM.yyyy" timeZone="#{regUD.timeZone}"/>
+                            </h:outputText>
+                        </p:column>
+
+                        <p:column headerText="#{labels['regUP.protDate']}" width="130"
+                                  sortBy="#{row.a11}">
+                            <h:outputText value="#{row[11]}">
+                                <f:convertDateTime pattern="dd.MM.yyyy" timeZone="#{regUD.timeZone}"/>
+                            </h:outputText>
+                        </p:column>
+
+                        <p:column headerText="#{labels['regUP.podpis']}" visible="false"/>
+
+                        <p:column headerText="#{labels['regUP.dubli']}" width="90" styleClass="text-center"
+                                  sortBy="#{row.a15}">
+                            <h:outputText
+                                    value="#{row[15]== UriregConstants.CODE_ZNACHENIE_NE ? ui_labels['general.da'] : ''}"/>
+                        </p:column>
+
+                        <!--                        <p:column headerText="#{labels['regUP.zabelej']}" styleClass="text-center" visible="false"/>-->
+                    </p:dataTable>
+                </h:panelGroup>
+            </h:panelGroup>
+
+        </h:form>
+    </ui:define>
+
+</ui:composition>

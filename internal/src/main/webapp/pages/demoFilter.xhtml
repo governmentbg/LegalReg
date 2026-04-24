@@ -1,0 +1,160 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="jakarta.faces.html"
+                xmlns:f="jakarta.faces.core"
+                xmlns:ui="jakarta.faces.facelets"
+                xmlns:p="http://primefaces.org/ui"
+                template="/template/template.xhtml">
+
+	<ui:define name="metadata">
+		<f:metadata>
+			<f:importConstants type="com.ib.urireg.system.UriregConstants" />
+		</f:metadata>
+	</ui:define>
+
+    <ui:define name="title">Empty Page</ui:define>
+
+    <ui:define name="viewname">
+        <li>Pages</li>
+        <li><i class="fas fa-angle-right"></i></li>
+        <li><p:link outcome="empty">Empty</p:link></li>
+    </ui:define>
+
+    <ui:define name="content">
+    	<h:form>
+    	<div class="container #{guestPreferences.containerPosition}">
+			<div class="card">
+
+					<div class="grid">
+
+						<div class="col-12 sm:col-12 md:col-12 lg:col-3 xl:col-3 ui-fluid">
+							<h:outputText value="#{labels['repDoc.regnom']}" styleClass="form-label"/>
+							<div class="ui-inputgroup">
+								<p:inputText id="rnDoc"/>
+							    <p:focus for="rnDoc" />
+								<p:selectBooleanButton
+									styleClass="inputgroup-button"
+						      	    onLabel="Да"
+						    	    offLabel="Не"
+									title="Търсене по пълно съвпадение на рег. номер"
+								    onIcon="fas fa-toggle-on"
+									offIcon="fas fa-toggle-off" />
+						    </div>
+					 	</div>
+
+						<div  class="col-12 sm:col-12 md:col-6 lg:col-3 xl:col-3  ui-fluid">
+							<h:outputText value="#{labels['doc.lstPeriod']}" styleClass="form-label"/>
+						 	<p:selectOneMenu>
+	                        	<f:selectItem value="#{null}" itemValue="#{null}" />
+	                            <f:selectItems value="#{userContext.periodNoFuture}" />
+	                    		</p:selectOneMenu>
+						</div>
+
+						<div  class="col-12 sm:col-6 md:col-3 lg:col-3 xl:col-3  ui-fluid">
+							<h:outputText value="#{ui_labels['general.dataOt']}" styleClass="form-label"/>
+						 	<p:datePicker pattern="dd.MM.yyyy" mask="true"  showOn="button" locale="bg" />
+						</div>
+
+						<div class="col-12 sm:col-6 md:col-3 lg:col-3  xl:col-3  ui-fluid">
+							<h:outputText value="#{ui_labels['general.dataDo']}" styleClass="form-label"/>
+							<p:datePicker pattern="dd.MM.yyyy" mask="true" showOn="button" locale="bg" />
+						</div>
+
+						<div class="col-12">
+							<p:commandLink class="extended-search-toggle" onclick="toggleSection(this, '#event-extended')">
+								<h:outputText value="#{ui_labels['search.extend']}"/>
+								<em class="fas fa-caret-right"></em>
+							</p:commandLink>
+						</div>
+					</div>
+
+					<div class="grid extended-search" id="event-extended" style="display: none;">
+						<div  class="col-12">
+							<p:selectManyCheckbox id="typeDoc" immediate="true">
+								<f:selectItems value="#{docList.docTypeList}" />
+							</p:selectManyCheckbox>
+						</div>
+					</div>
+
+					<div class="filter-buttons">
+						<p:commandButton icon="fas fa-search" value="#{ui_labels['general.search']}"
+						    title="#{ui_labels['general.titleSearch']}" update="resultTable" styleClass="mr-3"/>
+
+
+						<p:commandButton icon="fas fa-eraser"  value="#{ui_labels['general.clear']}"
+						    title="#{ui_labels['general.titleClear']}" update="resultTable" styleClass="ui-button-warning" />
+
+
+					</div>
+
+		</div>
+	</div>
+
+			<h:panelGroup id="resultTable" layout="block" styleClass="margin-top">
+				<h:panelGroup layout="block" styleClass="card">
+
+					<div class="table-toolbar">
+						<p:commandButton icon="fas fa-file" value="#{ui_labels['general.new']}"
+					    	title="#{ui_labels['general.titleSearch']}" update="resultTable" styleClass="ui-button-success"/>
+
+						<span class="fas fa-ellipsis-v mx-2" />
+
+						<p:commandButton icon="fas fa-copy" value="Копиране"
+					    	title="#{ui_labels['general.titleSearch']}" update="resultTable"/>
+
+						<span class="fas fa-ellipsis-v mx-2" />
+
+
+						<h:outputText value="#{ui_labels['general.reportResult']} #{systemData.getSysClassification(UriregConstants.CODE_CLASSIF_PERIOD, null, docList.currentLang).size()}" styleClass="form-label"/>
+
+					</div>
+
+					<p:dataTable id="table" value="#{systemData.getSysClassification(UriregConstants.CODE_CLASSIF_PERIOD, null, docList.currentLang)}"
+						var="row" rowIndexVar="idx"	rows="15" rowsPerPageTemplate="5,15,20,25" paginatorPosition="bottom" paginator="true"
+						paginatorTemplate="{RowsPerPageDropdown} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {Exporters}"
+						rendered="#{systemData.getSysClassification(UriregConstants.CODE_CLASSIF_PERIOD, null, docList.currentLang) != null}">
+
+						<f:facet name="{Exporters}">
+							<div style="float:left">
+								<h:commandLink>
+									<h:graphicImage library="images" name="excel2.png" />
+								</h:commandLink>
+
+								<h:commandLink id="pdf">
+									<h:graphicImage library="images" name="pdf.png" />
+								</h:commandLink>
+
+								<h:commandLink id="csv" >
+									<h:graphicImage library="images" name="csv.png" />
+								</h:commandLink>
+							</div>
+						</f:facet>
+
+						<p:column width="50" headerText="#{labels['general.No-symbol']}">
+							<h:outputText value="#{idx + 1}" />
+						</p:column>
+
+						<p:column width="100">
+							<p:commandButton icon="fas fa-eye" action="demoPage" ajax="false" styleClass="mr-2"/>
+							<p:commandButton icon="fas fa-edit" action="demoPage" ajax="false" />
+						</p:column>
+
+						<p:column headerText="Текст">
+							<h:outputText value="#{row.tekst}"  />
+						</p:column>
+
+						<p:column headerText="Код на класиф.">
+							<h:outputText value="#{row.codeClassif}"  />
+						</p:column>
+
+						<p:column headerText="Код">
+							<h:outputText value="#{row.code}"  />
+						</p:column>
+
+					</p:dataTable>
+				</h:panelGroup>
+			</h:panelGroup>
+
+        </h:form>
+    </ui:define>
+
+</ui:composition>

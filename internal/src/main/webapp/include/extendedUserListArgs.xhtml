@@ -1,0 +1,19 @@
+
+<ui:composition xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="jakarta.faces.facelets" xmlns:h="jakarta.faces.html"
+                xmlns:f="jakarta.faces.core" xmlns:p="http://primefaces.org/ui"
+                xmlns:ibg="jakarta.faces.composite/components">
+
+
+	<div class="col-4 md:col-4  ui-fluid">
+	<h:outputText value="#{labels['userList.defPrava']}" styleClass="form-label" />
+	<ibg:selectManyModalA id="defPravaList" compType="2" maxResults="50"
+			codeClassif="#{UriregConstants.CODE_CLASSIF_DEF_PRAVA}"
+			selectedClassifs="#{userList.defPravaClassif}"
+			selectedCodes="#{userList.params.defPravaList}"
+			filtered="false" saveStateTree="false" showRadioBtn="true"
+			styleAutoComp="width:100%;" withBtnClear="false" isSelectNode="false"/>
+	</div>
+
+
+
+</ui:composition>

@@ -1,0 +1,59 @@
+<ui:composition
+        xmlns="http://www.w3.org/1999/xhtml"
+        xmlns:h="jakarta.faces.html"
+        xmlns:ui="jakarta.faces.facelets"
+        xmlns:p="http://primefaces.org/ui"
+		xmlns:jsf="jakarta.faces">
+
+	<h:form>
+	    <div class="layout-topbar">
+	        <div class="layout-topbar-wrapper">
+	            <div class="layout-topbar-left">
+	                <div class="layout-topbar-logo-wrapper">
+	                    <div class="layout-topbar-logo">
+	                        <p:graphicImage name="images/gerb.png" library="mirage-layout" />
+	                        <span class="app-name">#{labels['general.systemName']}</span>
+	                    </div>
+	                </div>
+
+	                <a href="#" class="sidebar-menu-button">
+	                    <i class="fas fa-bars"></i>
+	                </a>
+
+	                <a href="#" class="topbar-menu-mobile-button">
+	                    <i class="fas fa-ellipsis-v"></i>
+	                </a>
+	            </div>
+	            <div class="layout-topbar-right">
+
+	                <ul class="layout-topbar-actions">
+						<li class="topbar-item">
+							<a href="#">
+								<p:badge value="#{labels['general.testSredaShort']}" severity="warning" rendered="#{systemData.getSettingsValue('TestEnvironment') eq '1'}"/>
+								<p:badge value="#{labels['general.prodSredaShort']}" style="background-color: #5e81ac;" rendered="#{systemData.getSettingsValue('TestEnvironment') eq '0'}"/>
+							</a>
+							<ul>
+								<li>
+									<p jsf:rendered="#{systemData.getSettingsValue('TestEnvironment') eq '1'}">#{labels['general.testSreda']}</p>
+									<p jsf:rendered="#{systemData.getSettingsValue('TestEnvironment') eq '0'}">#{labels['general.prodSreda']}</p>
+								</li>
+							</ul>
+						</li>
+
+	                    <li class="topbar-item profile-item">
+	                        <a href="#">
+	                            <span class="profile-image-wrapper">
+	                               <i class="fas fa-user-circle" style="font-size:32px"></i>
+	                            </span>
+	                            <span class="profile-info-wrapper">
+	                                <h3>#{userData.liceNames}</h3>
+	                            </span>
+	                        </a>
+	                    </li>
+	                </ul>
+	            </div>
+	        </div>
+	    </div>
+    </h:form>
+
+</ui:composition>
